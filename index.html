@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html class="light" lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>QA Architect - AI-Powered Testing Assistant</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
+        rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+        rel="stylesheet" />
+
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#0053db",
+                        "primary-dim": "#0048c1",
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+
+        .material-symbols-outlined {
+            vertical-align: middle;
+        }
+
+        .module-section {
+            display: none;
+        }
+
+        .module-section.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .generating-btn {
+            opacity: 0.8;
+            cursor: wait;
+        }
+
+        .generating-btn .spin-icon {
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
+</head>
+
+<body class="bg-slate-50 text-slate-900">
+
+    <!-- API Key Setup Modal -->
+    <div id="api-key-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center"
+        style="display: none;">
+        <div class="bg-white rounded-2xl p-8 max-w-md w-full mx-4 shadow-2xl">
+            <div class="flex items-center gap-3 mb-6">
+                <div class="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
+                    <span class="material-symbols-outlined text-blue-600">key</span>
+                </div>
+                <div>
+                    <h3 class="text-xl font-bold">API Key Required</h3>
+                    <p class="text-sm text-slate-500">Enter your Anthropic API key</p>
+                </div>
+            </div>
+
+            <div class="mb-6">
+                <label class="text-xs font-bold text-slate-600 uppercase tracking-wider mb-2 block">Anthropic API
+                    Key</label>
+                <div class="space-y-3">
+
+                    <input type="password" id="claude-key" placeholder="Claude (sk-ant-...)"
+                        class="w-full p-2 border rounded" />
+
+                    <input type="password" id="openai-key" placeholder="OpenAI (sk-...)"
+                        class="w-full p-2 border rounded" />
+
+                    <input type="password" id="gemini-key" placeholder="Gemini API Key"
+                        class="w-full p-2 border rounded" />
+
+                    <input type="password" id="deepseek-key" placeholder="DeepSeek API Key"
+                        class="w-full p-2 border rounded" />
+
+                    <input type="password" id="grok-key" placeholder="Grok API Key" class="w-full p-2 border rounded" />
+
+                </div> class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:ring-2
+                focus:ring-blue-500 focus:border-transparent"
+                placeholder="sk-ant-..." />
+                <p class="text-xs text-slate-500 mt-2">Get your API key from <a href="https://console.anthropic.com/"
+                        target="_blank" class="text-blue-600 hover:underline">console.anthropic.com</a></p>
+            </div>
+
+            <div class="flex gap-3">
+                <button onclick="saveApiKey()"
+                    class="flex-1 bg-blue-600 text-white py-3 rounded-xl font-bold hover:bg-blue-700 transition-colors">
+                    Save & Continue
+                </button>
+                <button onclick="closeApiKeyModal()"
+                    class="px-6 bg-slate-100 text-slate-600 py-3 rounded-xl font-bold hover:bg-slate-200 transition-colors">
+                    Cancel
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sidebar -->
+    <aside class="fixed inset-y-0 left-0 flex flex-col py-6 bg-white h-screen w-64 border-r border-slate-200">
+        <div class="px-6 mb-8">
+            <div class="flex items-center gap-3">
+                <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+                    <span class="material-symbols-outlined text-white text-sm"
+                        style="font-variation-settings: 'FILL' 1;">architecture</span>
+                </div>
+                <div>
+                    <h1 class="text-lg font-bold tracking-tight">QA Architect</h1>
+                    <p class="text-[10px] text-slate-500 uppercase tracking-wider font-semibold">AI Workspace</p>
+                </div>
+            </div>
+        </div>
+
+        <nav class="flex-1 space-y-1 px-3">
+            <button
+                class="nav-item active w-full flex items-center px-4 py-2.5 rounded-lg text-sm font-medium transition-colors bg-blue-50 text-blue-700"
+                data-target="requirement-correction">
+                <span class="material-symbols-outlined mr-3 text-lg">psychology</span>
+                Requirement Intelligence
+            </button>
+            <button
+                class="nav-item w-full flex items-center px-4 py-2.5 rounded-lg text-sm font-medium transition-colors text-slate-600 hover:bg-slate-100"
+                data-target="test-case-architect">
+                <span class="material-symbols-outlined mr-3 text-lg">architecture</span>
+                Test Suite Architect
+            </button>
+            <button
+                class="nav-item w-full flex items-center px-4 py-2.5 rounded-lg text-sm font-medium transition-colors text-slate-600 hover:bg-slate-100"
+                data-target="test-case-gen">
+                <span class="material-symbols-outlined mr-3 text-lg">fact_check</span>
+                Professional Case Architect
+            </button>
+            <button
+                class="nav-item w-full flex items-center px-4 py-2.5 rounded-lg text-sm font-medium transition-colors text-slate-600 hover:bg-slate-100"
+                data-target="bug-report-gen">
+                <span class="material-symbols-outlined mr-3 text-lg">bug_report</span>
+                Bug Report Generator
+            </button>
+            <button
+                class="nav-item w-full flex items-center px-4 py-2.5 rounded-lg text-sm font-medium transition-colors text-slate-600 hover:bg-slate-100"
+                data-target="sentence-correction">
+                <span class="material-symbols-outlined mr-3 text-lg">spellcheck</span>
+                Sentence Correction
+            </button>
+        </nav>
+
+        <div class="px-3 mt-auto">
+            <button onclick="showApiKeyModal()"
+                class="w-full flex items-center px-4 py-2.5 rounded-lg text-sm font-medium transition-colors text-slate-600 hover:bg-slate-100">
+                <span class="material-symbols-outlined mr-3 text-lg">settings</span>
+                API Settings
+            </button>
+            <a href="login.html"
+                class="w-full flex items-center px-4 py-2.5 rounded-lg text-sm font-medium transition-colors text-red-600 hover:bg-red-50">
+                <span class="material-symbols-outlined mr-3 text-lg">logout</span>
+                Logout
+            </a>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="ml-64 p-12 max-w-6xl mx-auto min-h-screen">
+
+        <!-- 🔥 AI Provider Selector -->
+        <div class="mb-6 flex justify-end">
+            <select id="ai-provider" class="p-2 border border-slate-300 rounded-lg text-sm">
+                <option value="claude">Claude</option>
+                <option value="openai">ChatGPT</option>
+                <option value="gemini">Gemini</option>
+                <option value="deepseek">DeepSeek</option>
+                <option value="grok">Grok</option>
+            </select>
+        </div>
+
+
+
+        <!-- Requirement Intelligence Module -->
+        <section id="requirement-correction" class="module-section active">
+            <header class="mb-12">
+                <h2 class="text-4xl font-bold tracking-tight mb-2">Requirement Intelligence</h2>
+                <p class="text-slate-600 max-w-2xl">AI-powered requirement analysis, gap detection, and test scenario
+                    generation</p>
+            </header>
+
+            <div class="bg-white rounded-2xl p-8 shadow-sm border border-slate-200 mb-8">
+                <label class="text-xs font-bold uppercase tracking-wider text-slate-600 mb-3 block">Enter
+                    Requirement</label>
+                <textarea id="req-intel-input" rows="6"
+                    class="w-full bg-slate-50 border border-slate-200 rounded-xl p-4 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                    placeholder="Paste your requirement or user story here..."></textarea>
+
+                <div class="mt-6 flex justify-end">
+                    <button onclick="generateRequirementIntelligence()"
+                        class="generate-btn bg-blue-600 text-white px-8 py-3 rounded-xl font-bold flex items-center gap-2 hover:bg-blue-700 transition-colors">
+                        <span class="material-symbols-outlined spin-icon">psychology</span>
+                        <span class="btn-text">Analyze Requirement</span>
+                    </button>
+                </div>
+            </div>
+
+            <div id="req-intel-output" style="display: none;" class="space-y-6">
+                <div class="bg-white rounded-2xl p-8 border border-slate-200">
+                    <h3 class="text-xl font-bold mb-4 flex items-center gap-2">
+                        <span class="material-symbols-outlined text-blue-600">verified</span>
+                        Corrected Specification
+                    </h3>
+                    <div id="corrected-spec" class="prose prose-slate max-w-none"></div>
+                </div>
+
+                <div class="bg-orange-50 rounded-2xl p-8 border border-orange-200">
+                    <h3 class="text-lg font-bold mb-4 text-orange-900 flex items-center gap-2">
+                        <span class="material-symbols-outlined">warning</span>
+                        Gap Analysis
+                    </h3>
+                    <div id="gap-analysis" class="space-y-2"></div>
+                </div>
+
+                <div class="bg-green-50 rounded-2xl p-8 border border-green-200">
+                    <h3 class="text-lg font-bold mb-4 text-green-900 flex items-center gap-2">
+                        <span class="material-symbols-outlined">checklist</span>
+                        Test Scenarios
+                    </h3>
+                    <div id="test-scenarios" class="space-y-2"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Test Suite Architect -->
+        <section id="test-case-architect" class="module-section">
+            <header class="mb-12">
+                <h2 class="text-4xl font-bold tracking-tight mb-2">Test Suite Architect</h2>
+                <p class="text-slate-600 max-w-2xl">Generate comprehensive test cases with AI-powered coverage analysis
+                </p>
+            </header>
+
+            <div class="bg-white rounded-2xl p-8 shadow-sm border border-slate-200 mb-8">
+                <div class="grid grid-cols-2 gap-6 mb-6">
+                    <div>
+                        <label class="text-xs font-bold uppercase tracking-wider text-slate-600 mb-2 block">Module
+                            Name</label>
+                        <input type="text" id="module-name"
+                            class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm"
+                            placeholder="e.g., Authentication">
+                    </div>
+                    <div>
+                        <label class="text-xs font-bold uppercase tracking-wider text-slate-600 mb-2 block">Sub
+                            Module</label>
+                        <input type="text" id="sub-module-name"
+                            class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm"
+                            placeholder="e.g., Login">
+                    </div>
+                </div>
+
+                <label class="text-xs font-bold uppercase tracking-wider text-slate-600 mb-3 block">Requirement
+                    Description</label>
+                <textarea id="test-suite-input" rows="6"
+                    class="w-full bg-slate-50 border border-slate-200 rounded-xl p-4 text-sm focus:ring-2 focus:ring-blue-500 resize-none"
+                    placeholder="Describe the feature or requirement..."></textarea>
+
+                <div class="mt-6 flex justify-end">
+                    <button onclick="generateTestSuite()"
+                        class="generate-btn bg-blue-600 text-white px-8 py-3 rounded-xl font-bold flex items-center gap-2 hover:bg-blue-700">
+                        <span class="material-symbols-outlined spin-icon">auto_awesome</span>
+                        <span class="btn-text">Generate Test Cases</span>
+                    </button>
+                </div>
+            </div>
+
+            <div id="test-suite-output" style="display: none;">
+                <div class="bg-slate-900 rounded-2xl p-6 overflow-x-auto">
+                    <pre id="test-cases-excel" class="text-xs font-mono text-green-400 whitespace-pre"></pre>
+                </div>
+                <button onclick="copyTestCases()"
+                    class="mt-4 bg-blue-600 text-white px-6 py-2 rounded-lg text-sm font-bold hover:bg-blue-700">
+                    Copy for Excel
+                </button>
+            </div>
+        </section>
+
+        <!-- Bug Report Generator -->
+        <section id="bug-report-gen" class="module-section">
+            <header class="mb-12">
+                <h2 class="text-4xl font-bold tracking-tight mb-2">Bug Report Generator</h2>
+                <p class="text-slate-600 max-w-2xl">Transform rough notes into professional JIRA-ready bug reports</p>
+            </header>
+
+            <div class="bg-white rounded-2xl p-8 shadow-sm border border-slate-200 mb-8">
+                <label class="text-xs font-bold uppercase tracking-wider text-slate-600 mb-3 block">Bug Description
+                    (Rough Notes)</label>
+                <textarea id="bug-input" rows="6"
+                    class="w-full bg-slate-50 border border-slate-200 rounded-xl p-4 text-sm focus:ring-2 focus:ring-blue-500 resize-none"
+                    placeholder="Describe the bug, steps, or any rough notes..."></textarea>
+
+                <div class="mt-6 flex justify-end">
+                    <button onclick="generateBugReport()"
+                        class="generate-btn bg-red-600 text-white px-8 py-3 rounded-xl font-bold flex items-center gap-2 hover:bg-red-700">
+                        <span class="material-symbols-outlined spin-icon">bug_report</span>
+                        <span class="btn-text">Generate Report</span>
+                    </button>
+                </div>
+            </div>
+
+            <div id="bug-output" style="display: none;" class="bg-white rounded-2xl p-8 border border-slate-200">
+                <div id="bug-report-content" class="prose prose-slate max-w-none"></div>
+                <button onclick="copyBugReport()"
+                    class="mt-6 bg-blue-600 text-white px-6 py-2 rounded-lg text-sm font-bold hover:bg-blue-700">
+                    Copy to Clipboard
+                </button>
+            </div>
+        </section>
+
+        <!-- Sentence Correction -->
+        <section id="sentence-correction" class="module-section">
+            <header class="mb-12">
+                <h2 class="text-4xl font-bold tracking-tight mb-2">Sentence Correction</h2>
+                <p class="text-slate-600 max-w-2xl">Improve grammar, clarity, and tone of technical documentation</p>
+            </header>
+
+            <div class="bg-white rounded-2xl p-8 shadow-sm border border-slate-200 mb-8">
+                <label class="text-xs font-bold uppercase tracking-wider text-slate-600 mb-3 block">Enter Text</label>
+                <textarea id="sentence-input" rows="4"
+                    class="w-full bg-slate-50 border border-slate-200 rounded-xl p-4 text-sm focus:ring-2 focus:ring-blue-500 resize-none"
+                    placeholder="Enter the sentence to correct..."></textarea>
+
+                <div class="mt-6 flex justify-end">
+                    <button onclick="correctSentence()"
+                        class="generate-btn bg-blue-600 text-white px-8 py-3 rounded-xl font-bold flex items-center gap-2 hover:bg-blue-700">
+                        <span class="material-symbols-outlined spin-icon">spellcheck</span>
+                        <span class="btn-text">Correct Sentence</span>
+                    </button>
+                </div>
+            </div>
+
+            <div id="sentence-output" style="display: none;" class="space-y-6">
+                <div class="bg-white rounded-2xl p-8 border border-slate-200">
+                    <h3 class="text-lg font-bold mb-4">Corrected Version</h3>
+                    <p id="corrected-sentence" class="text-lg text-slate-700 leading-relaxed"></p>
+                </div>
+
+                <div class="grid grid-cols-2 gap-6">
+                    <div class="bg-slate-50 rounded-xl p-6">
+                        <h4 class="text-sm font-bold text-slate-600 mb-3">Casual Tone</h4>
+                        <p id="casual-tone" class="text-sm text-slate-700"></p>
+                    </div>
+                    <div class="bg-slate-50 rounded-xl p-6">
+                        <h4 class="text-sm font-bold text-slate-600 mb-3">Formal Tone</h4>
+                        <p id="formal-tone" class="text-sm text-slate-700"></p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Professional Case Architect -->
+        <section id="test-case-gen" class="module-section">
+            <header class="mb-12">
+                <h2 class="text-4xl font-bold tracking-tight mb-2">Professional Case Architect</h2>
+                <p class="text-slate-600 max-w-2xl">Transform rough test notes into structured professional test cases
+                </p>
+            </header>
+
+            <div class="bg-white rounded-2xl p-8 shadow-sm border border-slate-200 mb-8">
+                <label class="text-xs font-bold uppercase tracking-wider text-slate-600 mb-3 block">Rough Test
+                    Notes</label>
+                <textarea id="professional-case-input" rows="6"
+                    class="w-full bg-slate-50 border border-slate-200 rounded-xl p-4 text-sm focus:ring-2 focus:ring-blue-500 resize-none"
+                    placeholder="Enter rough test case notes..."></textarea>
+
+                <div class="mt-6 flex justify-end">
+                    <button onclick="generateProfessionalCase()"
+                        class="generate-btn bg-blue-600 text-white px-8 py-3 rounded-xl font-bold flex items-center gap-2 hover:bg-blue-700">
+                        <span class="material-symbols-outlined spin-icon">architecture</span>
+                        <span class="btn-text">Architect Case</span>
+                    </button>
+                </div>
+            </div>
+
+            <div id="professional-case-output" style="display: none;"
+                class="bg-white rounded-2xl p-8 border border-slate-200">
+                <div id="professional-case-content" class="prose prose-slate max-w-none"></div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Toast Notification -->
+    <div id="toast"
+        class="fixed bottom-8 left-1/2 -translate-x-1/2 bg-slate-900 text-white px-6 py-3 rounded-full text-sm font-medium shadow-xl transition-all duration-300 opacity-0 translate-y-8 z-50 pointer-events-none">
+        Processing...
+    </div>
+
+    <script src="app.js"></script>
+</body>
+
+</html>
