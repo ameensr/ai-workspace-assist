@@ -31,7 +31,13 @@ function saveApiKey() {
 
     if (claude) localStorage.setItem('claude_key', claude);
     if (openai) localStorage.setItem('openai_key', openai);
-    if (gemini) localStorage.setItem('gemini_key', gemini);
+    if (gemini) {
+        localStorage.setItem('gemini_key', gemini);
+        const providerSelect = document.getElementById('ai-provider');
+        if (providerSelect) {
+            providerSelect.value = 'gemini';
+        }
+    }
     if (deepseek) localStorage.setItem('deepseek_key', deepseek);
     if (grok) localStorage.setItem('grok_key', grok);
 
@@ -57,7 +63,7 @@ function closeApiKeyModal() {
 
 // Check API key on load
 window.addEventListener('DOMContentLoaded', () => {
-    if (!getApiKey("claude")) {
+    if (!getApiKey("claude") && !getApiKey("gemini")) {
         setTimeout(showApiKeyModal, 500);
     }
     initializeApp();
@@ -114,16 +120,16 @@ async function generateAI(prompt, systemPrompt = "") {
         return await callClaudeAPI(prompt, systemPrompt);
     }
     if (provider === "openai") {
-        return await callOpenAI(prompt);
+        return await callOpenAI(prompt, systemPrompt);
     }
     if (provider === "gemini") {
-        return await callGemini(prompt);
+        return await callGemini(prompt, systemPrompt);
     }
     if (provider === "deepseek") {
-        return await callDeepSeek(prompt);
+        return await callDeepSeek(prompt, systemPrompt);
     }
     if (provider === "grok") {
-        return await callGrok(prompt);
+        return await callGrok(prompt, systemPrompt);
     }
 
     return await callClaudeAPI(prompt, systemPrompt);
@@ -168,14 +174,19 @@ async function callClaudeAPI(prompt, systemPrompt = "") {
     }
 }
 
-async function callOpenAI(prompt) {
+async function callOpenAI(prompt, systemPrompt = "") {
     const apiKey = getApiKey("openai");
 
-    // ✅ ADD HERE 👇 (FIRST LINE AFTER apiKey)
     if (!apiKey) {
         showToast("OpenAI key missing, switching to Claude");
-        return await callClaudeAPI(prompt);
+        return await callClaudeAPI(prompt, systemPrompt);
     }
+    
+    const messages = [];
+    if(systemPrompt){
+        messages.push({ role: "system", content: systemPrompt });
+    }
+    messages.push({ role: "user", content: prompt });
 
     const res = await fetch("https://api.openai.com/v1/chat/completions", {
         method: "POST",
@@ -185,7 +196,7 @@ async function callOpenAI(prompt) {
         },
         body: JSON.stringify({
             model: "gpt-4o-mini",
-            messages: [{ role: "user", content: prompt }]
+            messages: messages
         })
     });
 
@@ -194,35 +205,52 @@ async function callOpenAI(prompt) {
         showToast("OpenAI error");
         return null;
     }
+    return data.choices[0].message.content;
 }
 
-async function callGemini(prompt) {
+async function callGemini(prompt, systemPrompt = "") {
     const apiKey = getApiKey("gemini");
 
     if (!apiKey) {
         showToast("Gemini key missing, switching to Claude");
-        return await callClaudeAPI(prompt);
+        return await callClaudeAPI(prompt, systemPrompt);
     }
 
     try {
+        const requestBody = {
+            contents: [{
+                parts: [{ text: prompt }]
+            }]
+        };
+
+        if (systemPrompt) {
+            requestBody.system_instruction = {
+                parts: [{ text: systemPrompt }]
+            };
+        }
+
         const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
             },
-            body: JSON.stringify({
-                contents: [{
-                    parts: [{ text: prompt }]
-                }]
-            })
+            body: JSON.stringify(requestBody)
         });
 
         const data = await res.json();
+
         if (data.error) {
             console.error("Gemini Error:", data.error);
             showToast("Gemini Error: " + data.error.message);
             return null;
         }
+
+        if (!data.candidates || !data.candidates[0].content || !data.candidates[0].content.parts[0].text) {
+             console.error("Gemini Error: Invalid response structure", data);
+             showToast("Gemini Error: Invalid response");
+             return null;
+        }
+
         return data.candidates[0].content.parts[0].text;
     } catch (error) {
         console.error("Gemini Fetch Error:", error);
@@ -231,13 +259,19 @@ async function callGemini(prompt) {
     }
 }
 
-async function callDeepSeek(prompt) {
+async function callDeepSeek(prompt, systemPrompt = "") {
     const apiKey = getApiKey("deepseek");
 
     if (!apiKey) {
         showToast("DeepSeek key missing, switching to Claude");
-        return await callClaudeAPI(prompt);
+        return await callClaudeAPI(prompt, systemPrompt);
     }
+    
+    const messages = [];
+    if(systemPrompt){
+        messages.push({ role: "system", content: systemPrompt });
+    }
+    messages.push({ role: "user", content: prompt });
 
     const res = await fetch("https://api.deepseek.com/v1/chat/completions", {
         method: "POST",
@@ -247,7 +281,7 @@ async function callDeepSeek(prompt) {
         },
         body: JSON.stringify({
             model: "deepseek-chat",
-            messages: [{ role: "user", content: prompt }]
+            messages: messages
         })
     });
 
@@ -256,15 +290,22 @@ async function callDeepSeek(prompt) {
         showToast("DeepSeek error");
         return null;
     }
+    return data.choices[0].message.content;
 }
 
-async function callGrok(prompt) {
+async function callGrok(prompt, systemPrompt = "") {
     const apiKey = getApiKey("grok");
 
     if (!apiKey) {
         showToast("Grok key missing, switching to Claude");
-        return await callClaudeAPI(prompt);
+        return await callClaudeAPI(prompt, systemPrompt);
     }
+
+    const messages = [];
+    if(systemPrompt){
+        messages.push({ role: "system", content: systemPrompt });
+    }
+    messages.push({ role: "user", content: prompt });
 
     const res = await fetch("https://api.x.ai/v1/chat/completions", {
         method: "POST",
@@ -274,7 +315,7 @@ async function callGrok(prompt) {
         },
         body: JSON.stringify({
             model: "grok-1",
-            messages: [{ role: "user", content: prompt }]
+            messages: messages
         })
     });
 
@@ -283,6 +324,7 @@ async function callGrok(prompt) {
         showToast("Grok error");
         return null;
     }
+    return data.choices[0].message.content;
 }
 
 
@@ -450,7 +492,7 @@ async function correctSentence() {
     const systemPrompt = `You are a professional editor. Correct grammar, improve clarity, and provide variants.
 Return JSON with: corrected (standard), casual (informal tone), formal (business tone)`;
 
-    const prompt = `Correct and improve this sentence:\n\n"${input}"`;
+    const prompt = `Correct and improve this sentence:\n\n\"${input}\"`;
 
     try {
         const response = await generateAI(prompt, systemPrompt);
