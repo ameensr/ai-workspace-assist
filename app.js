@@ -1,73 +1,24 @@
-/**
- * QA AI Assistant - Production Version with Real AI Integration
- * Uses Anthropic Claude API for all intelligence features
- */
-
-const ANTHROPIC_API_URL = 'https://api.anthropic.com/v1/messages';
-const CLAUDE_MODEL = 'claude-sonnet-4-20250514';
-
-// ✅ ADD HERE 👇
-function safeParseJSON(text) {
-    try {
-        const jsonMatch = text.match(/\{[\s\S]*\}/);
-        return JSON.parse(jsonMatch[0]);
-    } catch (e) {
-        console.error("JSON Parse Error", e);
-        showToast("AI response format error");
-        return null;
-    }
-}
-// API Key Management
-function getApiKey(provider) {
-    return localStorage.getItem(provider + "_key");
-}
-
-function saveApiKey() {
-    const claude = document.getElementById('claude-key').value.trim();
-    const openai = document.getElementById('openai-key').value.trim();
-    const gemini = document.getElementById('gemini-key').value.trim();
-    const deepseek = document.getElementById('deepseek-key').value.trim();
-    const grok = document.getElementById('grok-key').value.trim();
-
-    if (claude) localStorage.setItem('claude_key', claude);
-    if (openai) localStorage.setItem('openai_key', openai);
-    if (gemini) {
-        localStorage.setItem('gemini_key', gemini);
-        const providerSelect = document.getElementById('ai-provider');
-        if (providerSelect) {
-            providerSelect.value = 'gemini';
-        }
-    }
-    if (deepseek) localStorage.setItem('deepseek_key', deepseek);
-    if (grok) localStorage.setItem('grok_key', grok);
-
-    console.warn("⚠️ Keys stored in localStorage (not secure for production)");
-
-    closeApiKeyModal();
-    showToast('API Keys saved!');
-}
-
-function showApiKeyModal() {
-    document.getElementById('api-key-modal').style.display = 'flex';
-
-    document.getElementById('claude-key').value = getApiKey("claude") || "";
-    document.getElementById('openai-key').value = getApiKey("openai") || "";
-    document.getElementById('gemini-key').value = getApiKey("gemini") || "";
-    document.getElementById('deepseek-key').value = getApiKey("deepseek") || "";
-    document.getElementById('grok-key').value = getApiKey("grok") || "";
-}
-
-function closeApiKeyModal() {
-    document.getElementById('api-key-modal').style.display = 'none';
-}
-
-// Check API key on load
+// Check API key presence and initialize
 window.addEventListener('DOMContentLoaded', () => {
-    if (!getApiKey("claude") && !getApiKey("gemini")) {
-        setTimeout(showApiKeyModal, 500);
-    }
+    updateApiStatus();
     initializeApp();
 });
+
+// Update API Status UI
+function updateApiStatus() {
+    const dot = document.getElementById('api-status-dot');
+    if (!dot) return;
+
+    if (appConfig.geminiApiKey && appConfig.geminiApiKey.length > 5) {
+        dot.classList.remove('bg-slate-300', 'bg-red-500');
+        dot.classList.add('bg-green-500');
+        dot.classList.remove('animate-pulse');
+    } else {
+        dot.classList.remove('bg-slate-300', 'bg-green-500');
+        dot.classList.add('bg-red-500');
+        dot.classList.add('animate-pulse');
+    }
+}
 
 // Toast Notification
 function showToast(message) {
@@ -112,108 +63,19 @@ function setLoading(btn, isLoading) {
     }
 }
 
-// Core AI Function - Calls Anthropic API
+// Core AI Function - Multi-provider removed, Gemini only
 async function generateAI(prompt, systemPrompt = "") {
-    const provider = document.getElementById("ai-provider")?.value || "claude";
-
-    if (provider === "claude") {
-        return await callClaudeAPI(prompt, systemPrompt);
-    }
-    if (provider === "openai") {
-        return await callOpenAI(prompt, systemPrompt);
-    }
-    if (provider === "gemini") {
-        return await callGemini(prompt, systemPrompt);
-    }
-    if (provider === "deepseek") {
-        return await callDeepSeek(prompt, systemPrompt);
-    }
-    if (provider === "grok") {
-        return await callGrok(prompt, systemPrompt);
-    }
-
-    return await callClaudeAPI(prompt, systemPrompt);
+    return await callGemini(prompt, systemPrompt);
 }
 
-
-async function callClaudeAPI(prompt, systemPrompt = "") {
-    const apiKey = getApiKey("claude");
-    if (!apiKey) {
-        showToast("Claude API key missing!");
-        return;
-    }
-
-    try {
-        const res = await fetch(ANTHROPIC_API_URL, {
-            method: 'POST',
-            headers: {
-                'x-api-key': apiKey,
-                'anthropic-version': '2023-06-01',
-                'content-type': 'application/json',
-                'dangerously-allow-browser': 'true'
-            },
-            body: JSON.stringify({
-                model: CLAUDE_MODEL,
-                max_tokens: 4000,
-                system: systemPrompt,
-                messages: [{ role: 'user', content: prompt }]
-            })
-        });
-
-        const data = await res.json();
-        if (data.error) {
-            console.error("Claude Error:", data.error);
-            showToast("Claude Error: " + data.error.message);
-            return null;
-        }
-        return data.content[0].text;
-    } catch (error) {
-        console.error("Claude Fetch Error:", error);
-        showToast("Failed to connect to Claude");
-        return null;
-    }
-}
-
-async function callOpenAI(prompt, systemPrompt = "") {
-    const apiKey = getApiKey("openai");
-
-    if (!apiKey) {
-        showToast("OpenAI key missing, switching to Claude");
-        return await callClaudeAPI(prompt, systemPrompt);
-    }
-    
-    const messages = [];
-    if(systemPrompt){
-        messages.push({ role: "system", content: systemPrompt });
-    }
-    messages.push({ role: "user", content: prompt });
-
-    const res = await fetch("https://api.openai.com/v1/chat/completions", {
-        method: "POST",
-        headers: {
-            "Authorization": "Bearer " + apiKey,
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-            model: "gpt-4o-mini",
-            messages: messages
-        })
-    });
-
-    const data = await res.json();
-    if (!data.choices) {
-        showToast("OpenAI error");
-        return null;
-    }
-    return data.choices[0].message.content;
-}
 
 async function callGemini(prompt, systemPrompt = "") {
-    const apiKey = getApiKey("gemini");
+    const apiKey = appConfig.geminiApiKey;
 
-    if (!apiKey) {
-        showToast("Gemini key missing, switching to Claude");
-        return await callClaudeAPI(prompt, systemPrompt);
+    if (!apiKey || apiKey.length < 5) {
+        showToast("Gemini API key missing in config.js");
+        updateApiStatus();
+        return null;
     }
 
     try {
@@ -259,73 +121,7 @@ async function callGemini(prompt, systemPrompt = "") {
     }
 }
 
-async function callDeepSeek(prompt, systemPrompt = "") {
-    const apiKey = getApiKey("deepseek");
 
-    if (!apiKey) {
-        showToast("DeepSeek key missing, switching to Claude");
-        return await callClaudeAPI(prompt, systemPrompt);
-    }
-    
-    const messages = [];
-    if(systemPrompt){
-        messages.push({ role: "system", content: systemPrompt });
-    }
-    messages.push({ role: "user", content: prompt });
-
-    const res = await fetch("https://api.deepseek.com/v1/chat/completions", {
-        method: "POST",
-        headers: {
-            "Authorization": "Bearer " + apiKey,
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-            model: "deepseek-chat",
-            messages: messages
-        })
-    });
-
-    const data = await res.json();
-    if (!data.choices) {
-        showToast("DeepSeek error");
-        return null;
-    }
-    return data.choices[0].message.content;
-}
-
-async function callGrok(prompt, systemPrompt = "") {
-    const apiKey = getApiKey("grok");
-
-    if (!apiKey) {
-        showToast("Grok key missing, switching to Claude");
-        return await callClaudeAPI(prompt, systemPrompt);
-    }
-
-    const messages = [];
-    if(systemPrompt){
-        messages.push({ role: "system", content: systemPrompt });
-    }
-    messages.push({ role: "user", content: prompt });
-
-    const res = await fetch("https://api.x.ai/v1/chat/completions", {
-        method: "POST",
-        headers: {
-            "Authorization": "Bearer " + apiKey,
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-            model: "grok-1",
-            messages: messages
-        })
-    });
-
-    const data = await res.json();
-    if (!data.choices) {
-        showToast("Grok error");
-        return null;
-    }
-    return data.choices[0].message.content;
-}
 
 
 

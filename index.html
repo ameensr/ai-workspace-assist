@@ -4,13 +4,14 @@
 <head>
     <meta charset="utf-8" />
     <meta content="width=device-width, initial-scale=1.0" name="viewport" />
-    <title>QA Architect - AI-Powered Testing Assistant</title>
+    <title>Qaly AI - Test Smarter. Ship Faster.</title>
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
         rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
         rel="stylesheet" />
+    <link rel="stylesheet" href="style.css" />
 
     <script id="tailwind-config">
         tailwind.config = {
@@ -75,66 +76,19 @@
 
 <body class="bg-slate-50 text-slate-900">
 
-    <!-- API Key Setup Modal -->
-    <div id="api-key-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center"
-        style="display: none;">
-        <div class="bg-white rounded-2xl p-8 max-w-md w-full mx-4 shadow-2xl">
-            <div class="flex items-center gap-3 mb-6">
-                <div class="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
-                    <span class="material-symbols-outlined text-blue-600">key</span>
-                </div>
-                <div>
-                    <h3 class="text-xl font-bold">API Key Required</h3>
-                    <p class="text-sm text-slate-500">Enter your Anthropic API key</p>
-                </div>
-            </div>
 
-            <div class="mb-6">
-                <label class="text-xs font-bold text-slate-600 uppercase tracking-wider mb-2 block">Anthropic API
-                    Key</label>
-                <div class="space-y-3">
-
-                    <input type="password" id="claude-key" placeholder="Claude (sk-ant-...)"
-                        class="w-full p-2 border rounded" />
-
-                    <input type="password" id="openai-key" placeholder="OpenAI (sk-...)"
-                        class="w-full p-2 border rounded" />
-
-                    <input type="password" id="gemini-key" placeholder="Gemini API Key"
-                        class="w-full p-2 border rounded" />
-
-                    <input type="password" id="deepseek-key" placeholder="DeepSeek API Key"
-                        class="w-full p-2 border rounded" />
-
-                    <input type="password" id="grok-key" placeholder="Grok API Key" class="w-full p-2 border rounded" />
-
-                </div>
-            </div>
-
-            <div class="flex gap-3">
-                <button onclick="saveApiKey()"
-                    class="flex-1 bg-blue-600 text-white py-3 rounded-xl font-bold hover:bg-blue-700 transition-colors">
-                    Save & Continue
-                </button>
-                <button onclick="closeApiKeyModal()"
-                    class="px-6 bg-slate-100 text-slate-600 py-3 rounded-xl font-bold hover:bg-slate-200 transition-colors">
-                    Cancel
-                </button>
-            </div>
-        </div>
-    </div>
 
     <!-- Sidebar -->
     <aside class="fixed inset-y-0 left-0 flex flex-col py-6 bg-white h-screen w-64 border-r border-slate-200">
         <div class="px-6 mb-8">
-            <div class="flex items-center gap-3">
-                <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-                    <span class="material-symbols-outlined text-white text-sm"
-                        style="font-variation-settings: 'FILL' 1;">architecture</span>
+            <div class="flex items-center gap-2">
+                <div class="qaly-logo text-2xl tracking-tighter flex items-center">
+                    <span class="text-gradient-q">Q</span>aly
+                    <span class="logo-sparkle"></span>
                 </div>
-                <div>
-                    <h1 class="text-lg font-bold tracking-tight">QA Architect</h1>
-                    <p class="text-[10px] text-slate-500 uppercase tracking-wider font-semibold">AI Workspace</p>
+                <div class="ml-1 border-l border-slate-200 pl-2">
+                    <h1 class="text-xs font-bold text-slate-400 uppercase tracking-widest leading-none">AI</h1>
+                    <p class="text-[8px] text-slate-400 uppercase tracking-tight font-medium mt-0.5">Test Smarter. Ship Faster.</p>
                 </div>
             </div>
         </div>
@@ -173,11 +127,7 @@
         </nav>
 
         <div class="px-3 mt-auto">
-            <button onclick="showApiKeyModal()"
-                class="w-full flex items-center px-4 py-2.5 rounded-lg text-sm font-medium transition-colors text-slate-600 hover:bg-slate-100 text-left">
-                <span class="material-symbols-outlined mr-3 text-lg">settings</span>
-                API Settings
-            </button>
+
             <a href="login.html"
                 class="w-full flex items-center px-4 py-2.5 rounded-lg text-sm font-medium transition-colors text-red-600 hover:bg-red-50">
                 <span class="material-symbols-outlined mr-3 text-lg">logout</span>
@@ -189,15 +139,13 @@
     <!-- Main Content -->
     <main class="ml-64 p-12 max-w-6xl mx-auto min-h-screen">
 
-        <!-- 🔥 AI Provider Selector -->
+        <!-- API Status Indicator -->
         <div class="mb-6 flex justify-end">
-            <select id="ai-provider" class="p-2 border border-slate-300 rounded-lg text-sm">
-                <option value="claude">Claude</option>
-                <option value="openai">ChatGPT</option>
-                <option value="gemini">Gemini</option>
-                <option value="deepseek">DeepSeek</option>
-                <option value="grok">Grok</option>
-            </select>
+            <div id="api-status-container" class="flex items-center gap-2 bg-white px-4 py-2 rounded-full border border-slate-200 shadow-sm">
+                <span class="text-xs font-bold text-slate-500 uppercase tracking-widest">Active API:</span>
+                <span class="text-sm font-bold text-slate-900">Gemini</span>
+                <div id="api-status-dot" class="w-2.5 h-2.5 rounded-full bg-slate-300 animate-pulse"></div>
+            </div>
         </div>
 
 
@@ -416,9 +364,28 @@
         Processing...
     </div>
 
+    <footer id="main-footer" class="app-footer">
+        <!-- Text injected from config.js -->
+    </footer>
+
     <script src="config.js"></script>
     <script src="auth.js"></script>
     <script src="./app.js" defer></script>
+    <script>
+        // Initialize Footer
+        function initFooter() {
+            const footer = document.getElementById('main-footer');
+            if (footer && typeof appConfig !== 'undefined' && appConfig.footer) {
+                footer.innerHTML = appConfig.footer.text;
+                if (appConfig.footer.link && appConfig.footer.enableLink) {
+                    footer.style.cursor = 'pointer';
+                    footer.title = 'Click to visit';
+                    footer.onclick = () => window.open(appConfig.footer.link, '_blank');
+                }
+            }
+        }
+        window.addEventListener('DOMContentLoaded', initFooter);
+    </script>
 </body>
 
 </html>

@@ -1,7 +1,7 @@
 {
-    "name": "qa-architect",
+    "name": "qaly-ai",
     "version": "1.0.0",
-    "description": "AI-Powered QA Testing Assistant",
+    "description": "Qaly AI - Test Smarter. Ship Faster.",
     "main": "index.html",
     "scripts": {
         "dev": "python3 -m http.server 8000",
