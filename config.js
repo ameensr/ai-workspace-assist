@@ -10,7 +10,7 @@ const appConfig = {
     ],
     footer: {
         text: "&copy; 2026 Qaly &bull; Where AI meets QA, Built with <span class='heart'>&hearts;</span> by Ameen Huzain",
-        link: "https://www.linkedin.com/in/ameen-huzain-qa/", // Example link
+        link: "https://www.linkedin.com/in/ameensr/", // Example link
         enableLink: true
     }
 };
