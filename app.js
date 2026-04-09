@@ -125,10 +125,24 @@ async function callGemini(prompt, systemPrompt = "") {
 
 
 
+// Helper for robust JSON parsing from AI responses
+function safeParseJSON(text) {
+    try {
+        // Clean markdown code blocks if present
+        const cleaned = text.replace(/```json\n?|```/g, '').trim();
+        return JSON.parse(cleaned);
+    } catch (e) {
+        console.error("JSON Parse Error:", e);
+        console.error("Original Text:", text);
+        showToast("Error processing AI response format");
+        return null;
+    }
+}
+
 // === FEATURE 1: Requirement Intelligence ===
-async function generateRequirementIntelligence() {
+async function generateRequirementIntelligence(e) {
     const input = document.getElementById('req-intel-input').value.trim();
-    const btn = event.target.closest('button');
+    const btn = (e && e.target ? e.target : (window.event ? window.event.target : null))?.closest('button');
 
     if (!input) {
         showToast('Please enter a requirement!');
@@ -162,7 +176,7 @@ Format your response as JSON with keys: corrected_spec, gaps (array), test_scena
         `;
 
         // Display Gaps
-        const gapsHtml = analysis.gaps.map(gap => `
+        const gapsHtml = (analysis.gaps || []).map(gap => `
             <div class="flex gap-3 items-start">
                 <span class="material-symbols-outlined text-orange-600 text-sm mt-0.5">warning</span>
                 <p class="text-sm text-orange-900">${gap}</p>
@@ -171,7 +185,7 @@ Format your response as JSON with keys: corrected_spec, gaps (array), test_scena
         document.getElementById('gap-analysis').innerHTML = gapsHtml;
 
         // Display Test Scenarios
-        const scenariosHtml = analysis.test_scenarios.map((scenario, idx) => `
+        const scenariosHtml = (analysis.test_scenarios || []).map((scenario, idx) => `
             <div class="flex gap-3 items-start">
                 <span class="flex-shrink-0 w-6 h-6 rounded-full bg-green-600 text-white text-xs flex items-center justify-center font-bold">${idx + 1}</span>
                 <p class="text-sm text-green-900">${scenario}</p>
@@ -182,7 +196,7 @@ Format your response as JSON with keys: corrected_spec, gaps (array), test_scena
         document.getElementById('req-intel-output').style.display = 'block';
         showToast('Analysis complete!');
     } catch (error) {
-        console.error("AI Error:", error);
+        console.error("Requirement Intelligence AI Error:", error);
         showToast('AI failed. Please try again.');
     } finally {
         setLoading(btn, false);
@@ -190,11 +204,11 @@ Format your response as JSON with keys: corrected_spec, gaps (array), test_scena
 }
 
 // === FEATURE 2: Test Suite Architect ===
-async function generateTestSuite() {
+async function generateTestSuite(e) {
     const requirement = document.getElementById('test-suite-input').value.trim();
     const module = document.getElementById('module-name').value.trim() || 'General';
     const subModule = document.getElementById('sub-module-name').value.trim() || 'N/A';
-    const btn = event.target.closest('button');
+    const btn = (e && e.target ? e.target : (window.event ? window.event.target : null))?.closest('button');
 
     if (!requirement) {
         showToast('Please enter a requirement!');
@@ -222,7 +236,7 @@ Return ONLY the pipe-separated table with header row.`;
         document.getElementById('test-suite-output').style.display = 'block';
         showToast('Test suite generated!');
     } catch (error) {
-        console.error("AI Error:", error);
+        console.error("TestSuiteArchitect AI Error:", error);
         showToast('AI failed. Please try again.');
     } finally {
         setLoading(btn, false);
@@ -236,9 +250,9 @@ function copyTestCases() {
 }
 
 // === FEATURE 3: Bug Report Generator ===
-async function generateBugReport() {
+async function generateBugReport(e) {
     const input = document.getElementById('bug-input').value.trim();
-    const btn = event.target.closest('button');
+    const btn = (e && e.target ? e.target : (window.event ? window.event.target : null))?.closest('button');
 
     if (!input) {
         showToast('Please describe the bug!');
@@ -260,7 +274,7 @@ Format as clean HTML with proper headings.`;
         document.getElementById('bug-output').style.display = 'block';
         showToast('Bug report generated!');
     } catch (error) {
-        console.error("AI Error:", error);
+        console.error("BugReportGenerator AI Error:", error);
         showToast('AI failed. Please try again.');
     } finally {
         setLoading(btn, false);
@@ -274,9 +288,9 @@ function copyBugReport() {
 }
 
 // === FEATURE 4: Sentence Correction ===
-async function correctSentence() {
+async function correctSentence(e) {
     const input = document.getElementById('sentence-input').value.trim();
-    const btn = event.target.closest('button');
+    const btn = (e && e.target ? e.target : (window.event ? window.event.target : null))?.closest('button');
 
     if (!input) {
         showToast('Please enter a sentence!');
@@ -301,7 +315,7 @@ Return JSON with: corrected (standard), casual (informal tone), formal (business
         document.getElementById('sentence-output').style.display = 'block';
         showToast('Sentence corrected!');
     } catch (error) {
-        console.error("AI Error:", error);
+        console.error("SentenceCorrection AI Error:", error);
         showToast('AI failed. Please try again.');
     } finally {
         setLoading(btn, false);
@@ -309,9 +323,9 @@ Return JSON with: corrected (standard), casual (informal tone), formal (business
 }
 
 // === FEATURE 5: Professional Case Architect ===
-async function generateProfessionalCase() {
+async function generateProfessionalCase(e) {
     const input = document.getElementById('professional-case-input').value.trim();
-    const btn = event.target.closest('button');
+    const btn = (e && e.target ? e.target : (window.event ? window.event.target : null))?.closest('button');
 
     if (!input) {
         showToast('Please enter rough test notes!');
@@ -333,7 +347,7 @@ Format as clean HTML with proper sections.`;
         document.getElementById('professional-case-output').style.display = 'block';
         showToast('Professional case generated!');
     } catch (error) {
-        console.error("AI Error:", error);
+        console.error("ProfessionalCaseArchitect AI Error:", error);
         showToast('AI failed. Please try again.');
     } finally {
         setLoading(btn, false);

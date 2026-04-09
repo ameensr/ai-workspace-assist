@@ -1,6 +1,6 @@
 // Application Configuration
 const appConfig = {
-    geminiApiKey: "AIzaSyDSbh0-87QRi23YSB7yJQ8ZSLoKBImtUcM", // Paste your Gemini API Key here
+    geminiApiKey: "AIzaSyBOnFpM9n4yygf9DnG0m1AFjQs4VxD3sYg", // Paste your Gemini API Key here
     users: [
         {
             email: "testqa121@gmail.com",
