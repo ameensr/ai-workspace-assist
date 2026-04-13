@@ -33,27 +33,50 @@ const MOCK_RESPONSES = {
         ]
     }`,
 
-    testSuite: `Test Case ID | Module | Sub Module | Pre-Condition | Test Case | Steps | Test Data | Expected Result | Actual Result | Date | Status | Bug Id | Retest Status | Remarks
-TC_AUTH_001 | Authentication | Login | User account exists in database | Valid Login Test | 1. Navigate to login page 2. Enter valid email 3. Enter valid password 4. Click Login | Email: test@example.com, Password: Test@123 | User successfully logged in and redirected to dashboard | | | | | | 
-TC_AUTH_002 | Authentication | Login | User account exists | Invalid Password Test | 1. Navigate to login page 2. Enter valid email 3. Enter wrong password 4. Click Login | Email: test@example.com, Password: Wrong123 | Error message displayed: "Invalid credentials" | | | | | | 
-TC_AUTH_003 | Authentication | Login | User account exists | Invalid Email Format | 1. Enter invalid email format 2. Enter password 3. Click Login | Email: invalid-email, Password: Test@123 | Error message: "Please enter valid email format" | | | | | | 
-TC_AUTH_004 | Authentication | Login | None | Empty Fields Test | 1. Leave email field empty 2. Leave password field empty 3. Click Login | Email: (empty), Password: (empty) | Error messages displayed for both fields | | | | | | 
-TC_AUTH_005 | Authentication | Login | User account exists | SQL Injection Test | 1. Enter SQL injection in email field 2. Click Login | Email: admin'--, Password: anything | Login rejected, no database breach | | | | | | 
-TC_AUTH_006 | Authentication | Login | User account exists | XSS Attack Test | 1. Enter XSS script in input fields 2. Submit form | Email: <script>alert('xss')</script> | Script not executed, input sanitized | | | | | | 
-TC_AUTH_007 | Authentication | Rate Limiting | User account exists | Brute Force Prevention | 1. Attempt login 5 times with wrong password 2. Try 6th attempt | Various passwords | Account locked after 5 attempts | | | | | | 
-TC_AUTH_008 | Authentication | Login | User account exists | Session Timeout | 1. Login successfully 2. Wait for timeout period 3. Try to access protected page | Valid credentials | Session expired, redirect to login | | | | | | 
-TC_AUTH_009 | Authentication | Login | User account exists | Remember Me Feature | 1. Login with valid credentials 2. Check "Remember Me" 3. Close browser 4. Reopen | Valid credentials + checkbox | Session persists after browser restart | | | | | | 
-TC_AUTH_010 | Authentication | Logout | User logged in | Logout Functionality | 1. Click logout button 2. Try to access dashboard URL directly | N/A | User logged out, redirected to login | | | | | | 
-TC_AUTH_011 | Authentication | Login | User account exists | Mobile Login - iOS | 1. Open app on iPhone 2. Enter credentials 3. Login | Valid credentials | Successful login on iOS device | | | | | | 
-TC_AUTH_012 | Authentication | Login | User account exists | Mobile Login - Android | 1. Open app on Android 2. Enter credentials 3. Login | Valid credentials | Successful login on Android device | | | | | | 
-TC_AUTH_013 | Authentication | Login | User account exists | Browser Compatibility - Chrome | 1. Open in Chrome 2. Perform login | Valid credentials | Login works in Chrome browser | | | | | | 
-TC_AUTH_014 | Authentication | Login | User account exists | Browser Compatibility - Firefox | 1. Open in Firefox 2. Perform login | Valid credentials | Login works in Firefox browser | | | | | | 
-TC_AUTH_015 | Authentication | Login | User account exists | Browser Compatibility - Safari | 1. Open in Safari 2. Perform login | Valid credentials | Login works in Safari browser | | | | | | 
-TC_AUTH_016 | Authentication | Password Reset | User account exists | Password Reset Request | 1. Click "Forgot Password" 2. Enter email 3. Submit | Email: test@example.com | Reset link sent to email | | | | | | 
-TC_AUTH_017 | Authentication | Login | User account exists | Special Characters in Password | 1. Login with password containing special chars | Password: P@$$w0rd!#% | Login successful with special characters | | | | | | 
-TC_AUTH_018 | Authentication | Login | None | Performance Test - Response Time | 1. Enter credentials 2. Measure login time | Valid credentials | Login completes within 2 seconds | | | | | | 
-TC_AUTH_019 | Authentication | Login | User account exists | Concurrent Sessions | 1. Login from Device A 2. Login from Device B with same account | Valid credentials | Both sessions active or last login prevails | | | | | | 
-TC_AUTH_020 | Authentication | Security | User account exists | JWT Token Validation | 1. Login successfully 2. Inspect JWT token 3. Verify expiration | Valid credentials | Token has proper expiration and signature | | | | | |`,
+    testSuite: `[
+        {
+            "id": "TC-AUTH-001",
+            "module": "Authentication",
+            "subModule": "Login",
+            "preCondition": "User account exists",
+            "testCase": "Verify successful login with valid credentials",
+            "steps": "1. Navigate to login page\\n2. Enter valid email\\n3. Enter valid password\\n4. Click Login",
+            "testData": "Email: test@example.com, Pass: Test@123",
+            "expectedResult": "User redirected to dashboard",
+            "actualResult": "",
+            "status": "Ready",
+            "isCritical": true,
+            "isSecurity": false
+        },
+        {
+            "id": "TC-AUTH-002",
+            "module": "Authentication",
+            "subModule": "Login",
+            "preCondition": "User account exists",
+            "testCase": "Verify login rejection with incorrect password",
+            "steps": "1. Navigate to login page\\n2. Enter valid email\\n3. Enter wrong password\\n4. Click Login",
+            "testData": "Email: test@example.com, Pass: WrongPass",
+            "expectedResult": "Error message displayed",
+            "actualResult": "",
+            "status": "Ready",
+            "isCritical": true,
+            "isSecurity": false
+        },
+        {
+            "id": "TC-AUTH-003",
+            "module": "Authentication",
+            "subModule": "Security",
+            "preCondition": "None",
+            "testCase": "Verify SQL injection prevention on login",
+            "steps": "1. Enter ' OR 1=1 -- in email\\n2. Click Login",
+            "testData": "Email: ' OR 1=1 --",
+            "expectedResult": "Login rejected, no breach",
+            "actualResult": "",
+            "status": "Ready",
+            "isCritical": true,
+            "isSecurity": true
+        }
+    ]`,
 
     bugReport: `<div class="space-y-6">
         <div>

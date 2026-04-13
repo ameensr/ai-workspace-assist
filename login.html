@@ -16,11 +16,12 @@
     </style>
 </head>
 
-<body class="bg-gradient-to-br from-blue-50 to-slate-100 min-h-screen flex items-center justify-center p-6">
+<body class="bg-slate-50 min-h-screen flex items-center justify-center lg:justify-end p-6 lg:pr-32 relative overflow-hidden">
+    
+    <!-- AI Awakening Canvas -->
+    <canvas id="awakening-canvas" class="fixed inset-0 pointer-events-none" style="z-index: 0;"></canvas>
 
-
-
-    <div class="max-w-md w-full bg-white rounded-2xl shadow-2xl p-8">
+    <div class="max-w-md w-full bg-white/80 backdrop-blur-sm rounded-2xl shadow-2xl p-8 relative z-10 transition-all duration-500 hover:shadow-blue-200/50 border border-white/20">
         <div class="flex items-center justify-center gap-3 mb-4">
             <div class="qaly-logo text-4xl tracking-tighter flex items-center">
                 <span class="text-gradient-q">Q</span>aly
@@ -66,6 +67,9 @@
             Don't have an account? <a href="signup.html" class="text-blue-600 font-semibold hover:underline">Sign Up</a>
         </p>
     </div>
+
+    <!-- AI Awakening Script -->
+    <script src="awakening.js"></script>
 
     <script src="config.js"></script>
     <script src="auth.js"></script>

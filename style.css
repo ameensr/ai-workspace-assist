@@ -1,10 +1,10 @@
 :root {
     /* Color Palette - Linear/Notion inspired */
-    --bg-main: #FAFAFB;
-    --bg-card: #FFFFFF;
-    --bg-sidebar: #F4F5F7;
-    --bg-sidebar-hover: #EAECEF;
-    --bg-sidebar-active: #FFFFFF;
+    --bg-main: rgba(250, 250, 251, 0); /* Let the body/particles show */
+    --bg-card: rgba(255, 255, 255, 0.45);
+    --bg-sidebar: rgba(244, 245, 247, 0.4);
+    --bg-sidebar-hover: rgba(234, 236, 239, 0.5);
+    --bg-sidebar-active: rgba(255, 255, 255, 0.6);
     
     --primary: #2563EB; /* Blue */
     --primary-hover: #1D4ED8;
@@ -23,7 +23,7 @@
     --radius-md: 10px;
     --radius-lg: 16px;
     
-    --transition: all 0.2s ease;
+    --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     
     --danger: #EF4444;
     --danger-bg: #FEF2F2;
@@ -88,7 +88,8 @@ h4 { font-size: 0.875rem; text-transform: uppercase; letter-spacing: 0.05em; col
 .sidebar {
     width: 260px;
     background-color: var(--bg-sidebar);
-    border-right: 1px solid var(--border-color);
+    backdrop-filter: blur(20px);
+    border-right: 1px solid rgba(229, 231, 235, 0.5);
     display: flex;
     flex-direction: column;
     flex-shrink: 0;
@@ -138,9 +139,34 @@ h4 { font-size: 0.875rem; text-transform: uppercase; letter-spacing: 0.05em; col
     transition: var(--transition);
 }
 
-.nav-item:hover {
+.nav-item:hover, .nav-item-special:hover {
     background-color: var(--bg-sidebar-hover);
     color: var(--text-main);
+    transform: translateX(6px);
+}
+
+.nav-item-special {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    padding: 10px 12px;
+    border: none;
+    background: transparent;
+    border-radius: var(--radius-sm);
+    color: var(--text-light);
+    font-size: 0.9rem;
+    font-weight: 500;
+    text-align: left;
+    cursor: pointer;
+    transition: var(--transition);
+    opacity: 0.8;
+}
+
+.nav-item-special:hover {
+    opacity: 1;
+    background-color: rgba(37, 99, 235, 0.05);
+    color: var(--primary);
 }
 
 .nav-item.active {
@@ -203,6 +229,8 @@ h4 { font-size: 0.875rem; text-transform: uppercase; letter-spacing: 0.05em; col
 .content-wrapper {
     flex: 1;
     overflow-y: auto;
+    background-color: transparent; /* Show particles */
+    position: relative;
     padding: 40px 32px 80px;
 }
 
@@ -228,10 +256,38 @@ h4 { font-size: 0.875rem; text-transform: uppercase; letter-spacing: 0.05em; col
 /* Card & Inputs */
 .card {
     background-color: var(--bg-card);
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-md);
-    box-shadow: var(--shadow-sm);
+    backdrop-filter: blur(16px);
+    border-radius: var(--radius-lg);
+    border: 1px solid rgba(229, 231, 235, 0.4);
     padding: 24px;
+    margin-bottom: 24px;
+    box-shadow: var(--shadow-sm);
+    transition: var(--transition);
+}
+
+.card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -4px rgba(0, 0, 0, 0.05);
+}
+
+.validation-msg {
+    animation: slideDown 0.2s ease-out;
+}
+
+@keyframes slideDown {
+    from { opacity: 0; transform: translateY(-5px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.generate-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    filter: grayscale(0.5);
+}
+
+.confidence-chip {
+    background: linear-gradient(135deg, #eff6ff, #f5f3ff);
+    box-shadow: inset 0 0 0 1px rgba(37, 99, 235, 0.1);
 }
 
 .input-section {
@@ -486,3 +542,98 @@ textarea::placeholder { color: var(--text-light); }
 .app-footer:hover .heart {
     transform: scale(1.2);
 }
+
+/* Enhanced Test Suite Dashboard */
+.tc-row {
+    transition: background-color 0.2s ease;
+    cursor: pointer;
+}
+
+.tc-row:hover {
+    background-color: #f8fafc;
+}
+
+.tc-row.expanded {
+    background-color: #f1f5f9;
+}
+
+.tc-details {
+    display: none;
+    background-color: #f8fafc;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.tc-row.expanded + .tc-details {
+    display: table-row;
+}
+
+/* Status Badges */
+.status-badge {
+    padding: 4px 10px;
+    border-radius: 9999px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.status-badge.draft { background-color: #f1f5f9; color: #64748b; }
+.status-badge.ready { background-color: #eff6ff; color: #2563eb; }
+.status-badge.in-progress { background-color: #fef9c3; color: #854d0e; }
+.status-badge.pass { background-color: #f0fdf4; color: #166534; }
+.status-badge.fail { background-color: #fef2f2; color: #991b1b; }
+
+/* Edit Mode Styling */
+.edit-input {
+    width: 100%;
+    background-color: #fff;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    padding: 2px 8px;
+    font-size: 13px;
+}
+
+.edit-textarea {
+    width: 100%;
+    background-color: #fff;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    padding: 8px;
+    font-size: 13px;
+    min-height: 80px;
+}
+
+/* Zebra Striping */
+#tc-table-body tr:nth-child(4n+1) {
+    background-color: #ffffff;
+}
+
+#tc-table-body tr:nth-child(4n+3) {
+    background-color: #fafafa;
+}
+
+.action-icon-btn {
+    padding: 6px;
+    border-radius: 6px;
+    color: #64748b;
+    transition: all 0.2s;
+}
+
+.action-icon-btn:hover {
+    background-color: #e2e8f0;
+    color: #1e293b;
+}
+
+.action-icon-btn.edit-btn:hover { color: #2563eb; }
+.action-icon-btn.copy-btn:hover { color: #059669; }
+
+/* Animations */
+@keyframes slideDown {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.tc-details-content {
+    animation: slideDown 0.3s ease-out;
+}
+
