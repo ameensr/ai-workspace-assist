@@ -1,6 +1,7 @@
 // Application Configuration
 const appConfig = {
-    geminiApiKey: "AIzaSyBOnFpM9n4yygf9DnG0m1AFjQs4VxD3sYg", // Paste your Gemini API Key here
+    geminiApiKey: process.env.GEMINI_API_KEY,  // Set in Vercel dashboard
+
     users: [
         {
             email: "testqa121@gmail.com",

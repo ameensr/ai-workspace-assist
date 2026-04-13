@@ -1,19 +1,30 @@
+
+import jwt from 'jsonwebtoken';
+import bcrypt from 'bcryptjs';
+
+
 // Authentication Logic
 function login(email, password) {
-    if (typeof appConfig === 'undefined') {
-        console.error("Configuration file (config.js) not found.");
-        return false;
-    }
-
     const user = appConfig.users.find(u => u.email === email && u.password === password);
-    
     if (user) {
-        localStorage.setItem('qa_assist_auth', 'true');
-        localStorage.setItem('qa_assist_user', email);
+        localStorage.setItem('qa_assist_auth', 'true');  // ❌ Bypassable
         return true;
     }
-    return false;
 }
+
+
+export default async function handler(req, res) {
+    const { email, password } = req.body;
+    const user = await db.findUser(email);
+
+    if (user && bcrypt.compareSync(password, user.passwordHash)) {
+        const token = jwt.sign({ email }, process.env.JWT_SECRET, { expiresIn: '24h' });
+        res.status(200).json({ token });
+    } else {
+        res.status(401).json({ error: 'Invalid credentials' });
+    }
+}
+
 
 function logout() {
     console.log("Logout triggered");
