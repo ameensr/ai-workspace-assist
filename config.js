@@ -1,6 +1,6 @@
 // Application Configuration
-const appConfig = {
-    geminiApiKey: process.env.GEMINI_API_KEY,  // Set in Vercel dashboard
+window.appConfig = {
+    geminiApiKey: typeof process !== 'undefined' ? process.env.GEMINI_API_KEY : "YOUR_API_KEY_HERE",  // Set in Vercel dashboard
 
     users: [
         {
