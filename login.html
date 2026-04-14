@@ -13,64 +13,103 @@
         body {
             font-family: 'Inter', sans-serif;
         }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .animate-branding {
+            animation: fadeIn 0.8s ease-out forwards;
+        }
+
+        .text-glow {
+            text-shadow: 0 0 20px rgba(96, 165, 250, 0.2);
+        }
+
+        @media (max-width: 1023px) {
+            #branding-layer { display: none !important; }
+        }
     </style>
 </head>
 
-<body class="bg-slate-50 min-h-screen flex items-center justify-center lg:justify-end p-6 lg:pr-32 relative overflow-hidden">
+<body class="bg-[#0f172a] min-h-screen flex items-center justify-center lg:justify-end p-6 lg:pr-32 relative overflow-hidden text-slate-200">
     
-    <!-- AI Awakening Canvas -->
-    <canvas id="awakening-canvas" class="fixed inset-0 pointer-events-none" style="z-index: 0;"></canvas>
+    <!-- Code Typing Background -->
+    <div id="code-bg" class="fixed inset-0 z-0 opacity-20 pointer-events-none"></div>
 
-    <div class="max-w-md w-full bg-white/80 backdrop-blur-sm rounded-2xl shadow-2xl p-8 relative z-10 transition-all duration-500 hover:shadow-blue-200/50 border border-white/20">
+    <!-- Background Decoration -->
+    <div class="absolute top-[10%] left-[5%] w-96 h-96 bg-blue-600/10 rounded-full blur-[120px] pointer-events-none z-0"></div>
+    <div class="absolute bottom-[10%] left-[20%] w-[500px] h-[500px] bg-purple-600/10 rounded-full blur-[150px] pointer-events-none z-0"></div>
+
+    <!-- Branding Section (Left Side) -->
+    <div id="branding-layer" class="fixed left-0 top-0 w-1/2 h-full flex flex-col items-center justify-center z-10 p-12 pointer-events-none">
+        <div class="animate-branding space-y-8 flex flex-col items-start">
+            
+            <!-- Slogan -->
+            <h1 class="text-5xl font-bold text-left tracking-tight leading-tight text-glow bg-gradient-to-b from-white to-slate-400 bg-clip-text text-transparent max-w-lg">
+                Intelligence Behind Every Test
+            </h1>
+            
+            <!-- Subtitle/Accent -->
+            <div class="flex items-center gap-3">
+                <div class="h-[1px] w-8 bg-blue-500/50"></div>
+                <div class="text-blue-400/80 font-semibold uppercase tracking-[0.3em] text-xs">Innovation in QA</div>
+                <div class="h-[1px] w-8 bg-blue-500/50"></div>
+            </div>
+        </div>
+    </div>
+
+
+    <div class="max-w-md w-full bg-slate-900/40 backdrop-blur-xl rounded-2xl shadow-2xl p-8 relative z-10 transition-all duration-500 hover:shadow-blue-500/10 border border-white/5">
         <div class="flex items-center justify-center gap-3 mb-4">
             <div class="qaly-logo text-4xl tracking-tighter flex items-center">
                 <span class="text-gradient-q">Q</span>aly
                 <span class="logo-sparkle"></span>
             </div>
-            <div class="ml-1 border-l-2 border-slate-200 pl-3">
-                <h1 class="text-xl font-bold text-slate-400 uppercase tracking-widest leading-none">AI</h1>
+            <div class="ml-1 border-l-2 border-slate-700 pl-3">
+                <h1 class="text-xl font-bold text-slate-500 uppercase tracking-widest leading-none">AI</h1>
             </div>
         </div>
 
-        <h2 class="text-3xl font-bold text-center mb-2">Welcome Back</h2>
-        <p class="text-slate-500 text-center font-medium mb-8">Test Smarter. Ship Faster.</p>
+        <h2 class="text-3xl font-bold text-center mb-2 text-white">Welcome Back</h2>
+        <p class="text-slate-400 text-center font-medium mb-8">Test Smarter. Ship Faster.</p>
 
         <form onsubmit="handleLogin(event)" class="space-y-4">
             <div>
-                <label class="block text-sm font-medium text-slate-700 mb-2">Email</label>
+                <label class="block text-sm font-medium text-slate-300 mb-2">Email</label>
                 <input type="email" id="email" required
-                    class="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    class="w-full px-4 py-3 bg-slate-800/50 border border-slate-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-white placeholder-slate-500"
                     placeholder="name@company.com">
             </div>
 
             <div class="relative group">
-                <label class="block text-sm font-medium text-slate-700 mb-2">Password</label>
+                <label class="block text-sm font-medium text-slate-300 mb-2">Password</label>
                 <div class="relative">
                     <input type="password" id="password" required
-                        class="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all pr-12"
+                        class="w-full px-4 py-3 bg-slate-800/50 border border-slate-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all pr-12 text-white placeholder-slate-500"
                         placeholder="••••••••">
                     <button type="button" onclick="togglePassword()" 
-                        class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-blue-600 transition-colors p-1 rounded-md hover:bg-slate-100 flex items-center justify-center">
+                        class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-blue-400 transition-colors p-1 rounded-md hover:bg-slate-700/50 flex items-center justify-center">
                         <span id="password-icon" class="material-symbols-outlined text-xl">visibility</span>
                     </button>
                 </div>
             </div>
 
             <button type="submit"
-                class="w-full bg-blue-600 text-white py-3 rounded-lg font-bold hover:bg-blue-700 transition-colors">
+                class="w-full bg-blue-600 text-white py-3 rounded-lg font-bold hover:bg-blue-700 transition-all transform hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-blue-900/20">
                 Sign In
             </button>
-            <div id="error-message" class="text-red-600 text-sm text-center hidden">Invalid login credentials</div>
+            <div id="error-message" class="text-red-400 text-sm text-center hidden font-medium">Invalid login credentials</div>
         </form>
 
-        <p class="text-center mt-6 text-sm text-slate-600">
-            Don't have an account? <a href="signup.html" class="text-blue-600 font-semibold hover:underline">Sign Up</a>
+        <p class="text-center mt-6 text-sm text-slate-400">
+            Don't have an account? <a href="signup.html" class="text-blue-400 font-semibold hover:text-blue-300 transition-colors">Sign Up</a>
         </p>
     </div>
 
-    <!-- AI Awakening Script -->
-    <script src="awakening.js"></script>
 
+    <script src="code-typing.js"></script>
     <script src="config.js"></script>
     <script src="auth.js"></script>
     <script>
@@ -91,14 +130,16 @@
             const passwordInput = document.getElementById('password');
             const icon = document.getElementById('password-icon');
             
-            if (passwordInput.type === 'password') {
+            const isPassword = passwordInput.type === 'password';
+            
+            if (isPassword) {
                 passwordInput.type = 'text';
                 icon.textContent = 'visibility_off';
-                icon.classList.add('text-blue-600');
+                icon.classList.add('text-blue-400');
             } else {
                 passwordInput.type = 'password';
                 icon.textContent = 'visibility';
-                icon.classList.remove('text-blue-600');
+                icon.classList.remove('text-blue-400');
             }
         }
 

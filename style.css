@@ -1,6 +1,6 @@
 :root {
     /* Color Palette - Linear/Notion inspired */
-    --bg-main: rgba(250, 250, 251, 0); /* Let the body/particles show */
+    --bg-main: rgba(250, 250, 251, 1); /* Main application background */
     --bg-card: rgba(255, 255, 255, 0.45);
     --bg-sidebar: rgba(244, 245, 247, 0.4);
     --bg-sidebar-hover: rgba(234, 236, 239, 0.5);
@@ -229,7 +229,7 @@ h4 { font-size: 0.875rem; text-transform: uppercase; letter-spacing: 0.05em; col
 .content-wrapper {
     flex: 1;
     overflow-y: auto;
-    background-color: transparent; /* Show particles */
+    background-color: var(--bg-main);
     position: relative;
     padding: 40px 32px 80px;
 }

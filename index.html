@@ -76,10 +76,8 @@
     </style>
 </head>
 
-<body class="bg-[#f8fafc]/80 text-slate-900 relative">
+<body class="bg-[#f8fafc] text-slate-900 relative">
     
-    <!-- tsParticles Container -->
-    <div id="particles-js" class="fixed inset-0 pointer-events-none" style="z-index: 0;"></div>
 
     <div class="app-container relative z-10">
         <!-- Sidebar -->
@@ -630,61 +628,11 @@
     </footer>
 
     <script src="config.js"></script>
-    <!-- tsParticles Library -->
-    <script src="https://cdn.jsdelivr.net/npm/tsparticles@2.12.0/tsparticles.bundle.min.js"></script>
     <script src="test-config.js"></script>
     <script src="prompts.js"></script>
     <script src="auth.js"></script>
     <script src="./app.js" defer></script>
     <script>
-        // Initialize Dashboard Particles (Antigravity Style)
-        tsParticles.load("particles-js", {
-            fpsLimit: 60,
-            particles: {
-                number: { value: 100, density: { enable: true, area: 1000 } },
-                color: { 
-                    value: ["#4285F4", "#DB4437", "#F4B400", "#0F9D58", "#9B59B6", "#E67E22", "#1ABC9C", "#FF6B6B"]
-                },
-                shape: { type: "square" },
-                opacity: {
-                    value: { min: 0.3, max: 0.6 },
-                    random: true,
-                    anim: { enable: true, speed: 0.5, opacity_min: 0.2, sync: false }
-                },
-                size: {
-                    value: { min: 1, max: 3 },
-                    random: true
-                },
-                rotate: {
-                    value: { min: 0, max: 360 },
-                    direction: "random",
-                    animation: { enable: true, speed: 4 }
-                },
-                move: {
-                    enable: true,
-                    speed: { min: 0.3, max: 1.2 },
-                    direction: "top",
-                    random: true,
-                    straight: false,
-                    outModes: { default: "out" },
-                    gravity: {
-                        enable: true,
-                        acceleration: -0.12
-                    }
-                }
-            },
-            interactivity: {
-                detectsOn: "window",
-                events: {
-                    onHover: { enable: true, mode: "repulse" },
-                    resize: true
-                },
-                modes: {
-                    repulse: { distance: 150, duration: 0.4, speed: 1.2 }
-                }
-            },
-            detectRetina: true
-        });
 
         // Initialize Footer
         function initFooter() {
