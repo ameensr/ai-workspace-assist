@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html class="light" lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Profile - Qaly AI</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="style.css" />
+</head>
+<body class="bg-[#f8fafc] text-slate-900 relative">
+    <div class="app-container relative z-10">
+        <aside class="sidebar py-6 bg-white/40 backdrop-blur-xl border-r border-slate-200/50">
+            <div class="px-6 mb-8">
+                <div class="flex items-center gap-2">
+                    <div class="qaly-logo text-2xl tracking-tighter flex items-center">
+                        <span class="text-gradient-q">Q</span>aly
+                        <span class="logo-sparkle"></span>
+                    </div>
+                    <div class="ml-1 border-l border-slate-200 pl-2">
+                        <h1 class="text-xs font-bold text-slate-400 uppercase tracking-widest leading-none">AI</h1>
+                        <p class="text-[8px] text-slate-400 uppercase tracking-tight font-medium mt-0.5">Test Smarter. Ship Faster.</p>
+                    </div>
+                </div>
+            </div>
+
+            <nav class="flex-1 space-y-1 px-3">
+                <button class="nav-item-special w-full flex items-center px-4 py-2.5 rounded-lg text-sm font-medium transition-colors text-slate-600 hover:bg-slate-100 text-left" data-url="index.html">
+                    <span class="material-symbols-outlined mr-3 text-lg">dashboard</span>
+                    Dashboard
+                </button>
+                <button class="nav-item-special w-full flex items-center px-4 py-2.5 rounded-lg text-sm font-medium transition-colors text-slate-600 hover:bg-slate-100 text-left" data-url="prompts.html">
+                    <span class="material-symbols-outlined mr-3 text-lg">terminal</span>
+                    Master Prompts
+                </button>
+                <button class="nav-item-special w-full flex items-center px-4 py-2.5 rounded-lg text-sm font-medium transition-colors text-slate-600 hover:bg-slate-100 text-left" data-url="about.html">
+                    <span class="material-symbols-outlined mr-3 text-lg">info</span>
+                    About
+                </button>
+            </nav>
+        </aside>
+
+        <div class="main-content">
+            <div class="content-wrapper">
+                <main class="max-w-4xl mx-auto">
+                    <div class="mb-8 flex justify-end">
+                        <div class="top-right-identity">
+                            <div id="user-identity-trigger" class="user-identity-trigger" role="button" tabindex="0" aria-haspopup="true" aria-expanded="false">
+                                <span id="user-avatar-badge" class="user-avatar-badge">U</span>
+                                <span id="header-username" class="header-username">User</span>
+                                <span class="material-symbols-outlined user-menu-chevron">expand_more</span>
+                            </div>
+                            <div id="user-menu-dropdown" class="user-menu-dropdown hidden" role="menu" aria-label="User menu">
+                                <button type="button" class="user-menu-item" onclick="window.location.href='profile.html'">
+                                    <span class="material-symbols-outlined text-base">person</span>
+                                    Profile
+                                </button>
+                                <button type="button" id="header-logout-btn" class="user-menu-item text-red-600">
+                                    <span class="material-symbols-outlined text-base">logout</span>
+                                    Logout
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <section class="module-section active">
+                        <header class="mb-8">
+                            <h2 class="text-4xl font-bold tracking-tight mb-2">Profile Settings</h2>
+                            <p class="text-slate-600">Manage your account details and security settings.</p>
+                        </header>
+
+                        <div class="bg-white rounded-2xl p-8 border border-slate-200 shadow-sm space-y-6">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div>
+                                    <label class="text-xs font-bold uppercase tracking-wider text-slate-600 mb-2 block">Full Name</label>
+                                    <input id="profile-full-name" type="text" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm" placeholder="Your name" />
+                                </div>
+                                <div>
+                                    <label class="text-xs font-bold uppercase tracking-wider text-slate-600 mb-2 block">Email</label>
+                                    <input id="profile-email" type="email" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm" placeholder="name@company.com" />
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="text-xs font-bold uppercase tracking-wider text-slate-600 mb-2 block">User Type</label>
+                                <input id="profile-role" type="text" readonly class="w-full bg-slate-100 border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-600" />
+                            </div>
+
+                            <div>
+                                <label class="text-xs font-bold uppercase tracking-wider text-slate-600 mb-2 block">Mobile Number</label>
+                                <input id="profile-mobile" type="tel" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm" placeholder="+91 9876543210" />
+                            </div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div>
+                                    <label class="text-xs font-bold uppercase tracking-wider text-slate-600 mb-2 block">New Password</label>
+                                    <input id="profile-password" type="password" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm" placeholder="Leave empty to keep current" />
+                                </div>
+                                <div>
+                                    <label class="text-xs font-bold uppercase tracking-wider text-slate-600 mb-2 block">Confirm Password</label>
+                                    <input id="profile-password-confirm" type="password" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm" placeholder="Repeat new password" />
+                                </div>
+                            </div>
+
+                            <div id="profile-message" class="hidden text-sm font-medium rounded-lg px-4 py-3"></div>
+
+                            <div class="flex justify-end">
+                                <button id="profile-save-btn" class="bg-blue-600 text-white px-8 py-3 rounded-xl font-bold hover:bg-blue-700 transition-all duration-300">
+                                    Save Changes
+                                </button>
+                            </div>
+                        </div>
+                    </section>
+                </main>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="config.js"></script>
+    <script src="supabase-client.js"></script>
+    <script src="auth.js"></script>
+    <script>
+        function getDisplayUsername() {
+            return (localStorage.getItem('username') || 'User').trim() || 'User';
+        }
+
+        function setHeaderIdentity(name) {
+            const safeName = (name || 'User').trim() || 'User';
+            const avatar = document.getElementById('user-avatar-badge');
+            const username = document.getElementById('header-username');
+            if (avatar) avatar.textContent = safeName.charAt(0).toUpperCase();
+            if (username) username.textContent = safeName;
+        }
+
+        function initUserMenu() {
+            const trigger = document.getElementById('user-identity-trigger');
+            const dropdown = document.getElementById('user-menu-dropdown');
+            const logoutBtn = document.getElementById('header-logout-btn');
+            if (!trigger || !dropdown) return;
+
+            const toggle = () => {
+                const isHidden = dropdown.classList.contains('hidden');
+                dropdown.classList.toggle('hidden');
+                trigger.setAttribute('aria-expanded', isHidden ? 'true' : 'false');
+            };
+
+            trigger.addEventListener('click', (event) => {
+                event.stopPropagation();
+                toggle();
+            });
+
+            document.addEventListener('click', (event) => {
+                if (!event.target.closest('.top-right-identity')) {
+                    dropdown.classList.add('hidden');
+                    trigger.setAttribute('aria-expanded', 'false');
+                }
+            });
+
+            if (logoutBtn) {
+                logoutBtn.addEventListener('click', async () => {
+                    if (window.logout) await window.logout();
+                });
+            }
+        }
+
+        function showMessage(text, isError) {
+            const messageEl = document.getElementById('profile-message');
+            if (!messageEl) return;
+            messageEl.textContent = text;
+            messageEl.className = 'text-sm font-medium rounded-lg px-4 py-3';
+            messageEl.classList.add(isError ? 'bg-red-50' : 'bg-green-50');
+            messageEl.classList.add(isError ? 'text-red-700' : 'text-green-700');
+        }
+
+        async function loadProfile() {
+            if (!window.supabaseClient) {
+                showMessage('Supabase is not configured.', true);
+                return;
+            }
+
+            const { data, error } = await window.supabaseClient.auth.getUser();
+            if (error || !data?.user) {
+                showMessage('Unable to load profile.', true);
+                return;
+            }
+
+            const user = data.user;
+            const fullName = user.user_metadata?.full_name || '';
+            const mobile = user.user_metadata?.mobile || '';
+            const displayName = fullName || (user.email || '').split('@')[0] || getDisplayUsername();
+            localStorage.setItem('username', displayName);
+            setHeaderIdentity(displayName);
+
+            document.getElementById('profile-full-name').value = fullName;
+            document.getElementById('profile-email').value = user.email || '';
+            document.getElementById('profile-mobile').value = mobile;
+            const role = window.getCurrentUserRole ? window.getCurrentUserRole() : 'user';
+            document.getElementById('profile-role').value = role === 'admin' ? 'Admin Level' : 'Normal User';
+        }
+
+        async function saveProfile() {
+            const fullName = document.getElementById('profile-full-name').value.trim();
+            const email = document.getElementById('profile-email').value.trim().toLowerCase();
+            const mobile = document.getElementById('profile-mobile').value.trim();
+            const password = document.getElementById('profile-password').value;
+            const confirmPassword = document.getElementById('profile-password-confirm').value;
+
+            if (password && password !== confirmPassword) {
+                showMessage('New password and confirm password do not match.', true);
+                return;
+            }
+
+            const payload = {
+                data: {
+                    full_name: fullName,
+                    mobile: mobile
+                }
+            };
+
+            if (email) payload.email = email;
+            if (password) payload.password = password;
+
+            const { error } = await window.supabaseClient.auth.updateUser(payload);
+            if (error) {
+                showMessage(error.message || 'Profile update failed.', true);
+                return;
+            }
+
+            const newName = fullName || (email || '').split('@')[0] || 'User';
+            localStorage.setItem('username', newName);
+            setHeaderIdentity(newName);
+            showMessage('Profile updated. Check your inbox if email change confirmation is required.', false);
+            document.getElementById('profile-password').value = '';
+            document.getElementById('profile-password-confirm').value = '';
+        }
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            setHeaderIdentity(getDisplayUsername());
+            initUserMenu();
+            document.querySelectorAll('[data-url]').forEach((item) => {
+                item.addEventListener('click', () => {
+                    const url = item.getAttribute('data-url');
+                    if (url) window.location.href = url;
+                });
+            });
+
+            const saveBtn = document.getElementById('profile-save-btn');
+            if (saveBtn) {
+                saveBtn.addEventListener('click', saveProfile);
+            }
+
+            await loadProfile();
+        });
+    </script>
+</body>
+</html>

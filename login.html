@@ -110,18 +110,23 @@
 
 
     <script src="code-typing.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="config.js"></script>
+    <script src="supabase-client.js"></script>
     <script src="auth.js"></script>
     <script>
-        function handleLogin(e) {
+        async function handleLogin(e) {
             e.preventDefault();
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
             const errorDiv = document.getElementById('error-message');
+            errorDiv.classList.add('hidden');
 
-            if (window.login(email, password)) {
+            try {
+                await window.login(email, password);
                 window.location.href = 'index.html';
-            } else {
+            } catch (error) {
+                errorDiv.textContent = error.message || 'Invalid login credentials';
                 errorDiv.classList.remove('hidden');
             }
         }

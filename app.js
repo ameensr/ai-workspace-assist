@@ -7,16 +7,20 @@
 // CONFIGURATION & STATE
 // ============================================
 const DEBUG = true;
+const TEST_CASES_TABLE = 'user_test_suites';
 
 // UI State Management
 let currentTestCases = [];
+let currentUserId = null;
 
 // Initialize application
-function initApp() {
+async function initApp() {
     initNavigation();
     initCopyButtons();
+    await initUserIdentity();
+    initUserMenu();
     checkAPIStatus();
-    loadTestCasesFromLocal();
+    await loadTestCases();
 }
 
 document.addEventListener('DOMContentLoaded', initApp);
@@ -159,6 +163,103 @@ function initCopyButtons() {
     });
 }
 
+function getDisplayUsername() {
+    const localName = (localStorage.getItem('username') || '').trim();
+    return localName || 'User';
+}
+
+function getAvatarLetter(username) {
+    const initial = (username || 'U').trim().charAt(0);
+    return (initial || 'U').toUpperCase();
+}
+
+function setHeaderIdentity(username) {
+    const safeName = (username || 'User').trim() || 'User';
+    const headerName = document.getElementById('header-username');
+    const avatarBadge = document.getElementById('user-avatar-badge');
+
+    if (headerName) headerName.textContent = safeName;
+    if (avatarBadge) avatarBadge.textContent = getAvatarLetter(safeName);
+}
+
+async function initUserIdentity() {
+    let username = getDisplayUsername();
+
+    if (window.getCurrentSession) {
+        try {
+            const session = await window.getCurrentSession();
+            const fullName = session?.user?.user_metadata?.full_name;
+            const fallback = (session?.user?.email || '').split('@')[0];
+            username = (fullName || fallback || username || 'User').trim();
+            localStorage.setItem('username', username);
+        } catch (error) {
+            console.error('Could not hydrate username from session:', error.message);
+        }
+    }
+
+    setHeaderIdentity(username);
+}
+
+function initUserMenu() {
+    const trigger = document.getElementById('user-identity-trigger');
+    const dropdown = document.getElementById('user-menu-dropdown');
+    const profileBtn = document.getElementById('header-profile-btn');
+    const headerLogout = document.getElementById('header-logout-btn');
+    if (!trigger || !dropdown) return;
+
+    const closeMenu = () => {
+        dropdown.classList.add('hidden');
+        trigger.setAttribute('aria-expanded', 'false');
+    };
+
+    const toggleMenu = () => {
+        const willOpen = dropdown.classList.contains('hidden');
+        dropdown.classList.toggle('hidden');
+        trigger.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
+    };
+
+    trigger.addEventListener('click', (event) => {
+        event.stopPropagation();
+        toggleMenu();
+    });
+
+    trigger.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault();
+            toggleMenu();
+        }
+    });
+
+    document.addEventListener('click', (event) => {
+        if (!event.target.closest('.top-right-identity')) {
+            closeMenu();
+        }
+    });
+
+    if (headerLogout) {
+        headerLogout.addEventListener('click', async (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            closeMenu();
+            if (window.logout) {
+                try {
+                    await window.logout();
+                } catch (error) {
+                    console.error('Logout failed:', error.message);
+                    showToast('Logout failed. Please try again.');
+                }
+            }
+        });
+    }
+
+    if (profileBtn) {
+        profileBtn.addEventListener('click', () => {
+            closeMenu();
+            window.location.href = 'profile.html';
+        });
+    }
+}
+
 // ============================================
 // AI CORE
 // ============================================
@@ -217,24 +318,35 @@ async function generateAI(prompt, systemPrompt = "", featureType = "") {
 function checkAPIStatus() {
     const dot = document.getElementById('api-status-dot');
     const text = document.getElementById('api-status-text');
+    const container = document.getElementById('api-status-container');
     const isTestMode = (typeof TEST_MODE !== 'undefined' && TEST_MODE);
     const apiKey = typeof appConfig !== 'undefined' ? appConfig.geminiApiKey : null;
     const hasKey = apiKey && apiKey !== "YOUR_API_KEY_HERE";
 
     if (!dot || !text) return;
+    if (container) container.classList.add('modern-tooltip');
 
     if (isTestMode) {
         dot.className = 'w-2.5 h-2.5 rounded-full bg-yellow-500 animate-pulse';
-        text.innerHTML = '<span class="text-yellow-600">🟡 Mock Mode (No API)</span>';
-        dot.title = 'Running in TEST MODE (Mocking)';
+        text.textContent = 'Mock Mode';
+        const tooltipText = 'Mock Mode: AI responses are simulated test data, not live Gemini output.';
+        if (container) container.setAttribute('data-tooltip', tooltipText);
+        dot.removeAttribute('title');
+        text.removeAttribute('title');
     } else if (hasKey) {
         dot.className = 'w-2.5 h-2.5 rounded-full bg-green-500';
-        text.innerHTML = '<span class="text-green-600">🟢 Gemini Connected</span>';
-        dot.title = 'API Connection Active';
+        text.textContent = '🟢 Gemini Connected';
+        const tooltipText = 'Gemini Connected: Responses are generated from live Gemini API.';
+        if (container) container.setAttribute('data-tooltip', tooltipText);
+        dot.removeAttribute('title');
+        text.removeAttribute('title');
     } else {
         dot.className = 'w-2.5 h-2.5 rounded-full bg-red-500';
-        text.innerHTML = '<span class="text-red-600">🔴 No API Configured</span>';
-        dot.title = 'API Key Missing';
+        text.textContent = '🔴 No API Configured';
+        const tooltipText = 'No API Configured: Add geminiApiKey in config.js to enable live AI responses.';
+        if (container) container.setAttribute('data-tooltip', tooltipText);
+        dot.removeAttribute('title');
+        text.removeAttribute('title');
     }
 }
 
@@ -309,7 +421,7 @@ async function generateTestSuite(e) {
 
         if (data && Array.isArray(data)) {
             currentTestCases = data;
-            saveTestCasesToLocal();
+            await saveTestCases();
             renderTestCasesTable();
             updateTestSuiteSummary();
             populateModuleFilter();
@@ -514,7 +626,7 @@ function cancelEdit(id, event) {
     renderTestCasesTable(); // Just re-render everything
 }
 
-function saveEdit(id, event) {
+async function saveEdit(id, event) {
     const tcIndex = currentTestCases.findIndex(t => t.id === id);
     if (tcIndex === -1) return;
 
@@ -526,7 +638,7 @@ function saveEdit(id, event) {
     currentTestCases[tcIndex].expectedResult = document.getElementById(`edit-expected-${id}`).value;
     currentTestCases[tcIndex].actualResult = document.getElementById(`edit-actual-${id}`).value;
 
-    saveTestCasesToLocal();
+    await saveTestCases();
     renderTestCasesTable();
     showToast('Changes saved successfully!');
 }
@@ -605,26 +717,115 @@ function saveTestCasesToLocal() {
     localStorage.setItem('qaly_saved_testcases', JSON.stringify(currentTestCases));
 }
 
-function loadTestCasesFromLocal() {
-    const saved = localStorage.getItem('qaly_saved_testcases');
-    if (saved) {
-        currentTestCases = JSON.parse(saved);
-        if (currentTestCases.length > 0) {
-            document.getElementById('test-suite-output').style.display = 'block';
-            renderTestCasesTable();
-            updateTestSuiteSummary();
-            populateModuleFilter();
-        }
+async function resolveCurrentUserId() {
+    if (currentUserId) return currentUserId;
+    if (!window.getCurrentSession) return null;
+
+    try {
+        const session = await window.getCurrentSession();
+        currentUserId = session?.user?.id || null;
+        return currentUserId;
+    } catch (error) {
+        console.error('Could not resolve authenticated user:', error.message);
+        return null;
     }
 }
 
-function clearTestSuite() {
-    if (confirm('Are you sure you want to clear all generated test cases? This action cannot be undone.')) {
-        currentTestCases = [];
-        localStorage.removeItem('qaly_saved_testcases');
-        document.getElementById('test-suite-output').style.display = 'none';
-        showToast('All test case data cleared!');
+async function saveTestCases() {
+    saveTestCasesToLocal(); // Fallback cache for offline/temporary failures.
+
+    if (!window.supabaseClient) return;
+    const userId = await resolveCurrentUserId();
+    if (!userId) return;
+
+    const { error } = await window.supabaseClient
+        .from(TEST_CASES_TABLE)
+        .upsert(
+            {
+                user_id: userId,
+                test_cases: currentTestCases
+            },
+            { onConflict: 'user_id' }
+        );
+
+    if (error) {
+        console.error('Supabase save failed:', error.message);
+        showToast('Saved locally. Cloud sync failed.');
     }
+}
+
+async function loadTestCases() {
+    let loadedFromSupabase = false;
+
+    if (window.supabaseClient) {
+        const userId = await resolveCurrentUserId();
+        if (userId) {
+            const { data, error } = await window.supabaseClient
+                .from(TEST_CASES_TABLE)
+                .select('test_cases')
+                .eq('user_id', userId)
+                .single();
+
+            if (!error && data?.test_cases) {
+                currentTestCases = Array.isArray(data.test_cases) ? data.test_cases : [];
+                loadedFromSupabase = true;
+            }
+        }
+    }
+
+    if (!loadedFromSupabase) {
+        const saved = localStorage.getItem('qaly_saved_testcases');
+        if (saved) {
+            try {
+                currentTestCases = JSON.parse(saved);
+            } catch (error) {
+                console.error('Failed to parse local test cases:', error.message);
+                currentTestCases = [];
+            }
+        }
+    }
+
+    if (currentTestCases.length > 0) {
+        document.getElementById('test-suite-output').style.display = 'block';
+        renderTestCasesTable();
+        updateTestSuiteSummary();
+        populateModuleFilter();
+    }
+}
+
+async function clearTestSuite() {
+    if (!confirm('Are you sure you want to clear all generated test cases? This action cannot be undone.')) {
+        return;
+    }
+
+    currentTestCases = [];
+    localStorage.removeItem('qaly_saved_testcases');
+
+    if (window.supabaseClient) {
+        const userId = await resolveCurrentUserId();
+        if (userId) {
+            const { error } = await window.supabaseClient
+                .from(TEST_CASES_TABLE)
+                .upsert(
+                    {
+                        user_id: userId,
+                        test_cases: []
+                    },
+                    { onConflict: 'user_id' }
+                );
+
+            if (error) {
+                console.error('Supabase clear failed:', error.message);
+            }
+        }
+    }
+
+    const output = document.getElementById('test-suite-output');
+    if (output) output.style.display = 'none';
+    renderTestCasesTable();
+    updateTestSuiteSummary();
+    populateModuleFilter();
+    showToast('Test suite cleared.');
 }
 
 // 3. Bug Report Generator

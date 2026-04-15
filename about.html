@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html class="light" lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>About - Qaly AI</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="style.css" />
+</head>
+<body class="bg-[#f8fafc] text-slate-900 relative">
+    <div class="app-container relative z-10">
+        <aside class="sidebar py-6 bg-white/40 backdrop-blur-xl border-r border-slate-200/50">
+            <div class="px-6 mb-8">
+                <div class="flex items-center gap-2">
+                    <div class="qaly-logo text-2xl tracking-tighter flex items-center">
+                        <span class="text-gradient-q">Q</span>aly
+                        <span class="logo-sparkle"></span>
+                    </div>
+                    <div class="ml-1 border-l border-slate-200 pl-2">
+                        <h1 class="text-xs font-bold text-slate-400 uppercase tracking-widest leading-none">AI</h1>
+                        <p class="text-[8px] text-slate-400 uppercase tracking-tight font-medium mt-0.5">Test Smarter. Ship Faster.</p>
+                    </div>
+                </div>
+            </div>
+
+            <nav class="flex-1 space-y-1 px-3">
+                <button class="nav-item-special w-full flex items-center px-4 py-2.5 rounded-lg text-sm font-medium transition-colors text-slate-600 hover:bg-slate-100 text-left" data-url="index.html">
+                    <span class="material-symbols-outlined mr-3 text-lg">dashboard</span>
+                    Dashboard
+                </button>
+                <button class="nav-item-special w-full flex items-center px-4 py-2.5 rounded-lg text-sm font-medium transition-colors text-slate-600 hover:bg-slate-100 text-left" data-url="coming_soon.html?page=QNA">
+                    <span class="material-symbols-outlined mr-3 text-lg">forum</span>
+                    QNA
+                </button>
+                <button class="nav-item-special w-full flex items-center px-4 py-2.5 rounded-lg text-sm font-medium transition-colors text-slate-600 hover:bg-slate-100 text-left" data-url="prompts.html">
+                    <span class="material-symbols-outlined mr-3 text-lg">terminal</span>
+                    Master Prompts
+                </button>
+                <button class="nav-item active w-full flex items-center px-4 py-2.5 rounded-lg text-sm font-medium transition-colors bg-blue-50 text-blue-700 text-left">
+                    <span class="material-symbols-outlined mr-3 text-lg">info</span>
+                    About
+                </button>
+            </nav>
+        </aside>
+
+        <div class="main-content">
+            <div class="content-wrapper">
+                <main class="max-w-5xl mx-auto">
+                    <div class="mb-8 flex justify-end">
+                        <div class="top-right-identity">
+                            <div id="user-identity-trigger" class="user-identity-trigger" role="button" tabindex="0" aria-haspopup="true" aria-expanded="false">
+                                <span id="user-avatar-badge" class="user-avatar-badge">U</span>
+                                <span id="header-username" class="header-username">User</span>
+                                <span class="material-symbols-outlined user-menu-chevron">expand_more</span>
+                            </div>
+                            <div id="user-menu-dropdown" class="user-menu-dropdown hidden" role="menu" aria-label="User menu">
+                                <button type="button" class="user-menu-item" onclick="window.location.href='profile.html'">
+                                    <span class="material-symbols-outlined text-base">person</span>
+                                    Profile
+                                </button>
+                                <button type="button" id="header-logout-btn" class="user-menu-item text-red-600">
+                                    <span class="material-symbols-outlined text-base">logout</span>
+                                    Logout
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <section class="module-section active">
+                        <header class="mb-10">
+                            <h2 class="text-4xl font-bold tracking-tight mb-2">About Qaly AI</h2>
+                            <p class="text-slate-600 text-lg">Test Smarter. Ship Faster.</p>
+                            <p class="text-xs text-slate-400 mt-2 uppercase tracking-widest font-bold">Version 1.0.0 · Where AI meets QA</p>
+                        </header>
+
+                        <div class="grid grid-cols-1 gap-6 animate-[fadeIn_0.35s_ease]">
+                            <article class="bg-white rounded-2xl p-7 border border-slate-200 shadow-sm">
+                                <h3 class="text-xl font-bold mb-3">What is Qaly AI?</h3>
+                                <p class="text-slate-700 leading-relaxed">
+                                    Qaly AI is an intelligent QA assistant designed to help testers and developers generate test cases,
+                                    analyze requirements, and improve software quality using AI-driven insights.
+                                </p>
+                            </article>
+
+                            <article class="bg-white rounded-2xl p-7 border border-slate-200 shadow-sm">
+                                <h3 class="text-xl font-bold mb-4">Key Features</h3>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-slate-700">
+                                    <p class="flex items-center gap-2"><span class="material-symbols-outlined text-blue-600">psychology</span>Requirement Intelligence</p>
+                                    <p class="flex items-center gap-2"><span class="material-symbols-outlined text-blue-600">architecture</span>Test Case Generation</p>
+                                    <p class="flex items-center gap-2"><span class="material-symbols-outlined text-blue-600">bug_report</span>Bug Report Generator</p>
+                                    <p class="flex items-center gap-2"><span class="material-symbols-outlined text-blue-600">spellcheck</span>Sentence Correction</p>
+                                    <p class="flex items-center gap-2"><span class="material-symbols-outlined text-blue-600">terminal</span>Master Prompts</p>
+                                </div>
+                            </article>
+
+                            <article class="bg-white rounded-2xl p-7 border border-slate-200 shadow-sm">
+                                <h3 class="text-xl font-bold mb-3">Who is this for?</h3>
+                                <div class="flex flex-wrap gap-2">
+                                    <span class="px-3 py-1 rounded-full bg-slate-100 text-slate-700 text-sm font-semibold">QA Engineers</span>
+                                    <span class="px-3 py-1 rounded-full bg-slate-100 text-slate-700 text-sm font-semibold">Testers</span>
+                                    <span class="px-3 py-1 rounded-full bg-slate-100 text-slate-700 text-sm font-semibold">Developers</span>
+                                    <span class="px-3 py-1 rounded-full bg-slate-100 text-slate-700 text-sm font-semibold">Product Teams</span>
+                                </div>
+                            </article>
+
+                            <article class="bg-white rounded-2xl p-7 border border-slate-200 shadow-sm">
+                                <h3 class="text-xl font-bold mb-3">Why Qaly?</h3>
+                                <ul class="list-disc list-inside text-slate-700 space-y-1">
+                                    <li>Saves time in test creation</li>
+                                    <li>Improves test coverage</li>
+                                    <li>Reduces manual effort</li>
+                                    <li>Provides structured QA outputs</li>
+                                </ul>
+                            </article>
+
+                            <article class="bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl p-7 border border-blue-200 shadow-sm text-white">
+                                <h3 class="text-xl font-bold mb-2">Built With ❤️</h3>
+                                <p id="about-developer-line" class="text-white/90">Built with ❤️ by Ameen Huzain</p>
+                            </article>
+                        </div>
+                    </section>
+                </main>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="config.js"></script>
+    <script src="supabase-client.js"></script>
+    <script src="auth.js"></script>
+    <script>
+        function getDisplayUsername() {
+            return (localStorage.getItem('username') || 'User').trim() || 'User';
+        }
+
+        function setHeaderIdentity(name) {
+            const safeName = (name || 'User').trim() || 'User';
+            const avatar = document.getElementById('user-avatar-badge');
+            const username = document.getElementById('header-username');
+            if (avatar) avatar.textContent = safeName.charAt(0).toUpperCase();
+            if (username) username.textContent = safeName;
+        }
+
+        function initUserMenu() {
+            const trigger = document.getElementById('user-identity-trigger');
+            const dropdown = document.getElementById('user-menu-dropdown');
+            const logoutBtn = document.getElementById('header-logout-btn');
+            if (!trigger || !dropdown) return;
+
+            const toggle = () => {
+                const isHidden = dropdown.classList.contains('hidden');
+                dropdown.classList.toggle('hidden');
+                trigger.setAttribute('aria-expanded', isHidden ? 'true' : 'false');
+            };
+
+            trigger.addEventListener('click', (event) => {
+                event.stopPropagation();
+                toggle();
+            });
+
+            document.addEventListener('click', (event) => {
+                if (!event.target.closest('.top-right-identity')) {
+                    dropdown.classList.add('hidden');
+                    trigger.setAttribute('aria-expanded', 'false');
+                }
+            });
+
+            if (logoutBtn) {
+                logoutBtn.addEventListener('click', async () => {
+                    if (window.logout) await window.logout();
+                });
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            setHeaderIdentity(getDisplayUsername());
+            initUserMenu();
+
+            const developerLine = document.getElementById('about-developer-line');
+            if (developerLine && typeof appConfig !== 'undefined' && appConfig.developer) {
+                const developerName = appConfig.developer.name || 'Ameen Huzain';
+                const portfolioUrl = appConfig.developer.portfolioUrl;
+
+                developerLine.innerHTML = `Built with ❤️ by ${developerName}`;
+                if (portfolioUrl) {
+                    developerLine.innerHTML += ` · <a href="${portfolioUrl}" target="_blank" rel="noopener noreferrer" class="underline font-semibold text-white hover:text-blue-100 transition-colors">Portfolio</a>`;
+                }
+            }
+
+            if (window.getCurrentSession) {
+                try {
+                    const session = await window.getCurrentSession();
+                    const fullName = session?.user?.user_metadata?.full_name;
+                    const fallback = (session?.user?.email || '').split('@')[0];
+                    const username = (fullName || fallback || getDisplayUsername()).trim();
+                    localStorage.setItem('username', username);
+                    setHeaderIdentity(username);
+                } catch (error) {
+                    console.error('Could not load user session:', error.message);
+                }
+            }
+
+            document.querySelectorAll('[data-url]').forEach((item) => {
+                item.addEventListener('click', () => {
+                    const url = item.getAttribute('data-url');
+                    if (url) window.location.href = url;
+                });
+            });
+        });
+    </script>
+</body>
+</html>

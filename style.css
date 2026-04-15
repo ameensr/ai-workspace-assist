@@ -637,3 +637,180 @@ textarea::placeholder { color: var(--text-light); }
     animation: slideDown 0.3s ease-out;
 }
 
+.top-right-identity {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.user-identity-trigger {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 10px;
+    border-radius: 999px;
+    border: 1px solid rgba(148, 163, 184, 0.25);
+    background: rgba(255, 255, 255, 0.8);
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+    transition: all 0.25s ease;
+    cursor: pointer;
+}
+
+.user-identity-trigger:hover {
+    transform: translateY(-1px) scale(1.01);
+    background: rgba(241, 245, 249, 0.95);
+}
+
+.user-avatar-badge {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.875rem;
+    font-weight: 800;
+    color: #fff;
+    background: linear-gradient(135deg, #2563eb, #9333ea);
+    box-shadow: 0 6px 14px rgba(37, 99, 235, 0.35);
+}
+
+.header-username {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: #0f172a;
+    max-width: 120px;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.user-menu-chevron {
+    font-size: 18px;
+    color: #64748b;
+}
+
+.user-menu-dropdown {
+    position: absolute;
+    left: 0;
+    top: calc(100% + 8px);
+    min-width: 160px;
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 6px;
+    box-shadow: 0 14px 30px rgba(15, 23, 42, 0.14);
+    z-index: 60;
+    animation: userMenuIn 0.2s ease-out;
+}
+
+.user-menu-item {
+    width: 100%;
+    border: none;
+    background: transparent;
+    text-align: left;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border-radius: 8px;
+    padding: 8px 10px;
+    font-size: 0.84rem;
+    font-weight: 600;
+    color: #334155;
+    transition: background-color 0.2s ease;
+    cursor: pointer;
+}
+
+.user-menu-item:hover {
+    background-color: #f1f5f9;
+}
+
+.header-api-status {
+    min-height: 42px;
+}
+
+.modern-tooltip {
+    position: relative;
+}
+
+.modern-tooltip::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    left: 50%;
+    top: calc(100% + 10px);
+    transform: translateX(-50%) translateY(-6px);
+    padding: 8px 12px;
+    min-width: 220px;
+    max-width: 320px;
+    border-radius: 10px;
+    background: rgba(15, 23, 42, 0.95);
+    color: #e2e8f0;
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1.4;
+    text-align: center;
+    box-shadow: 0 12px 28px rgba(2, 6, 23, 0.3);
+    border: 1px solid rgba(148, 163, 184, 0.25);
+    backdrop-filter: blur(8px);
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    z-index: 80;
+    transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s ease;
+}
+
+.modern-tooltip::before {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: calc(100% + 2px);
+    width: 10px;
+    height: 10px;
+    background: rgba(15, 23, 42, 0.95);
+    border-left: 1px solid rgba(148, 163, 184, 0.25);
+    border-top: 1px solid rgba(148, 163, 184, 0.25);
+    transform: translateX(-50%) rotate(45deg);
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    z-index: 79;
+    transition: opacity 0.2s ease, visibility 0.2s ease;
+}
+
+.modern-tooltip:hover::after,
+.modern-tooltip:hover::before {
+    opacity: 1;
+    visibility: visible;
+}
+
+.modern-tooltip:hover::after {
+    transform: translateX(-50%) translateY(0);
+}
+
+@keyframes userMenuIn {
+    from {
+        opacity: 0;
+        transform: translateY(-4px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@media (max-width: 900px) {
+    .top-right-identity {
+        gap: 8px;
+    }
+
+    .header-username {
+        display: none;
+    }
+
+    .user-identity-trigger {
+        padding: 4px 6px;
+    }
+
+}
+
