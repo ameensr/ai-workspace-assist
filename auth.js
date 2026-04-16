@@ -20,6 +20,16 @@ async function login(email, password) {
         throw error;
     }
 
+    // Enforce email verification (Supabase must have "Confirm email" enabled).
+    // If email is not confirmed, immediately sign out to prevent access.
+    const confirmedAt = data?.user?.email_confirmed_at || data?.user?.confirmed_at;
+    if (!confirmedAt) {
+        await supabase.auth.signOut({ scope: 'local' });
+        const err = new Error('Please verify your email before signing in.');
+        err.code = 'EMAIL_NOT_VERIFIED';
+        throw err;
+    }
+
     const profileName = data?.user?.user_metadata?.full_name;
     const fallbackName = (data?.user?.email || '').split('@')[0];
     const username = (profileName || fallbackName || 'User').trim();
@@ -162,6 +172,17 @@ document.addEventListener('DOMContentLoaded', async () => {
     } catch (error) {
         console.error('Auth initialization failed:', error.message);
     }
+
+    // Keep UI safe on session expiry / logout in other tabs.
+    try {
+        const supabase = getSupabaseClient();
+        supabase.auth.onAuthStateChange((event) => {
+            if (event === 'SIGNED_OUT') {
+                localStorage.removeItem('username');
+                localStorage.removeItem('user_role');
+            }
+        });
+    } catch (_) { }
 
     initLogoutDelegation();
 });

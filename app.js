@@ -8,6 +8,9 @@
 // ============================================
 const DEBUG = true;
 const TEST_CASES_TABLE = 'user_test_suites';
+const EXCEL_MIME_TYPE = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+const GEMINI_TIMEOUT_MS = 25000;
+const GEMINI_PROXY_ENDPOINT = '/api/gemini';
 
 // UI State Management
 let currentTestCases = [];
@@ -123,7 +126,10 @@ function copyToClipboard(elementId) {
 function safeParseJSON(str) {
     try {
         // Clean up markdown code blocks if present
-        const cleanStr = str.replace(/```json\n?|\n?```/g, '').trim();
+        const cleanStr = (str || '')
+            .replace(/```json\s*/gi, '')
+            .replace(/```/g, '')
+            .trim();
         return JSON.parse(cleanStr);
     } catch (e) {
         console.error("JSON Parse Error:", e, "Original string:", str);
@@ -143,6 +149,112 @@ function safeParseJSON(str) {
             }
         }
         return null;
+    }
+}
+
+function slugifyFilename(value, fallback = 'test-cases') {
+    return (value || fallback)
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '')
+        || fallback;
+}
+
+function extractPlainTextFromBinary(buffer) {
+    const bytes = new Uint8Array(buffer);
+    let text = '';
+    for (let i = 0; i < bytes.length; i += 1) {
+        const code = bytes[i];
+        if (code === 9 || code === 10 || code === 13 || (code >= 32 && code <= 126)) {
+            text += String.fromCharCode(code);
+        } else {
+            text += ' ';
+        }
+    }
+
+    return text
+        .replace(/\s{2,}/g, ' ')
+        .replace(/([.?!])\s+/g, '$1\n')
+        .trim();
+}
+
+async function extractTextFromPdf(file) {
+    if (!window.pdfjsLib) {
+        throw new Error('PDF parser not loaded');
+    }
+
+    if (!window.pdfjsLib.GlobalWorkerOptions.workerSrc) {
+        window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.8.69/pdf.worker.min.js';
+    }
+
+    const arrayBuffer = await file.arrayBuffer();
+    const pdf = await window.pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+    const pages = [];
+
+    for (let pageNumber = 1; pageNumber <= pdf.numPages; pageNumber += 1) {
+        const page = await pdf.getPage(pageNumber);
+        const textContent = await page.getTextContent();
+        const pageText = textContent.items.map(item => item.str).join(' ').replace(/\s+/g, ' ').trim();
+        if (pageText) {
+            pages.push(pageText);
+        }
+    }
+
+    return pages.join('\n\n').trim();
+}
+
+async function extractTextFromWord(file) {
+    const arrayBuffer = await file.arrayBuffer();
+    const lowerName = (file.name || '').toLowerCase();
+
+    if (lowerName.endsWith('.docx')) {
+        if (!window.mammoth) {
+            throw new Error('Word parser not loaded');
+        }
+
+        const result = await window.mammoth.extractRawText({ arrayBuffer });
+        return (result.value || '').trim();
+    }
+
+    return extractPlainTextFromBinary(arrayBuffer);
+}
+
+async function extractTextFromRequirementFile(file) {
+    const name = (file?.name || '').toLowerCase();
+
+    if (name.endsWith('.pdf')) {
+        return extractTextFromPdf(file);
+    }
+
+    if (name.endsWith('.doc') || name.endsWith('.docx')) {
+        return extractTextFromWord(file);
+    }
+
+    throw new Error('Unsupported file type');
+}
+
+async function handleRequirementUpload(event, targetInputId) {
+    const input = event?.target;
+    const file = input?.files?.[0];
+    const target = document.getElementById(targetInputId);
+
+    if (!file || !target) return;
+
+    try {
+        showToast(`Extracting text from ${file.name}...`, 2000);
+        const extractedText = await extractTextFromRequirementFile(file);
+        if (!extractedText) {
+            throw new Error('No readable text found in the uploaded document');
+        }
+
+        target.value = extractedText;
+        target.dispatchEvent(new Event('input', { bubbles: true }));
+        showToast('Requirement text extracted successfully!');
+    } catch (error) {
+        console.error('Requirement upload failed:', error);
+        showToast(`Upload failed: ${error.message}`);
+    } finally {
+        input.value = '';
     }
 }
 
@@ -260,35 +372,109 @@ function initUserMenu() {
     }
 }
 
+function getIsTestMode() {
+    if (typeof appConfig !== 'undefined' && typeof appConfig.testMode === 'boolean') {
+        return appConfig.testMode;
+    }
+
+    if (typeof window !== 'undefined' && typeof window.TEST_MODE === 'boolean') {
+        return window.TEST_MODE;
+    }
+
+    return false;
+}
+
+function getMockResponse(featureType) {
+    if (typeof window !== 'undefined' && window.MOCK_RESPONSES && featureType && window.MOCK_RESPONSES[featureType]) {
+        return window.MOCK_RESPONSES[featureType];
+    }
+    if (typeof MOCK_RESPONSES !== 'undefined' && featureType && MOCK_RESPONSES[featureType]) {
+        return MOCK_RESPONSES[featureType];
+    }
+    return null;
+}
+
+function shouldFallbackToMock() {
+    if (typeof appConfig !== 'undefined' && typeof appConfig.fallbackToMockOnApiError === 'boolean') {
+        return appConfig.fallbackToMockOnApiError;
+    }
+    return true;
+}
+
+function getGeminiApiKey() {
+    // Deprecated: we no longer use a client-side Gemini API key.
+    return null;
+}
+
+function normalizeGeminiOutput(data) {
+    const candidate = data?.candidates?.[0];
+    const parts = candidate?.content?.parts;
+    if (Array.isArray(parts) && typeof parts[0]?.text === 'string') {
+        return parts[0].text;
+    }
+    if (typeof candidate?.output === 'string') {
+        return candidate.output;
+    }
+    return null;
+}
+
 // ============================================
 // AI CORE
 // ============================================
 
 async function callGemini(prompt, systemPrompt = "") {
-    const apiKey = typeof appConfig !== 'undefined' ? appConfig.geminiApiKey : null;
-    if (!apiKey || apiKey === "YOUR_API_KEY_HERE") {
-        throw new Error("Gemini API Key missing in config.js");
+    const geminiEnabled = typeof appConfig !== 'undefined' ? Boolean(appConfig.geminiEnabled) : false;
+    if (!geminiEnabled) {
+        const err = new Error("Live AI is not configured. Start the server with `GEMINI_API_KEY` or enable Test Mode.");
+        err.code = 'MISSING_API_KEY';
+        throw err;
     }
 
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), GEMINI_TIMEOUT_MS);
 
-    const response = await fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-            contents: [{
-                parts: [{ text: `${systemPrompt}\n\nUser Input: ${prompt}` }]
-            }]
-        })
-    });
+    let response;
+    try {
+        response = await fetch(GEMINI_PROXY_ENDPOINT, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            signal: controller.signal,
+            body: JSON.stringify({ prompt, systemPrompt })
+        });
+    } catch (error) {
+        clearTimeout(timer);
+        const isAbort = error?.name === 'AbortError';
+        const err = new Error(isAbort ? 'Gemini request timed out. Please try again.' : 'Network error while contacting Gemini. Please check your connection.');
+        err.code = isAbort ? 'TIMEOUT' : 'NETWORK';
+        throw err;
+    } finally {
+        clearTimeout(timer);
+    }
 
     if (!response.ok) {
-        const err = await response.json();
-        throw new Error(err.error?.message || "API Call Failed");
+        let message = `Gemini API error (${response.status}).`;
+        try {
+            const errJson = await response.json();
+            message = errJson?.error || errJson?.message || message;
+        } catch (_) {
+            try {
+                const errText = await response.text();
+                if (errText) message = errText;
+            } catch (_) { }
+        }
+        const err = new Error(message);
+        err.code = response.status === 401 || response.status === 403 ? 'INVALID_API_KEY' : 'API_ERROR';
+        throw err;
     }
 
     const data = await response.json();
-    return data.candidates[0].content.parts[0].text;
+    const output = typeof data?.text === 'string' ? data.text : normalizeGeminiOutput(data);
+    if (!output || typeof output !== 'string' || !output.trim()) {
+        const err = new Error('Gemini returned an empty or unexpected response. Try again or switch to Test Mode.');
+        err.code = 'EMPTY_RESPONSE';
+        throw err;
+    }
+    return output;
 }
 
 async function generateAI(prompt, systemPrompt = "", featureType = "") {
@@ -299,29 +485,42 @@ async function generateAI(prompt, systemPrompt = "", featureType = "") {
     const delay = Math.floor(Math.random() * 500) + 1500;
     await new Promise(r => setTimeout(r, delay));
 
-    // Check if test mode is enabled
-    const isTestMode = (typeof TEST_MODE !== 'undefined' && TEST_MODE) || (typeof appConfig !== 'undefined' && appConfig.testMode);
+    const isTestMode = getIsTestMode();
 
     if (isTestMode) {
         console.log(`🧪 TEST MODE: Mocking [${featureType}]`);
 
         // Use MOCK_RESPONSES from test-config.js if available, else local fallback
-        if (typeof MOCK_RESPONSES !== 'undefined' && MOCK_RESPONSES[featureType]) {
-            return MOCK_RESPONSES[featureType];
-        }
-        return "Mock response: Please integrate test-config.js for detailed mocks.";
+        const mock = getMockResponse(featureType);
+        return mock || "Mock response missing for this feature.";
     }
 
-    return await callGemini(prompt, systemPrompt);
+    if (!(prompt || '').trim()) {
+        const err = new Error('Input is empty. Please enter your requirement before processing.');
+        err.code = 'EMPTY_INPUT';
+        throw err;
+    }
+
+    try {
+        return await callGemini(prompt, systemPrompt);
+    } catch (error) {
+        console.error('AI call failed:', error);
+        const canFallback = shouldFallbackToMock();
+        const mock = getMockResponse(featureType);
+        if (canFallback && mock) {
+            showToast('Live AI failed. Falling back to mock mode.');
+            return mock;
+        }
+        throw error;
+    }
 }
 
 function checkAPIStatus() {
     const dot = document.getElementById('api-status-dot');
     const text = document.getElementById('api-status-text');
     const container = document.getElementById('api-status-container');
-    const isTestMode = (typeof TEST_MODE !== 'undefined' && TEST_MODE);
-    const apiKey = typeof appConfig !== 'undefined' ? appConfig.geminiApiKey : null;
-    const hasKey = apiKey && apiKey !== "YOUR_API_KEY_HERE";
+    const isTestMode = getIsTestMode();
+    const hasKey = typeof appConfig !== 'undefined' ? Boolean(appConfig.geminiEnabled) : false;
 
     if (!dot || !text) return;
     if (container) container.classList.add('modern-tooltip');
@@ -343,7 +542,7 @@ function checkAPIStatus() {
     } else {
         dot.className = 'w-2.5 h-2.5 rounded-full bg-red-500';
         text.textContent = '🔴 No API Configured';
-        const tooltipText = 'No API Configured: Add geminiApiKey in config.js to enable live AI responses.';
+        const tooltipText = 'No API Configured: Add `geminiApiKey` in config.js or enable Test Mode.';
         if (container) container.setAttribute('data-tooltip', tooltipText);
         dot.removeAttribute('title');
         text.removeAttribute('title');
@@ -697,15 +896,31 @@ function downloadExcel() {
         { wch: 15 }, { wch: 15 }, { wch: 20 }, { wch: 20 }, { wch: 25 },
         { wch: 40 }, { wch: 20 }, { wch: 30 }, { wch: 30 }, { wch: 12 }
     ];
+    worksheet['!autofilter'] = { ref: worksheet['!ref'] };
 
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, "Test Cases");
 
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
-    const filename = `test-cases-${timestamp}.xlsx`;
+    const moduleName = document.getElementById('module-name')?.value || 'test-cases';
+    const filename = `${slugifyFilename(moduleName)}-${timestamp}.xlsx`;
 
     try {
-        XLSX.writeFile(workbook, filename);
+        const excelBuffer = XLSX.write(workbook, {
+            bookType: 'xlsx',
+            type: 'array',
+            compression: true
+        });
+
+        const blob = new Blob([excelBuffer], { type: EXCEL_MIME_TYPE });
+        const downloadUrl = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = downloadUrl;
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        URL.revokeObjectURL(downloadUrl);
         showToast('Excel download started!');
     } catch (error) {
         console.error(error);
@@ -948,3 +1163,4 @@ window.toggleRowExpansion = toggleRowExpansion;
 window.clearTestSuite = clearTestSuite;
 window.renderTestCasesTable = renderTestCasesTable;
 window.copyToClipboard = copyToClipboard; // Shared copy helper
+window.handleRequirementUpload = handleRequirementUpload;

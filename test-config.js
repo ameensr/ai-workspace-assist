@@ -1,9 +1,17 @@
-// test-config.js - Add this file to enable test mode
+// test-config.js - Mock data for test mode
+// This file is loaded by default on the dashboard; mock/live mode is controlled by:
+// - window.TEST_MODE (optional), or
+// - window.appConfig.testMode (recommended), or
+// - defaulting to true if nothing is provided.
 
-const TEST_MODE = true; // Set to false for production
+if (typeof window !== 'undefined') {
+    if (typeof window.TEST_MODE === 'undefined') {
+        window.TEST_MODE = true;
+    }
+}
 
 // Mock responses for testing
-const MOCK_RESPONSES = {
+window.MOCK_RESPONSES = {
     requirementIntelligence: `{
         "corrected_spec": "User Authentication Feature: Users must be able to securely log in using email and password credentials. The system shall validate credentials against the database, implement rate limiting (5 attempts per 15 minutes), support password reset functionality, and maintain session security with JWT tokens.",
         "gaps": [
@@ -236,7 +244,11 @@ const MOCK_RESPONSES = {
     </div>`
 };
 
-// Export for use in app.js
+// Export for use in node tools if needed
 if (typeof module !== 'undefined' && module.exports) {
-    module.exports = { TEST_MODE, MOCK_RESPONSES };
+    const hasWindow = typeof window !== 'undefined';
+    module.exports = {
+        TEST_MODE: hasWindow ? window.TEST_MODE : true,
+        MOCK_RESPONSES: hasWindow ? window.MOCK_RESPONSES : undefined
+    };
 }

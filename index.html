@@ -5,16 +5,16 @@
     <meta charset="utf-8" />
     <meta content="width=device-width, initial-scale=1.0" name="viewport" />
     <title>Qaly AI - Test Smarter. Ship Faster.</title>
-    <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+    <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.8.69/pdf.min.js"></script>
+    <script src="https://unpkg.com/mammoth@1.8.0/mammoth.browser.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
         rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
         rel="stylesheet" />
     <link rel="stylesheet" href="style.css" />
-    <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
-
     <script id="tailwind-config">
         tailwind.config = {
             darkMode: "class",
@@ -203,6 +203,14 @@
                                 placeholder="Paste your requirement or user story here..."></textarea>
                             <span id="req-intel-error"
                                 class="validation-msg text-[10px] text-red-500 font-bold mt-1 hidden ml-4 uppercase tracking-widest"></span>
+                            <div class="mt-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                                <p class="text-[11px] text-slate-500">Upload `.pdf`, `.doc`, or `.docx` to extract requirement text into the editor.</p>
+                                <label class="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-4 py-2 text-xs font-bold uppercase tracking-widest text-slate-600 hover:bg-slate-100">
+                                    <span class="material-symbols-outlined text-sm">upload_file</span>
+                                    Upload File
+                                    <input id="req-intel-file" type="file" accept=".pdf,.doc,.docx" class="hidden" onchange="handleRequirementUpload(event, 'req-intel-input')">
+                                </label>
+                            </div>
 
                             <div class="mt-6 flex justify-end">
                                 <button onclick="generateRequirementIntelligence(event)"
@@ -301,6 +309,14 @@
                                 placeholder="Describe the feature or requirement..."></textarea>
                             <span id="test-suite-error"
                                 class="validation-msg text-[10px] text-red-500 font-bold mt-1 hidden ml-4 uppercase tracking-widest"></span>
+                            <div class="mt-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                                <p class="text-[11px] text-slate-500">Upload `.pdf`, `.doc`, or `.docx` to populate the requirement field before generating.</p>
+                                <label class="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-4 py-2 text-xs font-bold uppercase tracking-widest text-slate-600 hover:bg-slate-100">
+                                    <span class="material-symbols-outlined text-sm">upload_file</span>
+                                    Upload File
+                                    <input id="test-suite-file" type="file" accept=".pdf,.doc,.docx" class="hidden" onchange="handleRequirementUpload(event, 'test-suite-input')">
+                                </label>
+                            </div>
 
                             <div class="mt-6 flex justify-end">
                                 <button onclick="generateTestSuite(event)"
@@ -648,6 +664,7 @@
         <!-- Text injected from config.js -->
     </footer>
 
+    <script src="/runtime-config.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="config.js"></script>
     <script src="supabase-client.js"></script>
