@@ -1,6 +1,18 @@
 // auth.js - Supabase authentication logic
-const AUTH_PAGES = ['login.html', 'signup.html'];
+const AUTH_PAGES = ['login.html', 'signup.html', 'reset-password.html'];
 const DEFAULT_ROLE = 'user';
+
+function getCurrentPageName() {
+    const path = window.location.pathname;
+    return path.substring(path.lastIndexOf('/') + 1) || 'index.html';
+}
+
+function redirectToLoginIfProtectedPage() {
+    const page = getCurrentPageName();
+    if (!AUTH_PAGES.includes(page)) {
+        window.location.href = 'login.html';
+    }
+}
 
 function getSupabaseClient() {
     if (!window.supabaseClient) {
@@ -62,6 +74,35 @@ async function signup(email, password, fullName) {
     return true;
 }
 
+async function requestPasswordReset(email) {
+    const supabase = getSupabaseClient();
+    const safeEmail = (email || '').trim().toLowerCase();
+    if (!safeEmail) {
+        throw new Error('Please enter your email address.');
+    }
+
+    const redirectTo = `${window.location.origin}/reset-password.html`;
+    const { error } = await supabase.auth.resetPasswordForEmail(safeEmail, { redirectTo });
+    if (error) {
+        throw error;
+    }
+    return true;
+}
+
+async function updatePassword(newPassword) {
+    const supabase = getSupabaseClient();
+    const password = (newPassword || '').trim();
+    if (password.length < 6) {
+        throw new Error('Password must be at least 6 characters.');
+    }
+
+    const { error } = await supabase.auth.updateUser({ password });
+    if (error) {
+        throw error;
+    }
+    return true;
+}
+
 async function syncUserRole(userId) {
     const supabase = getSupabaseClient();
     if (!userId) {
@@ -120,8 +161,7 @@ async function isAuthenticated() {
 }
 
 async function checkAuthRedirect() {
-    const path = window.location.pathname;
-    const page = path.substring(path.lastIndexOf('/') + 1) || 'index.html';
+    const page = getCurrentPageName();
     const isAuthPage = AUTH_PAGES.includes(page);
     const session = await getCurrentSession();
 
@@ -130,7 +170,7 @@ async function checkAuthRedirect() {
         return;
     }
 
-    if (session && isAuthPage) {
+    if (session && isAuthPage && page !== 'reset-password.html') {
         window.location.href = 'index.html';
     }
 }
@@ -156,6 +196,8 @@ function initLogoutDelegation() {
 
 window.login = login;
 window.signup = signup;
+window.requestPasswordReset = requestPasswordReset;
+window.updatePassword = updatePassword;
 window.logout = logout;
 window.isAuthenticated = isAuthenticated;
 window.getCurrentSession = getCurrentSession;
@@ -171,6 +213,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     } catch (error) {
         console.error('Auth initialization failed:', error.message);
+        // Fail closed: if auth bootstrap fails on protected pages, force login.
+        redirectToLoginIfProtectedPage();
     }
 
     // Keep UI safe on session expiry / logout in other tabs.

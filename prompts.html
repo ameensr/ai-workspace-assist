@@ -44,85 +44,82 @@
 </head>
 <body class="p-4 sm:p-10">
     <div class="max-w-6xl mx-auto">
-        <!-- Header -->
-        <header class="flex flex-col sm:flex-row items-center justify-between mb-12 bg-white p-8 rounded-3xl border border-slate-200 shadow-sm">
-            <div class="mb-4 sm:mb-0">
-                <button onclick="window.location.href='index.html'" class="flex items-center gap-2 text-slate-400 hover:text-blue-600 mb-2 transition-all group">
-                    <span class="material-symbols-outlined text-sm transform group-hover:-translate-x-1 transition-transform">arrow_back</span>
-                    <span class="text-[10px] font-black uppercase tracking-[0.2em]">Dashboard</span>
-                </button>
-                <h1 class="text-4xl font-black text-slate-900 tracking-tight">Master Prompt Library</h1>
-                <p class="text-slate-500 mt-1 text-sm font-medium">Curated high-performance prompts for professional QA workflows.</p>
-            </div>
-            <div class="flex items-center gap-4">
-                <button id="add-prompt-btn" type="button" class="hidden items-center gap-2 rounded-2xl bg-blue-600 px-5 py-3 text-xs font-black uppercase tracking-wider text-white shadow-xl shadow-blue-100 hover:bg-blue-700">
-                    <span class="material-symbols-outlined text-sm">add</span>
-                    Add Prompt
-                </button>
-                <div class="hidden sm:block text-right">
-                    <div class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Total Assets</div>
-                    <div class="text-2xl font-black text-blue-600" id="assets-count">0</div>
-                </div>
-                <div class="h-10 w-px bg-slate-200 hidden sm:block"></div>
-                <div class="bg-indigo-600 text-white px-6 py-2.5 rounded-2xl text-xs font-black uppercase tracking-wider shadow-xl shadow-indigo-100 flex items-center gap-2">
-                    <span class="material-symbols-outlined text-sm">verified</span>
-                    PRO CONTENT
-                </div>
-            </div>
+        <header class="mb-8 rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
+            <button onclick="window.location.href='index.html'" class="mb-2 flex items-center gap-2 text-slate-400 transition-all hover:text-blue-600 group">
+                <span class="material-symbols-outlined text-sm transform group-hover:-translate-x-1 transition-transform">arrow_back</span>
+                <span class="text-[10px] font-black uppercase tracking-[0.2em]">Dashboard</span>
+            </button>
+            <h1 class="text-4xl font-black text-slate-900 tracking-tight">Master Prompt</h1>
+            <p class="mt-1 text-sm font-medium text-slate-500">Module prompt configuration + reusable prompt library.</p>
         </header>
 
-        <!-- Search & Filter -->
-        <div class="mb-10 flex flex-col sm:flex-row gap-4">
-            <div class="relative flex-grow">
-                <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">search</span>
-                <input type="text" id="search-input" placeholder="Search prompts, categories, or tags..." 
-                    class="w-full pl-12 pr-4 py-4 rounded-2xl border border-slate-200 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all text-sm">
-            </div>
-            <div class="flex gap-2">
-                 <button class="px-6 py-4 bg-white border border-slate-200 rounded-2xl text-xs font-bold text-slate-600 hover:bg-slate-50 transition-all flex items-center gap-2">
-                    <span class="material-symbols-outlined text-sm">filter_list</span>
-                    All Categories
-                </button>
-            </div>
+        <div class="mb-8 flex gap-3">
+            <button id="tab-config" class="rounded-2xl bg-blue-600 px-6 py-3 text-xs font-black uppercase tracking-widest text-white">Prompt UI Config</button>
+            <button id="tab-library" class="rounded-2xl border border-slate-200 bg-white px-6 py-3 text-xs font-black uppercase tracking-widest text-slate-600">Prompt Library</button>
         </div>
 
-        <!-- Prompt Grid -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="prompt-grid">
-            <!-- Dynamically populated -->
-        </div>
-
-        <section id="add-prompt-panel" class="hidden mt-8 rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
-            <div class="mb-6 flex items-start justify-between gap-4">
-                <div>
-                    <h2 id="prompt-form-title" class="text-2xl font-black text-slate-900">Add Master Prompt</h2>
-                    <p id="prompt-form-subtitle" class="mt-1 text-sm font-medium text-slate-500">Admins can publish shared prompts for the whole team.</p>
-                </div>
-                <button id="cancel-add-prompt-top" type="button" class="rounded-xl border border-slate-200 px-4 py-2 text-xs font-black uppercase tracking-wider text-slate-600 hover:bg-slate-50">
-                    Cancel
-                </button>
+        <section id="config-section">
+            <div class="mb-4 flex items-center justify-between">
+                <p class="text-xs font-bold uppercase tracking-widest text-slate-400">Module Dashboard</p>
+                <span id="config-access-label" class="rounded-full bg-slate-100 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-slate-500">Read Only</span>
             </div>
-            <form id="add-prompt-form" class="space-y-5">
-                <div>
-                    <label for="prompt-title" class="mb-2 block text-xs font-bold uppercase tracking-wider text-slate-600">Prompt Title</label>
-                    <input id="prompt-title" type="text" maxlength="120" class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20" placeholder="Enter prompt title">
-                </div>
-                <div>
-                    <label for="prompt-content" class="mb-2 block text-xs font-bold uppercase tracking-wider text-slate-600">Prompt Content</label>
-                    <textarea id="prompt-content" rows="8" class="w-full rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20" placeholder="Write the reusable master prompt here..."></textarea>
-                </div>
-                <div id="prompt-form-error" class="hidden rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-600"></div>
-                <div class="flex justify-end gap-3">
-                    <button id="cancel-add-prompt" type="button" class="rounded-xl border border-slate-200 px-5 py-3 text-xs font-black uppercase tracking-wider text-slate-600 hover:bg-slate-50">
-                        Cancel
-                    </button>
-                    <button id="save-prompt-btn" type="submit" class="rounded-xl bg-blue-600 px-5 py-3 text-xs font-black uppercase tracking-wider text-white hover:bg-blue-700">
-                        Save Prompt
-                    </button>
-                </div>
-            </form>
+            <div id="module-grid" class="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3"></div>
         </section>
 
-        <!-- Toast -->
+        <section id="library-section" class="hidden">
+            <div class="mb-6 flex items-center justify-between gap-4">
+                <div>
+                    <h2 class="text-2xl font-black text-slate-900">Prompt Library</h2>
+                    <p class="mt-1 text-sm font-medium text-slate-500">Reusable prompts for view and copy.</p>
+                </div>
+                <button id="add-library-btn" type="button" class="hidden rounded-xl bg-indigo-600 px-5 py-3 text-xs font-black uppercase tracking-wider text-white hover:bg-indigo-700">
+                    Add Prompt
+                </button>
+            </div>
+
+            <form id="library-form" class="hidden space-y-4 rounded-2xl border border-slate-200 bg-white p-5">
+                <input id="library-title" type="text" maxlength="120" placeholder="Prompt title" class="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20">
+                <textarea id="library-content" rows="5" placeholder="Reusable prompt content..." class="w-full rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20"></textarea>
+                <input id="library-tags" type="text" placeholder="Tags (comma separated)" class="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20">
+                <div id="library-form-error" class="hidden rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-xs font-semibold text-red-600"></div>
+                <div class="flex justify-end gap-2">
+                    <button id="cancel-library-btn" type="button" class="rounded-xl border border-slate-200 px-4 py-2 text-xs font-black uppercase tracking-wider text-slate-600 hover:bg-slate-50">Cancel</button>
+                    <button id="save-library-btn" type="submit" class="rounded-xl bg-indigo-600 px-4 py-2 text-xs font-black uppercase tracking-wider text-white hover:bg-indigo-700">Save</button>
+                </div>
+            </form>
+            <div id="library-grid" class="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2"></div>
+        </section>
+
+        <div id="config-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4">
+            <div class="w-full max-w-2xl rounded-3xl border border-slate-200 bg-white p-6 shadow-2xl">
+                <div class="mb-4 flex items-start justify-between">
+                    <div>
+                        <h3 id="modal-title" class="text-xl font-black text-slate-900">Module Prompt</h3>
+                        <p id="modal-subtitle" class="text-xs font-semibold uppercase tracking-widest text-slate-400">Prompt UI Config</p>
+                    </div>
+                    <button id="close-modal-btn" class="rounded-xl border border-slate-200 px-3 py-1.5 text-xs font-black uppercase tracking-widest text-slate-600 hover:bg-slate-50">Close</button>
+                </div>
+
+                <form id="config-form" class="space-y-4">
+                    <div>
+                        <label class="mb-2 block text-xs font-bold uppercase tracking-wider text-slate-600" for="modal-prompt-title">Title</label>
+                        <input id="modal-prompt-title" type="text" maxlength="120" class="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20" placeholder="Module prompt title">
+                    </div>
+                    <div>
+                        <label class="mb-2 block text-xs font-bold uppercase tracking-wider text-slate-600" for="modal-prompt-content">Prompt</label>
+                        <textarea id="modal-prompt-content" rows="10" class="w-full rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20" placeholder="You are a Senior QA Engineer...&#10;&#10;Requirement:&#10;{{requirement}}"></textarea>
+                    </div>
+                    <div class="rounded-xl bg-slate-50 px-3 py-2 text-[11px] font-semibold text-slate-500">
+                        Supported placeholders: <code>{{requirement}}</code>, <code>{{userInput}}</code>, <code>{{module}}</code>, <code>{{subModule}}</code>
+                    </div>
+                    <div id="config-form-error" class="hidden rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-xs font-semibold text-red-600"></div>
+                    <div class="flex justify-end gap-2">
+                        <button id="save-config-btn" type="submit" class="hidden rounded-xl bg-blue-600 px-4 py-2 text-xs font-black uppercase tracking-wider text-white hover:bg-blue-700">Save Active Prompt</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
         <div id="toast" class="toast shadow-2xl flex items-center gap-2">
             <span class="material-symbols-outlined text-green-400">check_circle</span>
             <span id="toast-message">Copied to Clipboard!</span>
@@ -136,306 +133,310 @@
     <script src="prompts.js"></script>
     <script src="auth.js"></script>
     <script>
-        const grid = document.getElementById('prompt-grid');
-        const searchInput = document.getElementById('search-input');
-        const countEl = document.getElementById('assets-count');
+        const MODULES = [
+            { key: 'requirementIntelligence', title: 'Requirement Intelligence', icon: 'psychology' },
+            { key: 'testSuite', title: 'Test Suite Architect', icon: 'architecture' },
+            { key: 'professionalCase', title: 'Professional Case Architect', icon: 'fact_check' },
+            { key: 'bugReport', title: 'Bug Report Generator', icon: 'bug_report' },
+            { key: 'sentenceCorrection', title: 'Sentence Correction', icon: 'spellcheck' }
+        ];
+
+        const tabConfig = document.getElementById('tab-config');
+        const tabLibrary = document.getElementById('tab-library');
+        const configSection = document.getElementById('config-section');
+        const librarySection = document.getElementById('library-section');
+        const configAccessLabel = document.getElementById('config-access-label');
+        const moduleGrid = document.getElementById('module-grid');
+        const modal = document.getElementById('config-modal');
+        const modalTitle = document.getElementById('modal-title');
+        const modalSubtitle = document.getElementById('modal-subtitle');
+        const closeModalBtn = document.getElementById('close-modal-btn');
+        const configForm = document.getElementById('config-form');
+        const modalPromptTitle = document.getElementById('modal-prompt-title');
+        const modalPromptContent = document.getElementById('modal-prompt-content');
+        const configFormError = document.getElementById('config-form-error');
+        const saveConfigBtn = document.getElementById('save-config-btn');
         const toastEl = document.getElementById('toast');
         const toastMessageEl = document.getElementById('toast-message');
-        const addPromptBtn = document.getElementById('add-prompt-btn');
-        const addPromptPanel = document.getElementById('add-prompt-panel');
-        const addPromptForm = document.getElementById('add-prompt-form');
-        const promptTitleInput = document.getElementById('prompt-title');
-        const promptContentInput = document.getElementById('prompt-content');
-        const promptFormTitle = document.getElementById('prompt-form-title');
-        const promptFormSubtitle = document.getElementById('prompt-form-subtitle');
-        const promptFormError = document.getElementById('prompt-form-error');
-        const cancelAddPromptBtn = document.getElementById('cancel-add-prompt');
-        const cancelAddPromptTopBtn = document.getElementById('cancel-add-prompt-top');
-        const savePromptBtn = document.getElementById('save-prompt-btn');
-        let allPrompts = [];
-        let editingPromptId = null;
 
-        function showToast(message = 'Copied to Clipboard!') {
-            toastMessageEl.textContent = message;
-            toastEl.classList.add('show');
-            setTimeout(() => toastEl.classList.remove('show'), 3000);
-        }
+        const addLibraryBtn = document.getElementById('add-library-btn');
+        const libraryForm = document.getElementById('library-form');
+        const libraryTitleInput = document.getElementById('library-title');
+        const libraryContentInput = document.getElementById('library-content');
+        const libraryTagsInput = document.getElementById('library-tags');
+        const libraryFormError = document.getElementById('library-form-error');
+        const cancelLibraryBtn = document.getElementById('cancel-library-btn');
+        const saveLibraryBtn = document.getElementById('save-library-btn');
+        const libraryGrid = document.getElementById('library-grid');
 
-        function copyPrompt(text) {
-            navigator.clipboard.writeText(text).then(() => showToast('Copied to Clipboard!'));
-        }
-
-        function getPromptPreview(prompt) {
-            return (prompt || '').replace(/\s+/g, ' ').trim().slice(0, 110) || 'Reusable team prompt.';
-        }
-
-        function normalizePrompt(record) {
-            return {
-                id: record.id || record.title,
-                title: record.title || 'Untitled Prompt',
-                category: record.category || 'Custom Prompt',
-                icon: record.icon || 'terminal',
-                prompt: record.prompt || record.prompt_content || '',
-                description: record.description || getPromptPreview(record.prompt || record.prompt_content || ''),
-                isDatabasePrompt: Boolean(record.id),
-                createdAt: record.created_at || null
-            };
-        }
-
-        function setAdminState() {
-            const role = window.getCurrentUserRole ? window.getCurrentUserRole() : 'user';
-            const isAdmin = role === 'admin';
-            addPromptBtn.classList.toggle('hidden', !isAdmin);
-            addPromptBtn.classList.toggle('inline-flex', isAdmin);
-            if (!isAdmin) {
-                addPromptPanel.classList.add('hidden');
-            }
-        }
-
-        function resetPromptForm() {
-            editingPromptId = null;
-            addPromptForm.reset();
-            promptFormTitle.textContent = 'Add Master Prompt';
-            promptFormSubtitle.textContent = 'Admins can publish shared prompts for the whole team.';
-            savePromptBtn.textContent = 'Save Prompt';
-            savePromptBtn.disabled = false;
-            promptFormError.classList.add('hidden');
-            promptFormError.textContent = '';
-        }
-
-        function togglePromptForm(show) {
-            addPromptPanel.classList.toggle('hidden', !show);
-            if (show) {
-                promptTitleInput.focus();
-            } else {
-                resetPromptForm();
-            }
-        }
+        let selectedModule = null;
+        let editingPromptRecordId = null;
+        let editingLibraryId = null;
 
         function isAdminUser() {
             const role = window.getCurrentUserRole ? window.getCurrentUserRole() : 'user';
             return role === 'admin';
         }
 
-        function beginEditPrompt(promptId) {
-            const prompt = allPrompts.find(item => item.id === promptId && item.isDatabasePrompt);
-            if (!prompt || !isAdminUser()) return;
-
-            editingPromptId = prompt.id;
-            promptFormTitle.textContent = 'Edit Master Prompt';
-            promptFormSubtitle.textContent = 'Update the shared prompt. Changes are visible to all users immediately.';
-            promptTitleInput.value = prompt.title;
-            promptContentInput.value = prompt.prompt;
-            savePromptBtn.textContent = 'Update Prompt';
-            promptFormError.classList.add('hidden');
-            promptFormError.textContent = '';
-            addPromptPanel.classList.remove('hidden');
-            promptTitleInput.focus();
-            addPromptPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        function showToast(message = 'Done') {
+            toastMessageEl.textContent = message;
+            toastEl.classList.add('show');
+            setTimeout(() => toastEl.classList.remove('show'), 2500);
         }
 
-        async function deletePrompt(promptId) {
-            const prompt = allPrompts.find(item => item.id === promptId && item.isDatabasePrompt);
-            if (!prompt || !isAdminUser() || !window.supabaseClient) return;
+        function getPromptPreview(prompt) {
+            return (prompt || '').replace(/\s+/g, ' ').trim().slice(0, 140) || 'No prompt configured.';
+        }
 
-            const confirmed = window.confirm(`Delete "${prompt.title}"? This cannot be undone.`);
-            if (!confirmed) return;
+        function parseTags(value) {
+            return String(value || '').split(',').map(item => item.trim()).filter(Boolean);
+        }
 
-            const { error } = await window.supabaseClient
+        function switchTab(tab) {
+            const isConfig = tab === 'config';
+            configSection.classList.toggle('hidden', !isConfig);
+            librarySection.classList.toggle('hidden', isConfig);
+            tabConfig.className = isConfig
+                ? 'rounded-2xl bg-blue-600 px-6 py-3 text-xs font-black uppercase tracking-widest text-white'
+                : 'rounded-2xl border border-slate-200 bg-white px-6 py-3 text-xs font-black uppercase tracking-widest text-slate-600';
+            tabLibrary.className = !isConfig
+                ? 'rounded-2xl bg-blue-600 px-6 py-3 text-xs font-black uppercase tracking-widest text-white'
+                : 'rounded-2xl border border-slate-200 bg-white px-6 py-3 text-xs font-black uppercase tracking-widest text-slate-600';
+        }
+
+        async function getActivePromptByModule(moduleKey) {
+            if (!window.supabaseClient) return null;
+            const { data } = await window.supabaseClient
                 .from('master_prompts')
-                .delete()
-                .eq('id', promptId);
-
-            if (error) {
-                console.error('Failed to delete prompt:', error.message);
-                showToast(error.message || 'Could not delete prompt.');
-                return;
-            }
-
-            if (editingPromptId === promptId) {
-                togglePromptForm(false);
-            }
-            await loadPrompts();
-            showToast('Prompt deleted successfully!');
+                .select('id, module_key, title, prompt_content, status, version, updated_at')
+                .eq('module_key', moduleKey)
+                .eq('status', 'active')
+                .order('updated_at', { ascending: false })
+                .limit(1)
+                .maybeSingle();
+            return data || null;
         }
 
-        function createPromptCard(prompt) {
-            const card = document.createElement('div');
-            card.className = 'prompt-card bg-white p-6 rounded-3xl flex flex-col group';
-
-            const top = document.createElement('div');
-            top.className = 'flex items-center gap-4 mb-6';
-
-            const iconWrap = document.createElement('div');
-            iconWrap.className = 'w-12 h-12 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center transition-colors group-hover:bg-blue-600 group-hover:text-white';
-            const icon = document.createElement('span');
-            icon.className = 'material-symbols-outlined';
-            icon.textContent = prompt.icon;
-            iconWrap.appendChild(icon);
-
-            const meta = document.createElement('div');
-            meta.className = 'flex-grow';
-            const category = document.createElement('div');
-            category.className = 'text-[9px] font-black text-blue-600 uppercase tracking-widest mb-0.5';
-            category.textContent = prompt.category;
-            const title = document.createElement('h3');
-            title.className = 'font-bold text-slate-900 leading-tight';
-            title.textContent = prompt.title;
-            meta.append(category, title);
-            top.append(iconWrap, meta);
-
-            const description = document.createElement('p');
-            description.className = 'text-xs text-slate-500 mb-6 leading-relaxed font-medium';
-            description.textContent = prompt.description;
-
-            const footer = document.createElement('div');
-            footer.className = 'mt-auto pt-6 border-t border-slate-50 flex items-center justify-between';
-
-            const copyButton = document.createElement('button');
-            copyButton.type = 'button';
-            copyButton.className = 'flex items-center gap-2 text-[10px] font-black text-slate-900 uppercase tracking-widest hover:text-blue-600 transition-colors';
-            copyButton.innerHTML = '<span class="material-symbols-outlined text-sm">content_copy</span><span>Copy Prompt</span>';
-            copyButton.addEventListener('click', () => copyPrompt(prompt.prompt));
-
-            const info = document.createElement('div');
-            if (isAdminUser() && prompt.isDatabasePrompt) {
-                info.className = 'flex items-center gap-2';
-
-                const editButton = document.createElement('button');
-                editButton.type = 'button';
-                editButton.className = 'inline-flex items-center gap-1 rounded-lg border border-slate-200 px-3 py-1.5 text-[10px] font-black uppercase tracking-widest text-slate-600 hover:bg-slate-50';
-                editButton.innerHTML = '<span class="material-symbols-outlined text-sm">edit</span><span>Edit</span>';
-                editButton.addEventListener('click', () => beginEditPrompt(prompt.id));
-
-                const deleteButton = document.createElement('button');
-                deleteButton.type = 'button';
-                deleteButton.className = 'inline-flex items-center gap-1 rounded-lg border border-red-200 px-3 py-1.5 text-[10px] font-black uppercase tracking-widest text-red-600 hover:bg-red-50';
-                deleteButton.innerHTML = '<span class="material-symbols-outlined text-sm">delete</span><span>Delete</span>';
-                deleteButton.addEventListener('click', () => deletePrompt(prompt.id));
-
-                info.append(editButton, deleteButton);
-            } else {
-                info.className = 'p-1.5 rounded-lg bg-slate-50 text-slate-400';
-                info.innerHTML = '<span class="material-symbols-outlined text-[16px]">info</span>';
-            }
-
-            footer.append(copyButton, info);
-            card.append(top, description, footer);
-            return card;
+        function openConfigModal(moduleInfo, promptRecord) {
+            selectedModule = moduleInfo;
+            editingPromptRecordId = promptRecord?.id || null;
+            modalTitle.textContent = moduleInfo.title;
+            modalSubtitle.textContent = `Module key: ${moduleInfo.key}`;
+            modalPromptTitle.value = promptRecord?.title || `${moduleInfo.title} Prompt`;
+            modalPromptContent.value = promptRecord?.prompt_content || `You are a Senior QA Engineer.\n\nRequirement:\n{{requirement}}`;
+            configFormError.classList.add('hidden');
+            saveConfigBtn.classList.toggle('hidden', !isAdminUser());
+            modalPromptTitle.readOnly = !isAdminUser();
+            modalPromptContent.readOnly = !isAdminUser();
+            modal.classList.remove('hidden');
         }
 
-        function renderPrompts(filter = '') {
-            const search = filter.toLowerCase();
-            const filtered = allPrompts.filter(p =>
-                p.title.toLowerCase().includes(search) ||
-                p.category.toLowerCase().includes(search) ||
-                p.description.toLowerCase().includes(search)
-            );
-
-            countEl.textContent = filtered.length;
-            grid.innerHTML = '';
-            filtered.forEach(prompt => grid.appendChild(createPromptCard(prompt)));
+        function closeConfigModal() {
+            modal.classList.add('hidden');
+            selectedModule = null;
+            editingPromptRecordId = null;
         }
 
-        async function loadPrompts() {
-            const staticPrompts = MASTER_PROMPTS_LIBRARY.map(normalizePrompt);
-            if (!window.supabaseClient) {
-                allPrompts = staticPrompts;
-                renderPrompts(searchInput.value);
-                return;
+        async function renderModuleCards() {
+            moduleGrid.innerHTML = '';
+            for (const moduleInfo of MODULES) {
+                const active = await getActivePromptByModule(moduleInfo.key);
+                const card = document.createElement('div');
+                card.className = 'prompt-card rounded-3xl border border-slate-200 bg-white p-6';
+                card.innerHTML = `
+                    <div class="mb-3 flex items-start justify-between gap-3">
+                        <div class="flex items-center gap-3">
+                            <span class="material-symbols-outlined rounded-xl bg-blue-50 p-2 text-blue-600">${moduleInfo.icon}</span>
+                            <h3 class="text-sm font-black text-slate-900">${moduleInfo.title}</h3>
+                        </div>
+                        <span class="text-[10px] font-black uppercase tracking-widest ${active ? 'text-green-600' : 'text-slate-400'}">${active ? 'active' : 'not set'}</span>
+                    </div>
+                    <p class="mb-4 text-xs text-slate-500">${getPromptPreview(active?.prompt_content)}</p>
+                    <div class="flex items-center justify-between">
+                        <span class="text-[10px] font-bold uppercase tracking-widest text-slate-400">${active ? `v${active.version || 1}` : 'no version'}</span>
+                        <button class="open-module rounded-xl border border-slate-200 px-3 py-1.5 text-[10px] font-black uppercase tracking-widest text-slate-600 hover:bg-slate-50">Open</button>
+                    </div>
+                `;
+                card.querySelector('.open-module').addEventListener('click', () => openConfigModal(moduleInfo, active));
+                moduleGrid.appendChild(card);
             }
-
-            const { data, error } = await window.supabaseClient
-                .from('master_prompts')
-                .select('id, title, prompt_content, category, icon, created_at')
-                .order('created_at', { ascending: false });
-
-            if (error) {
-                console.error('Failed to load master prompts:', error.message);
-                allPrompts = staticPrompts;
-                renderPrompts(searchInput.value);
-                return;
-            }
-
-            const databasePrompts = (data || []).map(normalizePrompt);
-            allPrompts = [...databasePrompts, ...staticPrompts];
-            renderPrompts(searchInput.value);
         }
 
-        async function savePrompt(event) {
+        async function saveModulePrompt(event) {
             event.preventDefault();
-            const title = promptTitleInput.value.trim();
-            const promptContent = promptContentInput.value.trim();
-            const wasEditing = Boolean(editingPromptId);
+            if (!isAdminUser()) return;
+            if (!window.supabaseClient || !window.getCurrentSession || !selectedModule) return;
 
+            const title = modalPromptTitle.value.trim();
+            const promptContent = modalPromptContent.value.trim();
             if (!title || !promptContent) {
-                promptFormError.textContent = 'Prompt title and prompt content are required.';
-                promptFormError.classList.remove('hidden');
-                return;
-            }
-
-            if (!window.supabaseClient || !window.getCurrentSession) {
-                promptFormError.textContent = 'Supabase is not configured.';
-                promptFormError.classList.remove('hidden');
+                configFormError.textContent = 'Title and prompt are required.';
+                configFormError.classList.remove('hidden');
                 return;
             }
 
             const session = await window.getCurrentSession();
             const userId = session?.user?.id;
-            if (!userId) {
-                promptFormError.textContent = 'Your session is missing. Please sign in again.';
-                promptFormError.classList.remove('hidden');
+            if (!userId) return;
+
+            const { error: deactivateError } = await window.supabaseClient
+                .from('master_prompts')
+                .update({ status: 'inactive', updated_by: userId })
+                .eq('module_key', selectedModule.key)
+                .eq('status', 'active');
+
+            if (deactivateError) {
+                configFormError.textContent = deactivateError.message || 'Failed to prepare active prompt.';
+                configFormError.classList.remove('hidden');
                 return;
             }
 
-            savePromptBtn.disabled = true;
-            savePromptBtn.textContent = wasEditing ? 'Updating...' : 'Saving...';
-
-            let query = window.supabaseClient
-                .from('master_prompts');
+            const payload = {
+                module_key: selectedModule.key,
+                title,
+                prompt_content: promptContent,
+                status: 'active',
+                updated_by: userId
+            };
 
             let error;
-            if (wasEditing) {
-                ({ error } = await query
-                    .update({
-                        title,
-                        prompt_content: promptContent
-                    })
-                    .eq('id', editingPromptId));
+            if (editingPromptRecordId) {
+                ({ error } = await window.supabaseClient.from('master_prompts').update(payload).eq('id', editingPromptRecordId));
             } else {
-                ({ error } = await query
-                    .insert({
-                        title,
-                        prompt_content: promptContent,
-                        created_by: userId
-                    }));
+                ({ error } = await window.supabaseClient.from('master_prompts').insert({ ...payload, created_by: userId }));
             }
 
-            savePromptBtn.disabled = false;
-            savePromptBtn.textContent = wasEditing ? 'Update Prompt' : 'Save Prompt';
-
             if (error) {
-                console.error('Failed to save prompt:', error.message);
-                promptFormError.textContent = error.message || 'Could not save the prompt.';
-                promptFormError.classList.remove('hidden');
+                configFormError.textContent = error.message || 'Failed to save prompt.';
+                configFormError.classList.remove('hidden');
                 return;
             }
 
-            togglePromptForm(false);
-            await loadPrompts();
-            showToast(wasEditing ? 'Prompt updated successfully!' : 'Prompt saved successfully!');
+            closeConfigModal();
+            await renderModuleCards();
+            showToast('Active prompt saved.');
         }
 
-        searchInput.addEventListener('input', (e) => renderPrompts(e.target.value));
-        addPromptBtn.addEventListener('click', () => {
-            resetPromptForm();
-            togglePromptForm(true);
-        });
-        cancelAddPromptBtn.addEventListener('click', () => togglePromptForm(false));
-        cancelAddPromptTopBtn.addEventListener('click', () => togglePromptForm(false));
-        addPromptForm.addEventListener('submit', savePrompt);
+        function createLibraryCard(item) {
+            const card = document.createElement('div');
+            const tags = Array.isArray(item.tags) ? item.tags : [];
+            card.className = 'rounded-2xl border border-slate-200 bg-white p-5';
+            card.innerHTML = `
+                <div class="mb-3 flex items-start justify-between gap-2">
+                    <h3 class="text-sm font-black text-slate-900">${item.title || 'Untitled'}</h3>
+                    <span class="text-[10px] font-black uppercase tracking-widest ${item.is_active ? 'text-green-600' : 'text-slate-400'}">${item.is_active ? 'active' : 'inactive'}</span>
+                </div>
+                <p class="mb-3 text-xs text-slate-600">${getPromptPreview(item.prompt_text || '')}</p>
+                <p class="mb-4 text-[10px] font-bold uppercase tracking-wider text-slate-400">${tags.join(', ') || 'No tags'}</p>
+                <div class="flex items-center justify-between">
+                    <button class="copy-lib rounded-lg border border-slate-200 px-3 py-1.5 text-[10px] font-black uppercase tracking-widest text-slate-600 hover:bg-slate-50">Copy</button>
+                    <div class="${isAdminUser() ? 'flex items-center gap-2' : 'hidden'}">
+                        <button class="edit-lib rounded-lg border border-slate-200 px-3 py-1.5 text-[10px] font-black uppercase tracking-widest text-slate-600 hover:bg-slate-50">Edit</button>
+                        <button class="delete-lib rounded-lg border border-red-200 px-3 py-1.5 text-[10px] font-black uppercase tracking-widest text-red-600 hover:bg-red-50">Delete</button>
+                    </div>
+                </div>
+            `;
 
-        // Initial render
+            card.querySelector('.copy-lib').addEventListener('click', () => {
+                navigator.clipboard.writeText(item.prompt_text || '');
+                showToast('Copied to clipboard!');
+            });
+
+            if (isAdminUser()) {
+                card.querySelector('.edit-lib').addEventListener('click', () => {
+                    editingLibraryId = item.id;
+                    libraryTitleInput.value = item.title || '';
+                    libraryContentInput.value = item.prompt_text || '';
+                    libraryTagsInput.value = (item.tags || []).join(', ');
+                    saveLibraryBtn.textContent = 'Update';
+                    libraryForm.classList.remove('hidden');
+                });
+                card.querySelector('.delete-lib').addEventListener('click', async () => {
+                    if (!window.confirm(`Delete "${item.title}"?`)) return;
+                    const { error } = await window.supabaseClient.from('prompt_library').delete().eq('id', item.id);
+                    if (error) return showToast(error.message || 'Delete failed.');
+                    await loadLibraryPrompts();
+                    showToast('Deleted.');
+                });
+            }
+
+            return card;
+        }
+
+        async function loadLibraryPrompts() {
+            if (!window.supabaseClient) {
+                libraryGrid.innerHTML = '<p class="text-sm text-slate-500">Supabase is not configured.</p>';
+                return;
+            }
+            const { data, error } = await window.supabaseClient
+                .from('prompt_library')
+                .select('id, title, prompt_text, tags, is_active, updated_at')
+                .order('updated_at', { ascending: false });
+            if (error) {
+                libraryGrid.innerHTML = '<p class="text-sm text-slate-500">Could not load prompt library.</p>';
+                return;
+            }
+            libraryGrid.innerHTML = '';
+            (data || []).forEach(item => libraryGrid.appendChild(createLibraryCard(item)));
+            if (!data || data.length === 0) {
+                libraryGrid.innerHTML = '<p class="text-sm text-slate-500">No prompts yet.</p>';
+            }
+        }
+
+        async function saveLibraryPrompt(event) {
+            event.preventDefault();
+            if (!window.supabaseClient || !window.getCurrentSession) return;
+
+            const title = libraryTitleInput.value.trim();
+            const promptText = libraryContentInput.value.trim();
+            const tags = parseTags(libraryTagsInput.value);
+            if (!title || !promptText) {
+                libraryFormError.textContent = 'Title and prompt are required.';
+                libraryFormError.classList.remove('hidden');
+                return;
+            }
+
+            const session = await window.getCurrentSession();
+            const userId = session?.user?.id;
+            if (!userId) return;
+
+            const payload = { title, prompt_text: promptText, tags, updated_by: userId };
+            let error;
+            if (editingLibraryId) {
+                ({ error } = await window.supabaseClient.from('prompt_library').update(payload).eq('id', editingLibraryId));
+            } else {
+                ({ error } = await window.supabaseClient.from('prompt_library').insert({ ...payload, created_by: userId }));
+            }
+            if (error) {
+                libraryFormError.textContent = error.message || 'Save failed.';
+                libraryFormError.classList.remove('hidden');
+                return;
+            }
+            editingLibraryId = null;
+            libraryForm.reset();
+            libraryForm.classList.add('hidden');
+            saveLibraryBtn.textContent = 'Save';
+            await loadLibraryPrompts();
+            showToast('Saved.');
+        }
+
+        tabConfig.addEventListener('click', () => switchTab('config'));
+        tabLibrary.addEventListener('click', () => switchTab('library'));
+        closeModalBtn.addEventListener('click', closeConfigModal);
+        configForm.addEventListener('submit', saveModulePrompt);
+        addLibraryBtn.addEventListener('click', () => {
+            editingLibraryId = null;
+            libraryForm.reset();
+            libraryForm.classList.remove('hidden');
+            saveLibraryBtn.textContent = 'Save';
+            libraryFormError.classList.add('hidden');
+        });
+        cancelLibraryBtn.addEventListener('click', () => {
+            libraryForm.classList.add('hidden');
+            editingLibraryId = null;
+        });
+        libraryForm.addEventListener('submit', saveLibraryPrompt);
+
         document.addEventListener('DOMContentLoaded', async () => {
             try {
                 const session = window.getCurrentSession ? await window.getCurrentSession() : null;
@@ -443,10 +444,18 @@
                     await window.syncUserRole(session.user.id);
                 }
             } catch (error) {
-                console.error('Failed to sync role on prompts page:', error.message);
+                console.error('Prompt page auth init failed:', error.message);
             }
-            setAdminState();
-            await loadPrompts();
+
+            const admin = isAdminUser();
+            configAccessLabel.textContent = admin ? 'Admin Access' : 'Read Only';
+            configAccessLabel.className = admin
+                ? 'rounded-full bg-green-100 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-green-700'
+                : 'rounded-full bg-slate-100 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-slate-500';
+            addLibraryBtn.classList.toggle('hidden', !admin);
+            switchTab('config');
+            await renderModuleCards();
+            await loadLibraryPrompts();
         });
     </script>
 </body>

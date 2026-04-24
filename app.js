@@ -10,11 +10,13 @@ const DEBUG = true;
 const TEST_CASES_TABLE = 'user_test_suites';
 const EXCEL_MIME_TYPE = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
 const GEMINI_TIMEOUT_MS = 25000;
-const GEMINI_PROXY_ENDPOINT = '/api/gemini';
+const AI_GENERATE_ENDPOINT = '/api/ai/generate';
+const PROMPT_CONFIG_TABLE = 'master_prompts';
 
 // UI State Management
 let currentTestCases = [];
 let currentUserId = null;
+const promptCache = new Map();
 
 // Initialize application
 async function initApp() {
@@ -418,14 +420,110 @@ function normalizeGeminiOutput(data) {
     return null;
 }
 
+function normalizePromptList(value) {
+    if (Array.isArray(value)) {
+        return value.map(item => String(item || '').trim()).filter(Boolean);
+    }
+    if (typeof value === 'string') {
+        return value
+            .split('\n')
+            .map(item => item.replace(/^\s*-\s*/, '').trim())
+            .filter(Boolean);
+    }
+    return [];
+}
+
+function optimizePromptText(text) {
+    return String(text || '')
+        .replace(/[ \t]+/g, ' ')
+        .replace(/\n{3,}/g, '\n\n')
+        .trim();
+}
+
+function renderTemplate(template, variables = {}) {
+    let output = String(template || '');
+    Object.entries(variables || {}).forEach(([key, value]) => {
+        const safe = String(value ?? '').trim();
+        output = output.replace(new RegExp(`\\{\\{\\s*${key}\\s*\\}\\}`, 'g'), safe);
+    });
+    return output;
+}
+
+function buildPromptFromConfig(config, userInput, options = {}) {
+    const role = String(config?.role || '').trim();
+    const task = String(config?.task || '').trim();
+    const constraints = normalizePromptList(config?.constraints);
+    const outputFormat = normalizePromptList(config?.output_format);
+    const style = String(config?.style || 'concise').trim();
+    const toggleConstraints = normalizePromptList(options?.toggleConstraints);
+
+    const sections = [
+        role ? `[Role]\n${role}` : '',
+        task ? `[Task]\n${task}` : '',
+        `[User Input]\n${String(userInput || '').trim()}`,
+        constraints.length ? `[Constraints]\n- ${constraints.join('\n- ')}` : '',
+        toggleConstraints.length ? `[Smart Toggles]\n- ${toggleConstraints.join('\n- ')}` : '',
+        outputFormat.length ? `[Output Format]\n- ${outputFormat.join('\n- ')}` : '',
+        `[Style]\n${style || 'concise'}`
+    ].filter(Boolean);
+
+    return optimizePromptText(sections.join('\n\n'));
+}
+
+async function getPromptGovernanceConfig(featureKey) {
+    if (promptCache.has(featureKey)) {
+        return promptCache.get(featureKey);
+    }
+    if (!window.supabaseClient) return null;
+
+    const { data, error } = await window.supabaseClient
+        .from(PROMPT_CONFIG_TABLE)
+        .select('module_key, role, task, constraints, output_format, style, status, prompt_content, updated_at')
+        .eq('module_key', featureKey)
+        .eq('status', 'active')
+        .order('updated_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+    if (error || !data) return null;
+    promptCache.set(featureKey, data);
+    return data;
+}
+
+async function resolvePromptPayload(featureKey, userInput, fallbackSystemPrompt, options = {}) {
+    const config = await getPromptGovernanceConfig(featureKey);
+    if (config) {
+        const templateVars = options?.templateVars || {};
+        const templateText = String(config?.prompt_content || '').trim();
+        if (templateText.includes('{{')) {
+            const compiledFromTemplate = optimizePromptText(renderTemplate(templateText, templateVars));
+            return {
+                prompt: compiledFromTemplate || userInput,
+                systemPrompt: ''
+            };
+        }
+
+        const compiledPrompt = buildPromptFromConfig(config, userInput, options);
+        return {
+            prompt: compiledPrompt,
+            systemPrompt: ''
+        };
+    }
+
+    return {
+        prompt: userInput,
+        systemPrompt: fallbackSystemPrompt
+    };
+}
+
 // ============================================
 // AI CORE
 // ============================================
 
 async function callGemini(prompt, systemPrompt = "") {
-    const geminiEnabled = typeof appConfig !== 'undefined' ? Boolean(appConfig.geminiEnabled) : false;
-    if (!geminiEnabled) {
-        const err = new Error("Live AI is not configured. Start the server with `GEMINI_API_KEY` or enable Test Mode.");
+    const aiServiceEnabled = typeof appConfig !== 'undefined' ? Boolean(appConfig.aiServiceEnabled) : false;
+    if (!aiServiceEnabled) {
+        const err = new Error("Live AI is not configured. Add at least one provider API key on server or enable Test Mode.");
         err.code = 'MISSING_API_KEY';
         throw err;
     }
@@ -435,7 +533,7 @@ async function callGemini(prompt, systemPrompt = "") {
 
     let response;
     try {
-        response = await fetch(GEMINI_PROXY_ENDPOINT, {
+        response = await fetch(AI_GENERATE_ENDPOINT, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             signal: controller.signal,
@@ -520,7 +618,7 @@ function checkAPIStatus() {
     const text = document.getElementById('api-status-text');
     const container = document.getElementById('api-status-container');
     const isTestMode = getIsTestMode();
-    const hasKey = typeof appConfig !== 'undefined' ? Boolean(appConfig.geminiEnabled) : false;
+    const hasKey = typeof appConfig !== 'undefined' ? Boolean(appConfig.aiServiceEnabled) : false;
 
     if (!dot || !text) return;
     if (container) container.classList.add('modern-tooltip');
@@ -562,7 +660,13 @@ async function generateRequirementIntelligence(e) {
     setLoading(btn, true);
 
     try {
-        const response = await generateAI(input, SYSTEM_PROMPTS.requirementIntelligence, 'requirementIntelligence');
+        const payload = await resolvePromptPayload('requirementIntelligence', input, SYSTEM_PROMPTS.requirementIntelligence, {
+            templateVars: {
+                requirement: input,
+                userInput: input
+            }
+        });
+        const response = await generateAI(payload.prompt, payload.systemPrompt, 'requirementIntelligence');
         const data = safeParseJSON(response);
 
         if (!data) throw new Error("Could not parse AI response");
@@ -615,7 +719,15 @@ async function generateTestSuite(e) {
     const prompt = `Module: ${module}, Sub-Module: ${subModule}\nRequirement: ${input}`;
 
     try {
-        const response = await generateAI(prompt, SYSTEM_PROMPTS.testSuite, 'testSuite');
+        const payload = await resolvePromptPayload('testSuite', prompt, SYSTEM_PROMPTS.testSuite, {
+            templateVars: {
+                requirement: input,
+                userInput: input,
+                module,
+                subModule
+            }
+        });
+        const response = await generateAI(payload.prompt, payload.systemPrompt, 'testSuite');
         const data = safeParseJSON(response);
 
         if (data && Array.isArray(data)) {
@@ -1052,7 +1164,13 @@ async function generateBugReport(e) {
     setLoading(btn, true);
 
     try {
-        const response = await generateAI(input, SYSTEM_PROMPTS.bugReport, 'bugReport');
+        const payload = await resolvePromptPayload('bugReport', input, SYSTEM_PROMPTS.bugReport, {
+            templateVars: {
+                requirement: input,
+                userInput: input
+            }
+        });
+        const response = await generateAI(payload.prompt, payload.systemPrompt, 'bugReport');
         document.getElementById('bug-report-content').innerHTML = response;
 
         const meta = document.getElementById('bug-meta');
@@ -1080,7 +1198,13 @@ async function correctSentence(e) {
     setLoading(btn, true);
 
     try {
-        const response = await generateAI(input, SYSTEM_PROMPTS.sentenceCorrection, 'sentenceCorrection');
+        const payload = await resolvePromptPayload('sentenceCorrection', input, SYSTEM_PROMPTS.sentenceCorrection, {
+            templateVars: {
+                requirement: input,
+                userInput: input
+            }
+        });
+        const response = await generateAI(payload.prompt, payload.systemPrompt, 'sentenceCorrection');
         const data = safeParseJSON(response);
 
         if (!data) throw new Error("Invalid format");
@@ -1114,7 +1238,13 @@ async function generateProfessionalCase(e) {
     setLoading(btn, true);
 
     try {
-        const response = await generateAI(input, SYSTEM_PROMPTS.professionalCase, 'professionalCase');
+        const payload = await resolvePromptPayload('professionalCase', input, SYSTEM_PROMPTS.professionalCase, {
+            templateVars: {
+                requirement: input,
+                userInput: input
+            }
+        });
+        const response = await generateAI(payload.prompt, payload.systemPrompt, 'professionalCase');
         document.getElementById('professional-case-content').innerHTML = response;
 
         const meta = document.getElementById('professional-case-meta');
