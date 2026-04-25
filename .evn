@@ -1,9 +1,0 @@
-SUPABASE_URL=https://gdongikpqjvsgpqsrhay.supabase.co
-SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdkb25naWtwcWp2c2dwcXNyaGF5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYyNDA3MDUsImV4cCI6MjA5MTgxNjcwNX0.RhsQYyWQTfLJ6q3XnJTFBy-MkRSORJ1tENFjUaqedBw
-
-# Gemini is used only by the server proxy endpoint /api/gemini
-GEMINI_API_KEY=your_gemini_api_key
-
-# Optional app runtime defaults
-APP_TEST_MODE=true
-APP_FALLBACK_TO_MOCK_ON_API_ERROR=true

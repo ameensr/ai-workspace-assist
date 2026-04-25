@@ -40,5 +40,5 @@ window.appConfig = mergedConfig;
 
 // Export if in a module environment, otherwise global
 if (typeof module !== 'undefined' && module.exports) {
-    module.exports = appConfig;
+    module.exports = mergedConfig;
 }
