@@ -55,6 +55,70 @@ app.get('/api/health', (_, res) => {
   });
 });
 
+function getSupabaseRestConfig() {
+  return {
+    url: String(process.env.SUPABASE_URL || '').replace(/\/$/, ''),
+    anonKey: process.env.SUPABASE_ANON_KEY || ''
+  };
+}
+
+function getBearerToken(req) {
+  const header = String(req.headers.authorization || '');
+  const match = header.match(/^Bearer\s+(.+)$/i);
+  return match?.[1] || '';
+}
+
+function getSupabaseRequestContext(req, res) {
+  const token = getBearerToken(req);
+  const { url, anonKey } = getSupabaseRestConfig();
+
+  if (!url || !anonKey) {
+    res.status(500).json({ error: 'Supabase is not configured on server.' });
+    return null;
+  }
+  if (!token) {
+    res.status(401).json({ error: 'Missing Supabase session token.' });
+    return null;
+  }
+
+  return { token, url, anonKey };
+}
+
+async function supabaseRest(ctx, path, options = {}) {
+  const response = await fetch(`${ctx.url}${path}`, {
+    ...options,
+    headers: {
+      apikey: ctx.anonKey,
+      Authorization: `Bearer ${ctx.token}`,
+      Accept: 'application/json',
+      ...(options.body ? { 'Content-Type': 'application/json' } : {}),
+      ...(options.headers || {})
+    }
+  });
+
+  if (!response.ok) {
+    const message = await response.text().catch(() => '');
+    let parsedMessage = message;
+    try {
+      const parsed = JSON.parse(message);
+      parsedMessage = parsed?.message || parsed?.error || parsed?.hint || parsedMessage;
+    } catch (_) { }
+    const error = new Error(parsedMessage || `Supabase request failed (${response.status}).`);
+    error.statusCode = response.status;
+    throw error;
+  }
+
+  if (response.status === 204) return null;
+  return response.json();
+}
+
+async function supabaseRpc(ctx, functionName, payload = {}) {
+  return supabaseRest(ctx, `/rest/v1/rpc/${functionName}`, {
+    method: 'POST',
+    body: JSON.stringify(payload)
+  });
+}
+
 const apiLimiter = rateLimit({
   windowMs: 60_000,
   limit: 30,
@@ -71,6 +135,147 @@ function parseProviderPriority() {
   const ordered = fromEnv.length ? fromEnv : DEFAULT_PROVIDER_PRIORITY;
   return [...new Set(ordered)];
 }
+
+app.get('/api/module-prompt-status', apiLimiter, async (req, res) => {
+  const moduleKeys = String(req.query.modules || '')
+    .split(',')
+    .map(item => item.trim())
+    .filter(Boolean);
+  const ctx = getSupabaseRequestContext(req, res);
+
+  if (!ctx) return;
+  if (moduleKeys.length === 0) {
+    return res.json({ modules: [] });
+  }
+
+  try {
+    const inList = moduleKeys.map(encodeURIComponent).join(',');
+    const rows = await supabaseRest(ctx, `/rest/v1/master_prompts?select=id,module_key,title,prompt_content,status,updated_at,activated_at&status=eq.ACTIVE&module_key=in.(${inList})&order=activated_at.desc.nullslast,updated_at.desc`);
+    const activeByModule = new Map();
+    (Array.isArray(rows) ? rows : []).forEach(row => {
+      if (!activeByModule.has(row.module_key)) {
+        activeByModule.set(row.module_key, row);
+      }
+    });
+
+    res.json({
+      modules: moduleKeys.map(moduleKey => ({
+        moduleKey,
+        configured: activeByModule.has(moduleKey),
+        prompt: activeByModule.get(moduleKey) || null
+      }))
+    });
+  } catch (error) {
+    console.error('Prompt status fetch failed:', error);
+    res.status(502).json({ error: 'Prompt status request failed.' });
+  }
+});
+
+app.get('/api/modules/:moduleKey/prompts', apiLimiter, async (req, res) => {
+  const ctx = getSupabaseRequestContext(req, res);
+  if (!ctx) return;
+
+  try {
+    const moduleKey = encodeURIComponent(req.params.moduleKey);
+    const rows = await supabaseRest(ctx, `/rest/v1/master_prompts?select=id,module_key,title,prompt_content,status,updated_at,created_at,released_at,activated_at&module_key=eq.${moduleKey}&order=updated_at.desc`);
+    res.json({ prompts: rows || [] });
+  } catch (error) {
+    res.status(error.statusCode || 502).json({ error: error.message || 'Could not load prompts.' });
+  }
+});
+
+app.get('/api/modules/:moduleKey/prompts/active', apiLimiter, async (req, res) => {
+  const ctx = getSupabaseRequestContext(req, res);
+  if (!ctx) return;
+
+  try {
+    const moduleKey = encodeURIComponent(req.params.moduleKey);
+    const rows = await supabaseRest(ctx, `/rest/v1/master_prompts?select=id,module_key,title,prompt_content,status,updated_at,activated_at&module_key=eq.${moduleKey}&status=eq.ACTIVE&limit=1`);
+    res.json({ prompt: Array.isArray(rows) ? rows[0] || null : null });
+  } catch (error) {
+    res.status(error.statusCode || 502).json({ error: error.message || 'Could not load active prompt.' });
+  }
+});
+
+app.post('/api/modules/:moduleKey/prompts/draft', apiLimiter, async (req, res) => {
+  const ctx = getSupabaseRequestContext(req, res);
+  if (!ctx) return;
+
+  try {
+    const prompt = await supabaseRpc(ctx, 'save_module_prompt_draft', {
+      p_module_key: req.params.moduleKey,
+      p_title: String(req.body?.title || '').trim(),
+      p_prompt_content: String(req.body?.promptContent || '').trim()
+    });
+    res.json({ prompt });
+  } catch (error) {
+    res.status(error.statusCode || 502).json({ error: error.message || 'Could not save draft.' });
+  }
+});
+
+app.put('/api/prompts/:promptId', apiLimiter, async (req, res) => {
+  const ctx = getSupabaseRequestContext(req, res);
+  if (!ctx) return;
+
+  try {
+    const prompt = await supabaseRpc(ctx, 'update_prompt_draft', {
+      p_prompt_id: req.params.promptId,
+      p_title: String(req.body?.title || '').trim(),
+      p_prompt_content: String(req.body?.promptContent || '').trim()
+    });
+    res.json({ prompt });
+  } catch (error) {
+    res.status(error.statusCode || 502).json({ error: error.message || 'Could not update prompt.' });
+  }
+});
+
+app.post('/api/prompts/:promptId/release', apiLimiter, async (req, res) => {
+  const ctx = getSupabaseRequestContext(req, res);
+  if (!ctx) return;
+
+  try {
+    const prompt = await supabaseRpc(ctx, 'approve_module_prompt', { p_prompt_id: req.params.promptId });
+    res.json({ prompt });
+  } catch (error) {
+    res.status(error.statusCode || 502).json({ error: error.message || 'Could not approve prompt.' });
+  }
+});
+
+app.post('/api/prompts/:promptId/approve', apiLimiter, async (req, res) => {
+  const ctx = getSupabaseRequestContext(req, res);
+  if (!ctx) return;
+
+  try {
+    const prompt = await supabaseRpc(ctx, 'approve_module_prompt', { p_prompt_id: req.params.promptId });
+    res.json({ prompt });
+  } catch (error) {
+    res.status(error.statusCode || 502).json({ error: error.message || 'Could not approve prompt.' });
+  }
+});
+
+app.post('/api/prompts/:promptId/activate', apiLimiter, async (req, res) => {
+  const ctx = getSupabaseRequestContext(req, res);
+  if (!ctx) return;
+
+  try {
+    const prompt = await supabaseRpc(ctx, 'activate_module_prompt', { p_prompt_id: req.params.promptId });
+    res.json({ prompt });
+  } catch (error) {
+    res.status(error.statusCode || 502).json({ error: error.message || 'Could not activate prompt.' });
+  }
+});
+
+app.post('/api/prompts/:promptId/deactivate', apiLimiter, async (req, res) => {
+  const ctx = getSupabaseRequestContext(req, res);
+  if (!ctx) return;
+
+  try {
+    const prompt = await supabaseRpc(ctx, 'deactivate_module_prompt', { p_prompt_id: req.params.promptId });
+    res.json({ prompt });
+  } catch (error) {
+    res.status(error.statusCode || 502).json({ error: error.message || 'Could not deactivate prompt.' });
+  }
+});
 
 function getConfiguredProviders() {
   const providers = [
@@ -314,4 +519,3 @@ app.use(express.static(process.cwd(), { extensions: ['html'] }));
 app.listen(port, () => {
   console.log(`Qaly AI server running on http://localhost:${port}`);
 });
-

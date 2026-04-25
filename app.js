@@ -12,6 +12,13 @@ const EXCEL_MIME_TYPE = 'application/vnd.openxmlformats-officedocument.spreadshe
 const GEMINI_TIMEOUT_MS = 25000;
 const AI_GENERATE_ENDPOINT = '/api/ai/generate';
 const PROMPT_CONFIG_TABLE = 'master_prompts';
+const MODULE_PROMPT_KEYS = [
+    'requirementIntelligence',
+    'testSuite',
+    'bugReport',
+    'sentenceCorrection',
+    'professionalCase'
+];
 
 // UI State Management
 let currentTestCases = [];
@@ -25,6 +32,7 @@ async function initApp() {
     await initUserIdentity();
     initUserMenu();
     checkAPIStatus();
+    await updateModulePromptIndicators();
     await loadTestCases();
 }
 
@@ -86,7 +94,7 @@ function setLoading(btn, isLoading) {
         btn.classList.add('generating-btn', 'opacity-80');
         btn.disabled = true;
         if (btnText) {
-            btnText.textContent = 'Analyzing requirement...';
+            btnText.textContent = btn.getAttribute('data-loading-text') || 'Processing...';
         }
         btn.style.cursor = 'wait';
     } else {
@@ -480,7 +488,7 @@ async function getPromptGovernanceConfig(featureKey) {
         .from(PROMPT_CONFIG_TABLE)
         .select('module_key, role, task, constraints, output_format, style, status, prompt_content, updated_at')
         .eq('module_key', featureKey)
-        .eq('status', 'active')
+        .eq('status', 'ACTIVE')
         .order('updated_at', { ascending: false })
         .limit(1)
         .maybeSingle();
@@ -577,7 +585,7 @@ async function callGemini(prompt, systemPrompt = "") {
 
 async function generateAI(prompt, systemPrompt = "", featureType = "") {
     // Show "Processing..." toast immediately
-    showToast('🚀 Analyzing requirement...', 2000);
+    showToast('Processing request...', 2000);
 
     // Add artificial delay to manage UX expectations (1.5s - 2s)
     const delay = Math.floor(Math.random() * 500) + 1500;
@@ -644,6 +652,75 @@ function checkAPIStatus() {
         if (container) container.setAttribute('data-tooltip', tooltipText);
         dot.removeAttribute('title');
         text.removeAttribute('title');
+    }
+}
+
+function setPromptIndicatorState(moduleKey, prompt) {
+    const indicator = document.querySelector(`.prompt-status-indicator[data-prompt-module="${moduleKey}"]`);
+    if (!indicator) return;
+
+    const isConfigured = Boolean(prompt);
+    indicator.classList.toggle('hidden', !isConfigured);
+    indicator.classList.toggle('inline-flex', isConfigured);
+    indicator.title = isConfigured ? 'Prompt configured' : '';
+}
+
+async function fetchPromptIndicatorStatusFromApi() {
+    if (!window.getCurrentSession) return null;
+    const session = await window.getCurrentSession();
+    const token = session?.access_token;
+    if (!token) return null;
+
+    const modules = MODULE_PROMPT_KEYS.join(',');
+    const response = await fetch(`/api/module-prompt-status?modules=${encodeURIComponent(modules)}`, {
+        headers: {
+            Authorization: `Bearer ${token}`
+        }
+    });
+
+    if (!response.ok) {
+        throw new Error('Could not load prompt indicators.');
+    }
+
+    const payload = await response.json();
+    return new Map((payload.modules || []).map(item => [item.moduleKey, item.prompt || null]));
+}
+
+async function fetchPromptIndicatorStatusFromSupabase() {
+    if (!window.supabaseClient) return new Map();
+
+    const { data, error } = await window.supabaseClient
+        .from(PROMPT_CONFIG_TABLE)
+        .select('module_key, title, prompt_content, status')
+        .in('module_key', MODULE_PROMPT_KEYS)
+        .eq('status', 'ACTIVE');
+
+    if (error) throw error;
+    return new Map((data || []).map(item => [item.module_key, item]));
+}
+
+async function updateModulePromptIndicators() {
+    MODULE_PROMPT_KEYS.forEach(moduleKey => setPromptIndicatorState(moduleKey, null));
+
+    try {
+        let statusByModule = await fetchPromptIndicatorStatusFromApi();
+        if (!statusByModule) {
+            statusByModule = await fetchPromptIndicatorStatusFromSupabase();
+        }
+
+        MODULE_PROMPT_KEYS.forEach(moduleKey => {
+            setPromptIndicatorState(moduleKey, statusByModule.get(moduleKey) || null);
+        });
+    } catch (error) {
+        console.error('Prompt indicator update failed:', error.message);
+        try {
+            const fallbackStatus = await fetchPromptIndicatorStatusFromSupabase();
+            MODULE_PROMPT_KEYS.forEach(moduleKey => {
+                setPromptIndicatorState(moduleKey, fallbackStatus.get(moduleKey) || null);
+            });
+        } catch (fallbackError) {
+            console.error('Prompt indicator fallback failed:', fallbackError.message);
+        }
     }
 }
 
