@@ -1,11 +1,20 @@
 <!DOCTYPE html>
-<html lang="en">
+<html class="light" lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Coming Soon - Qaly AI</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <script>
+        (function () {
+            try {
+                const theme = (localStorage.getItem('qaly_theme') || 'light').toLowerCase() === 'dark' ? 'dark' : 'light';
+                document.documentElement.classList.remove('light', 'dark');
+                document.documentElement.classList.add(theme);
+            } catch (_) {}
+        })();
+    </script>
     <style>
         body {
             font-family: 'Inter', sans-serif;
@@ -29,6 +38,37 @@
             image-rendering: crisp-edges;
             cursor: pointer;
             background: linear-gradient(180deg, #f8fafc 0%, #eef2ff 100%);
+        }
+        html.dark body {
+            background: radial-gradient(1200px 600px at 10% -10%, #0f172a 0%, #111827 50%, #1e293b 100%);
+            color: #e2e8f0;
+        }
+        html.dark .glass-card {
+            background: linear-gradient(135deg, rgba(15, 23, 42, 0.94), rgba(17, 24, 39, 0.96));
+            border-color: rgba(51, 65, 85, 0.9);
+        }
+        html.dark .game-canvas {
+            background: linear-gradient(180deg, #111827 0%, #0f172a 100%);
+            border-color: #334155 !important;
+        }
+        html.dark .text-slate-800,
+        html.dark .text-slate-700,
+        html.dark .text-slate-600,
+        html.dark .text-slate-500,
+        html.dark .text-slate-400 {
+            color: #cbd5e1 !important;
+        }
+        html.dark .bg-white\/95,
+        html.dark .bg-white\/90,
+        html.dark .bg-white\/80,
+        html.dark .bg-white\/45 {
+            background: rgba(17, 24, 39, 0.92) !important;
+        }
+        html.dark .border-slate-200,
+        html.dark .border-indigo-100,
+        html.dark .border-white\/80,
+        html.dark .border-indigo-200\/70 {
+            border-color: #334155 !important;
         }
     </style>
 </head>

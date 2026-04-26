@@ -814,3 +814,110 @@ textarea::placeholder { color: var(--text-light); }
 
 }
 
+html.dark body {
+    background-color: #0f172a;
+    color: #e2e8f0;
+}
+
+html.dark .content-wrapper,
+html.dark .main-content {
+    background-color: #0f172a;
+}
+
+html.dark .sidebar {
+    background-color: rgba(15, 23, 42, 0.9);
+    border-right-color: rgba(100, 116, 139, 0.35);
+}
+
+html.dark .nav-item,
+html.dark .nav-item-special,
+html.dark .header-username {
+    color: #cbd5e1;
+}
+
+html.dark .user-identity-trigger,
+html.dark .user-menu-dropdown {
+    background: rgba(15, 23, 42, 0.95);
+    border-color: rgba(100, 116, 139, 0.45);
+}
+
+html.dark .user-menu-item {
+    color: #cbd5e1;
+}
+
+html.dark .user-menu-item:hover {
+    background-color: rgba(30, 41, 59, 0.85);
+}
+
+/* Global dark-mode coverage for utility-class-based pages */
+html.dark body {
+    background-color: #0f172a !important;
+    color: #e2e8f0 !important;
+}
+
+html.dark .bg-white,
+html.dark [class*="bg-white/"],
+html.dark .bg-slate-50,
+html.dark [class*="bg-slate-50"],
+html.dark [class*="from-slate-50"],
+html.dark [class*="to-white"] {
+    background-color: #111827 !important;
+    color: #e2e8f0 !important;
+}
+
+html.dark .bg-slate-100,
+html.dark [class*="bg-slate-100"] {
+    background-color: #1f2937 !important;
+    color: #e2e8f0 !important;
+}
+
+html.dark .border-slate-100,
+html.dark .border-slate-200,
+html.dark [class*="border-slate-100"],
+html.dark [class*="border-slate-200"] {
+    border-color: #334155 !important;
+}
+
+html.dark .text-slate-900,
+html.dark .text-slate-800,
+html.dark .text-slate-700,
+html.dark .text-slate-600,
+html.dark .text-slate-500,
+html.dark .text-slate-400 {
+    color: #cbd5e1 !important;
+}
+
+html.dark input,
+html.dark select,
+html.dark textarea {
+    background-color: #0b1220 !important;
+    border-color: #334155 !important;
+    color: #e2e8f0 !important;
+}
+
+html.dark input::placeholder,
+html.dark textarea::placeholder {
+    color: #94a3b8 !important;
+}
+
+html.dark table,
+html.dark thead,
+html.dark tbody,
+html.dark tr,
+html.dark th,
+html.dark td {
+    border-color: #334155 !important;
+}
+
+html.dark #tc-table-body tr:nth-child(4n+1),
+html.dark #tc-table-body tr:nth-child(4n+3),
+html.dark .tc-row:hover,
+html.dark .tc-row.expanded,
+html.dark .tc-details {
+    background-color: #0f172a !important;
+}
+
+html.dark .app-footer {
+    color: #94a3b8 !important;
+}
+

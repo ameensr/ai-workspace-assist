@@ -34,27 +34,24 @@ Qaly AI is a QA assistant web app with Supabase authentication, persistent test 
    - `npm install`
 4. Create `.env` from `.env.example`.
 
-## Run With Real AI (Live Providers)
+## Run With Real AI (Strict BYOK)
 
 1. In `.env`, configure Supabase:
    - `SUPABASE_URL=...`
    - `SUPABASE_ANON_KEY=...`
-2. Add at least one AI provider key:
-   - `GEMINI_API_KEY=...` or `OPENAI_API_KEY=...` or `CLAUDE_API_KEY=...` (others optional)
-3. Disable mock mode:
+2. Disable mock mode:
    - `APP_TEST_MODE=false`
    - `APP_AI_MOCK_MODE=false`
-4. Disable silent mock fallback (recommended for true live behavior):
+3. Disable silent mock fallback:
    - `APP_FALLBACK_TO_MOCK_ON_API_ERROR=false`
-5. (Optional) set provider failover order:
-   - `AI_PROVIDER_PRIORITY=gemini,openai,claude,deepseek,grok,perplexity`
-6. Start app:
+4. Start app:
    - `npm run dev`
-7. Open:
+5. Open:
    - `http://localhost:8000`
-8. Verify live mode:
+6. In app `Profile -> AI Settings`, set provider + API key and click Save.
+7. Verify live mode:
    - Visit `http://localhost:8000/api/health`
-   - Confirm `aiServiceEnabled: true` and configured providers are listed.
+   - Confirm `aiServiceEnabled: true` and `byokOnly: true`.
 
 ## Run With Mock AI (No Provider Charges)
 
@@ -82,15 +79,9 @@ Qaly AI is a QA assistant web app with Supabase authentication, persistent test 
   - `SUPABASE_URL`
   - `SUPABASE_ANON_KEY`
 - AI Providers:
-  - `GEMINI_API_KEY`
-  - `OPENAI_API_KEY`
-  - `CLAUDE_API_KEY`
-  - `DEEPSEEK_API_KEY`
-  - `GROK_API_KEY`
-  - `PERPLEXITY_API_KEY`
+  - User-specific keys are configured via UI (`Profile -> AI Settings`) and stored encrypted server-side.
 - Runtime behavior:
   - `APP_TEST_MODE`
   - `APP_AI_MOCK_MODE`
   - `APP_FALLBACK_TO_MOCK_ON_API_ERROR`
-  - `AI_PROVIDER_PRIORITY`
   - `PORT`

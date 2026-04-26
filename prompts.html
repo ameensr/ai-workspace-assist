@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html class="light" lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -40,6 +40,51 @@
             z-index: 100;
         }
         .toast.show { transform: translateY(0); }
+
+        html.dark body {
+            background: #0f172a;
+            color: #e2e8f0;
+        }
+        html.dark .prompt-card,
+        html.dark header,
+        html.dark #config-modal > div,
+        html.dark .bg-white {
+            background: #111827 !important;
+            border-color: #334155 !important;
+            color: #e2e8f0 !important;
+        }
+        html.dark .bg-slate-50,
+        html.dark .bg-slate-100,
+        html.dark .bg-blue-50,
+        html.dark .bg-red-50,
+        html.dark .bg-green-50,
+        html.dark .bg-amber-50 {
+            background: #1f2937 !important;
+            color: #e2e8f0 !important;
+        }
+        html.dark .text-slate-900,
+        html.dark .text-slate-800,
+        html.dark .text-slate-700,
+        html.dark .text-slate-600,
+        html.dark .text-slate-500,
+        html.dark .text-slate-400 {
+            color: #cbd5e1 !important;
+        }
+        html.dark .border-slate-200,
+        html.dark .border-slate-300 {
+            border-color: #334155 !important;
+        }
+        html.dark input,
+        html.dark textarea,
+        html.dark select {
+            background: #0b1220 !important;
+            border-color: #334155 !important;
+            color: #e2e8f0 !important;
+        }
+        html.dark input::placeholder,
+        html.dark textarea::placeholder {
+            color: #94a3b8 !important;
+        }
     </style>
 </head>
 <body class="p-4 sm:p-10">

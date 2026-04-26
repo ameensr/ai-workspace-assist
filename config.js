@@ -36,6 +36,20 @@ if (!runtimeConfig.supabaseAnonKey && baseConfig.supabaseAnonKey) {
     mergedConfig.supabaseAnonKey = baseConfig.supabaseAnonKey;
 }
 
+// Apply persisted appearance theme globally for all pages.
+(() => {
+    if (typeof window === 'undefined' || typeof document === 'undefined') return;
+    const theme = (localStorage.getItem('qaly_theme') || 'light').toLowerCase() === 'dark' ? 'dark' : 'light';
+    const html = document.documentElement;
+    const body = document.body;
+    html.classList.remove('light', 'dark');
+    html.classList.add(theme);
+    if (body) {
+        body.classList.toggle('dark', theme === 'dark');
+        body.classList.toggle('bg-slate-900', theme === 'dark');
+    }
+})();
+
 window.appConfig = mergedConfig;
 
 // Export if in a module environment, otherwise global

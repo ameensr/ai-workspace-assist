@@ -111,6 +111,94 @@
                                 </button>
                             </div>
                         </div>
+
+                        <div class="mt-8 bg-white rounded-2xl p-8 border border-slate-200 shadow-sm space-y-6">
+                            <header>
+                                <h3 class="text-2xl font-bold tracking-tight">Appearance</h3>
+                            </header>
+                            <div class="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
+                                <div>
+                                    <p class="text-sm font-semibold text-slate-800">Theme</p>
+                                    <p class="text-xs text-slate-500">Choose light or dark mode</p>
+                                </div>
+                                <div class="flex items-center gap-3">
+                                    <span class="text-xs font-bold text-slate-600">Light</span>
+                                    <label class="relative inline-flex cursor-pointer items-center">
+                                        <input id="theme-toggle" type="checkbox" class="peer sr-only">
+                                        <div class="h-6 w-11 rounded-full bg-slate-300 transition peer-checked:bg-blue-600 peer-focus:ring-2 peer-focus:ring-blue-300 after:absolute after:left-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:bg-white after:transition-all peer-checked:after:translate-x-5"></div>
+                                    </label>
+                                    <span class="text-xs font-bold text-slate-600">Dark</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mt-8 bg-white rounded-2xl p-8 border border-slate-200 shadow-sm space-y-6">
+                            <header>
+                                <h3 class="text-2xl font-bold tracking-tight">AI Settings</h3>
+                                <p id="mock-mode-active-badge" class="hidden mt-2 inline-flex items-center rounded-full bg-amber-100 px-2.5 py-1 text-xs font-bold uppercase tracking-wider text-amber-800">
+                                    Mock Mode Active
+                                </p>
+                            </header>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div>
+                                    <label class="text-xs font-bold uppercase tracking-wider text-slate-600 mb-2 block">Provider</label>
+                                    <select id="ai-provider" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm">
+                                        <option value="auto">Auto</option>
+                                        <option value="mock">Mock (Testing)</option>
+                                        <option value="deepseek">DeepSeek</option>
+                                        <option value="openai">OpenAI</option>
+                                        <option value="gemini">Gemini</option>
+                                        <option value="claude">Claude</option>
+                                        <option value="grok">Grok</option>
+                                        <option value="perplexity">Perplexity</option>
+                                    </select>
+                                    <p id="provider-detected-text" class="mt-2 text-xs text-slate-500"></p>
+                                </div>
+                                <div>
+                                    <label class="text-xs font-bold uppercase tracking-wider text-slate-600 mb-2 block">API Key</label>
+                                    <input id="ai-api-key" type="password" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm" placeholder="Enter API key" autocomplete="off" />
+                                    <p id="api-key-mask" class="mt-2 text-xs text-slate-500"></p>
+                                </div>
+                            </div>
+                            <div id="ai-settings-message" class="hidden text-sm font-medium rounded-lg px-4 py-3"></div>
+                            <div class="flex justify-end gap-3">
+                                <button id="remove-api-key-btn" class="border border-rose-300 text-rose-700 px-5 py-3 rounded-xl font-bold hover:bg-rose-50 transition-all duration-300">
+                                    Remove Saved Key
+                                </button>
+                                <button id="test-api-key-btn" class="border border-slate-300 text-slate-700 px-5 py-3 rounded-xl font-bold hover:bg-slate-50 transition-all duration-300">
+                                    Test API Key
+                                </button>
+                                <button id="save-ai-settings-btn" class="bg-blue-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-blue-700 transition-all duration-300">
+                                    Save
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="mt-8 bg-white rounded-2xl p-8 border border-slate-200 shadow-sm space-y-6">
+                            <header>
+                                <h3 class="text-2xl font-bold tracking-tight">Usage</h3>
+                            </header>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div class="rounded-xl border border-slate-200 bg-slate-50 p-4">
+                                    <p class="text-xs uppercase tracking-widest text-slate-500 font-bold">Total Requests</p>
+                                    <p id="usage-total-requests" class="mt-2 text-2xl font-extrabold text-slate-900">0</p>
+                                </div>
+                                <div class="rounded-xl border border-slate-200 bg-slate-50 p-4">
+                                    <p class="text-xs uppercase tracking-widest text-slate-500 font-bold">Total Tokens Used</p>
+                                    <p id="usage-total-tokens" class="mt-2 text-2xl font-extrabold text-slate-900">0</p>
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div>
+                                    <h4 class="text-xs font-bold uppercase tracking-wider text-slate-600 mb-2">Requests by Module</h4>
+                                    <div id="usage-by-module" class="space-y-2 text-sm text-slate-700"></div>
+                                </div>
+                                <div>
+                                    <h4 class="text-xs font-bold uppercase tracking-wider text-slate-600 mb-2">Provider Usage Breakdown</h4>
+                                    <div id="usage-by-provider" class="space-y-2 text-sm text-slate-700"></div>
+                                </div>
+                            </div>
+                        </div>
                     </section>
                 </main>
             </div>
@@ -123,8 +211,28 @@
     <script src="supabase-client.js"></script>
     <script src="auth.js"></script>
     <script>
+        const USER_THEME_KEY = 'qaly_theme';
+        const USER_AI_PROVIDER_KEY = 'qaly_ai_provider';
+
         function getDisplayUsername() {
             return (localStorage.getItem('username') || 'User').trim() || 'User';
+        }
+
+        function detectProvidersFromApiKey(apiKey) {
+            const value = String(apiKey || '').trim();
+            if (!value) return [];
+            if (/^AIza[0-9A-Za-z\-_]{10,}$/.test(value)) return ['gemini'];
+            if (/^sk-ant-[A-Za-z0-9\-_]{10,}$/.test(value)) return ['claude'];
+            if (/^xai-[A-Za-z0-9\-_]{10,}$/.test(value)) return ['grok'];
+            if (/^pplx-[A-Za-z0-9\-_]{10,}$/.test(value)) return ['perplexity'];
+            if (/^sk-[A-Za-z0-9\-_]{10,}$/.test(value)) return ['deepseek', 'openai'];
+            return [];
+        }
+
+        async function getAuthToken() {
+            if (!window.getCurrentSession) return '';
+            const session = await window.getCurrentSession();
+            return session?.access_token || '';
         }
 
         function setHeaderIdentity(name) {
@@ -133,6 +241,20 @@
             const username = document.getElementById('header-username');
             if (avatar) avatar.textContent = safeName.charAt(0).toUpperCase();
             if (username) username.textContent = safeName;
+        }
+
+        function applyTheme(theme) {
+            const resolved = theme === 'dark' ? 'dark' : 'light';
+            const html = document.documentElement;
+            const body = document.body;
+            html.classList.toggle('dark', resolved === 'dark');
+            html.classList.toggle('light', resolved !== 'dark');
+            body.classList.toggle('dark', resolved === 'dark');
+            body.classList.toggle('bg-slate-900', resolved === 'dark');
+            body.classList.toggle('text-slate-100', resolved === 'dark');
+            localStorage.setItem(USER_THEME_KEY, resolved);
+            const themeToggle = document.getElementById('theme-toggle');
+            if (themeToggle) themeToggle.checked = resolved === 'dark';
         }
 
         function initUserMenu() {
@@ -175,6 +297,83 @@
             messageEl.classList.add(isError ? 'text-red-700' : 'text-green-700');
         }
 
+        function showAIMessage(text, isError) {
+            const messageEl = document.getElementById('ai-settings-message');
+            if (!messageEl) return;
+            messageEl.textContent = text;
+            messageEl.className = 'text-sm font-medium rounded-lg px-4 py-3';
+            messageEl.classList.remove('hidden');
+            messageEl.classList.add(isError ? 'bg-red-50' : 'bg-green-50');
+            messageEl.classList.add(isError ? 'text-red-700' : 'text-green-700');
+        }
+
+        async function apiFetch(path, options = {}) {
+            const token = await getAuthToken();
+            const headers = {
+                ...(options.headers || {})
+            };
+            if (token) {
+                headers.Authorization = `Bearer ${token}`;
+            }
+            return fetch(path, { ...options, headers });
+        }
+
+        function renderUsageList(elementId, rows, emptyLabel) {
+            const el = document.getElementById(elementId);
+            if (!el) return;
+            if (!rows.length) {
+                el.innerHTML = `<p class="text-xs text-slate-500">${emptyLabel}</p>`;
+                return;
+            }
+            el.innerHTML = rows.map(item => `<div class="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 flex items-center justify-between"><span class="font-medium">${item.label}</span><span class="font-bold">${item.value}</span></div>`).join('');
+        }
+
+        function updateProviderDetectionHint() {
+            const keyInput = document.getElementById('ai-api-key');
+            const providerInput = document.getElementById('ai-provider');
+            const detectedText = document.getElementById('provider-detected-text');
+            if (!keyInput || !providerInput || !detectedText) return;
+            if (providerInput.value === 'mock') {
+                detectedText.textContent = 'Mock testing enabled.';
+                return;
+            }
+
+            const detected = detectProvidersFromApiKey(keyInput.value);
+            if (!detected.length) {
+                detectedText.textContent = '';
+                return;
+            }
+
+            const preferred = detected[0];
+            detectedText.textContent = `Detected provider: ${detected.join(' / ')}`;
+            if (providerInput.value === 'auto') {
+                providerInput.value = preferred;
+            }
+        }
+
+        function updateAISettingsUiState() {
+            const provider = document.getElementById('ai-provider')?.value || 'auto';
+            const apiKeyInput = document.getElementById('ai-api-key');
+            const testBtn = document.getElementById('test-api-key-btn');
+            const apiKeyMask = document.getElementById('api-key-mask');
+            const mockBadge = document.getElementById('mock-mode-active-badge');
+            if (!apiKeyInput || !testBtn || !apiKeyMask || !mockBadge) return;
+
+            const isMock = provider === 'mock';
+            mockBadge.classList.toggle('hidden', !isMock);
+            apiKeyInput.disabled = isMock;
+            testBtn.disabled = isMock;
+            apiKeyInput.classList.toggle('opacity-50', isMock);
+            testBtn.classList.toggle('opacity-50', isMock);
+            if (isMock) {
+                apiKeyInput.value = '';
+                apiKeyInput.placeholder = 'Not required for Mock mode';
+                apiKeyMask.textContent = 'Mock mode uses local test responses.';
+            } else {
+                apiKeyInput.placeholder = 'Enter API key';
+            }
+        }
+
         async function loadProfile() {
             if (!window.supabaseClient) {
                 showMessage('Supabase is not configured.', true);
@@ -199,6 +398,55 @@
             document.getElementById('profile-mobile').value = mobile;
             const role = window.getCurrentUserRole ? window.getCurrentUserRole() : 'user';
             document.getElementById('profile-role').value = role === 'admin' ? 'Admin Level' : 'Normal User';
+        }
+
+        async function loadSettings() {
+            try {
+                const response = await apiFetch('/api/settings');
+                const payload = await response.json();
+                if (!response.ok) throw new Error(payload.error || 'Could not load settings.');
+                const settings = payload.settings || {};
+
+                const providerSelect = document.getElementById('ai-provider');
+                const apiKeyMask = document.getElementById('api-key-mask');
+                const detectedText = document.getElementById('provider-detected-text');
+                const localProvider = localStorage.getItem(USER_AI_PROVIDER_KEY) || '';
+                const effectiveProvider = localProvider === 'mock' ? 'mock' : (settings.provider || localProvider || 'auto');
+                if (providerSelect) providerSelect.value = effectiveProvider;
+                if (apiKeyMask) apiKeyMask.textContent = settings.apiKeyMasked ? `Saved key: ${settings.apiKeyMasked}` : '';
+                if (detectedText) detectedText.textContent = effectiveProvider === 'mock'
+                    ? 'Mock testing enabled.'
+                    : (settings.detectedProviders?.length ? `Detected provider: ${settings.detectedProviders.join(' / ')}` : '');
+                applyTheme(settings.theme || localStorage.getItem(USER_THEME_KEY) || 'light');
+                localStorage.setItem(USER_AI_PROVIDER_KEY, effectiveProvider || 'auto');
+                updateAISettingsUiState();
+            } catch (error) {
+                applyTheme(localStorage.getItem(USER_THEME_KEY) || 'light');
+                updateAISettingsUiState();
+            }
+        }
+
+        async function loadUsage() {
+            try {
+                const response = await apiFetch('/api/usage');
+                const payload = await response.json();
+                if (!response.ok) throw new Error(payload.error || 'Could not load usage.');
+                const usage = payload.usage || {};
+                document.getElementById('usage-total-requests').textContent = String(usage.totalRequests || 0);
+                document.getElementById('usage-total-tokens').textContent = String(usage.totalTokens || 0);
+
+                const byModule = Object.entries(usage.requestsByModule || {}).map(([label, value]) => ({ label, value }));
+                const byProvider = Object.entries(usage.providerBreakdown || {}).map(([label, value]) => ({
+                    label,
+                    value: `${value.requests || 0} req / ${value.tokens || 0} tok`
+                }));
+
+                renderUsageList('usage-by-module', byModule, 'No usage yet.');
+                renderUsageList('usage-by-provider', byProvider, 'No provider usage yet.');
+            } catch (error) {
+                renderUsageList('usage-by-module', [], 'Usage unavailable.');
+                renderUsageList('usage-by-provider', [], 'Usage unavailable.');
+            }
         }
 
         async function saveProfile() {
@@ -237,6 +485,90 @@
             document.getElementById('profile-password-confirm').value = '';
         }
 
+        async function saveAISettings() {
+            try {
+                const provider = document.getElementById('ai-provider').value;
+                const apiKey = document.getElementById('ai-api-key').value.trim();
+                const theme = document.getElementById('theme-toggle').checked ? 'dark' : 'light';
+                const providerForServer = provider === 'mock' ? 'auto' : provider;
+                const apiKeyForServer = provider === 'mock' ? '' : apiKey;
+                const response = await apiFetch('/api/settings', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ provider: providerForServer, apiKey: apiKeyForServer, theme })
+                });
+                const payload = await response.json();
+                if (!response.ok) throw new Error(payload.error || 'Could not save AI settings.');
+
+                const settings = payload.settings || {};
+                localStorage.setItem(USER_AI_PROVIDER_KEY, provider === 'mock' ? 'mock' : (settings.provider || provider));
+                applyTheme(settings.theme || theme);
+                document.getElementById('ai-api-key').value = '';
+                document.getElementById('api-key-mask').textContent = settings.apiKeyMasked ? `Saved key: ${settings.apiKeyMasked}` : '';
+                document.getElementById('provider-detected-text').textContent = provider === 'mock'
+                    ? 'Mock testing enabled.'
+                    : (settings.detectedProviders?.length ? `Detected provider: ${settings.detectedProviders.join(' / ')}` : '');
+                updateAISettingsUiState();
+                showAIMessage('Settings saved successfully.', false);
+            } catch (error) {
+                showAIMessage(error.message || 'Failed to save settings.', true);
+            }
+        }
+
+        async function removeSavedApiKey() {
+            try {
+                const provider = document.getElementById('ai-provider').value;
+                const theme = document.getElementById('theme-toggle').checked ? 'dark' : 'light';
+                const providerForServer = provider === 'mock' ? 'auto' : provider;
+                const response = await apiFetch('/api/settings', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ provider: providerForServer, theme, clearApiKeys: true })
+                });
+                const payload = await response.json();
+                if (!response.ok) throw new Error(payload.error || 'Could not remove API key.');
+
+                document.getElementById('ai-api-key').value = '';
+                document.getElementById('api-key-mask').textContent = '';
+                document.getElementById('provider-detected-text').textContent = provider === 'mock' ? 'Mock testing enabled.' : '';
+                updateAISettingsUiState();
+                showAIMessage('Saved API key removed.', false);
+            } catch (error) {
+                showAIMessage(error.message || 'Failed to remove API key.', true);
+            }
+        }
+
+        async function testAPIKey() {
+            try {
+                const provider = document.getElementById('ai-provider').value;
+                if (provider === 'mock') {
+                    showAIMessage('Mock mode does not require API key testing.', false);
+                    return;
+                }
+                const apiKey = document.getElementById('ai-api-key').value.trim();
+                if (!apiKey) {
+                    showAIMessage('Enter an API key to test.', true);
+                    return;
+                }
+
+                const response = await apiFetch('/api/settings/test-key', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ provider, apiKey })
+                });
+                const payload = await response.json();
+                if (!response.ok || !payload.valid) {
+                    const firstProviderError = Array.isArray(payload.errors) ? payload.errors[0]?.message : '';
+                    throw new Error(payload.error || firstProviderError || 'Invalid / Failed');
+                }
+
+                const detected = payload.detectedProviders?.length ? ` (${payload.detectedProviders.join(' / ')})` : '';
+                showAIMessage(`Valid API Key ✔${detected}`, false);
+            } catch (error) {
+                showAIMessage(`Invalid / Failed ❌ ${error.message || ''}`.trim(), true);
+            }
+        }
+
         document.addEventListener('DOMContentLoaded', async () => {
             setHeaderIdentity(getDisplayUsername());
             initUserMenu();
@@ -248,11 +580,32 @@
             });
 
             const saveBtn = document.getElementById('profile-save-btn');
-            if (saveBtn) {
-                saveBtn.addEventListener('click', saveProfile);
+            if (saveBtn) saveBtn.addEventListener('click', saveProfile);
+
+            const themeToggle = document.getElementById('theme-toggle');
+            if (themeToggle) {
+                themeToggle.addEventListener('change', () => {
+                    applyTheme(themeToggle.checked ? 'dark' : 'light');
+                });
             }
 
-            await loadProfile();
+            const apiKeyInput = document.getElementById('ai-api-key');
+            if (apiKeyInput) apiKeyInput.addEventListener('input', updateProviderDetectionHint);
+            const providerSelect = document.getElementById('ai-provider');
+            if (providerSelect) providerSelect.addEventListener('change', () => {
+                updateAISettingsUiState();
+                updateProviderDetectionHint();
+            });
+
+            const testBtn = document.getElementById('test-api-key-btn');
+            if (testBtn) testBtn.addEventListener('click', testAPIKey);
+
+            const saveSettingsBtn = document.getElementById('save-ai-settings-btn');
+            if (saveSettingsBtn) saveSettingsBtn.addEventListener('click', saveAISettings);
+            const removeKeyBtn = document.getElementById('remove-api-key-btn');
+            if (removeKeyBtn) removeKeyBtn.addEventListener('click', removeSavedApiKey);
+
+            await Promise.all([loadProfile(), loadSettings(), loadUsage()]);
         });
     </script>
 </body>

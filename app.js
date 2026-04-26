@@ -6,11 +6,13 @@
 // ============================================
 // CONFIGURATION & STATE
 // ============================================
-const DEBUG = true;
 const TEST_CASES_TABLE = 'user_test_suites';
 const EXCEL_MIME_TYPE = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
 const GEMINI_TIMEOUT_MS = 25000;
 const AI_GENERATE_ENDPOINT = '/api/ai/generate';
+const USER_THEME_KEY = 'qaly_theme';
+const USER_AI_PROVIDER_KEY = 'qaly_ai_provider';
+const MOCK_PROVIDER = 'mock';
 const PROMPT_CONFIG_TABLE = 'master_prompts';
 const MODULE_PROMPT_KEYS = [
     'requirementIntelligence',
@@ -24,13 +26,16 @@ const MODULE_PROMPT_KEYS = [
 let currentTestCases = [];
 let currentUserId = null;
 const promptCache = new Map();
+let hasUserApiKeyConfigured = false;
 
 // Initialize application
 async function initApp() {
+    applyPersistedTheme();
     initNavigation();
     initCopyButtons();
     await initUserIdentity();
     initUserMenu();
+    await syncAiKeyStatus();
     checkAPIStatus();
     await updateModulePromptIndicators();
     await loadTestCases();
@@ -404,16 +409,83 @@ function getMockResponse(featureType) {
     return null;
 }
 
+function applyPersistedTheme() {
+    const theme = localStorage.getItem(USER_THEME_KEY) || 'light';
+    const html = document.documentElement;
+    const body = document.body;
+    html.classList.toggle('dark', theme === 'dark');
+    html.classList.toggle('light', theme !== 'dark');
+    body.classList.toggle('dark', theme === 'dark');
+}
+
+async function getAuthTokenForApi() {
+    if (!window.getCurrentSession) return '';
+    try {
+        const session = await window.getCurrentSession();
+        return session?.access_token || '';
+    } catch {
+        return '';
+    }
+}
+
+function setGenerateButtonsEnabled(isEnabled) {
+    const selectors = [
+        'button[onclick^="generateRequirementIntelligence"]',
+        'button[onclick^="generateTestSuite"]',
+        'button[onclick^="generateBugReport"]',
+        'button[onclick^="correctSentence"]',
+        'button[onclick^="generateProfessionalCase"]'
+    ];
+    const buttons = document.querySelectorAll(selectors.join(','));
+    buttons.forEach((btn) => {
+        btn.disabled = !isEnabled;
+        btn.classList.toggle('opacity-50', !isEnabled);
+        btn.classList.toggle('cursor-not-allowed', !isEnabled);
+        btn.title = isEnabled ? '' : 'Configure API key in Settings to continue.';
+    });
+}
+
+async function syncAiKeyStatus() {
+    if (getIsTestMode()) {
+        hasUserApiKeyConfigured = true;
+        setGenerateButtonsEnabled(true);
+        return true;
+    }
+    const preferredProvider = (localStorage.getItem(USER_AI_PROVIDER_KEY) || '').trim().toLowerCase();
+    if (preferredProvider === MOCK_PROVIDER) {
+        hasUserApiKeyConfigured = true;
+        setGenerateButtonsEnabled(true);
+        return true;
+    }
+
+    const token = await getAuthTokenForApi();
+    if (!token) {
+        hasUserApiKeyConfigured = false;
+        setGenerateButtonsEnabled(false);
+        return false;
+    }
+
+    try {
+        const response = await fetch('/api/settings', {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        });
+        const payload = await response.json();
+        hasUserApiKeyConfigured = Boolean(payload?.settings?.hasApiKey);
+    } catch {
+        hasUserApiKeyConfigured = false;
+    }
+
+    setGenerateButtonsEnabled(hasUserApiKeyConfigured);
+    return hasUserApiKeyConfigured;
+}
+
 function shouldFallbackToMock() {
     if (typeof appConfig !== 'undefined' && typeof appConfig.fallbackToMockOnApiError === 'boolean') {
         return appConfig.fallbackToMockOnApiError;
     }
     return true;
-}
-
-function getGeminiApiKey() {
-    // Deprecated: we no longer use a client-side Gemini API key.
-    return null;
 }
 
 function normalizeGeminiOutput(data) {
@@ -528,10 +600,53 @@ async function resolvePromptPayload(featureKey, userInput, fallbackSystemPrompt,
 // AI CORE
 // ============================================
 
-async function callGemini(prompt, systemPrompt = "") {
-    const aiServiceEnabled = typeof appConfig !== 'undefined' ? Boolean(appConfig.aiServiceEnabled) : false;
-    if (!aiServiceEnabled) {
-        const err = new Error("Live AI is not configured. Add at least one provider API key on server or enable Test Mode.");
+function setMockSourceBadge(source, provider = '') {
+    const container = document.getElementById('api-status-container');
+    if (!container) return;
+
+    let badge = document.getElementById('mock-source-badge');
+    if (!badge) {
+        badge = document.createElement('span');
+        badge.id = 'mock-source-badge';
+        badge.className = 'inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-black uppercase tracking-wider';
+        container.appendChild(badge);
+    }
+
+    const normalizedSource = String(source || '').toLowerCase();
+    if (!normalizedSource || normalizedSource === 'idle') {
+        badge.textContent = 'Source: --';
+        badge.className = 'inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-black uppercase tracking-wider bg-slate-100 text-slate-500';
+        return;
+    }
+
+    if (normalizedSource === 'frontend_mock') {
+        badge.textContent = 'Source: Frontend Mock';
+        badge.className = 'inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-black uppercase tracking-wider bg-amber-100 text-amber-800';
+        return;
+    }
+
+    if (normalizedSource === 'mock' || normalizedSource === 'backend_mock') {
+        badge.textContent = 'Source: Backend Mock';
+        badge.className = 'inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-black uppercase tracking-wider bg-yellow-100 text-yellow-800';
+        return;
+    }
+
+    if (normalizedSource === 'mock_fallback') {
+        badge.textContent = 'Source: Mock Fallback';
+        badge.className = 'inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-black uppercase tracking-wider bg-orange-100 text-orange-800';
+        return;
+    }
+
+    const labelProvider = String(provider || '').trim().toUpperCase();
+    badge.textContent = labelProvider ? `Source: Live (${labelProvider})` : 'Source: Live';
+    badge.className = 'inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-black uppercase tracking-wider bg-emerald-100 text-emerald-800';
+}
+
+async function callGemini(prompt, systemPrompt = "", featureType = "") {
+    const keyConfigured = await syncAiKeyStatus();
+    if (!keyConfigured) {
+        showToast('API key not configured. Open Settings to add your key.');
+        const err = new Error('API key not configured');
         err.code = 'MISSING_API_KEY';
         throw err;
     }
@@ -539,13 +654,20 @@ async function callGemini(prompt, systemPrompt = "") {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), GEMINI_TIMEOUT_MS);
 
+    const token = await getAuthTokenForApi();
+    const preferredProvider = (localStorage.getItem(USER_AI_PROVIDER_KEY) || '').trim().toLowerCase();
+    const headers = { 'Content-Type': 'application/json' };
+    if (token) {
+        headers.Authorization = `Bearer ${token}`;
+    }
+
     let response;
     try {
         response = await fetch(AI_GENERATE_ENDPOINT, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers,
             signal: controller.signal,
-            body: JSON.stringify({ prompt, systemPrompt })
+            body: JSON.stringify({ prompt, systemPrompt, featureType, provider: preferredProvider || undefined })
         });
     } catch (error) {
         clearTimeout(timer);
@@ -574,6 +696,9 @@ async function callGemini(prompt, systemPrompt = "") {
     }
 
     const data = await response.json();
+    const responseSource = String(data?.source || '').trim().toLowerCase();
+    const responseProvider = String(data?.provider || '').trim().toLowerCase();
+    setMockSourceBadge(responseSource || 'live', responseProvider);
     const output = typeof data?.text === 'string' ? data.text : normalizeGeminiOutput(data);
     if (!output || typeof output !== 'string' || !output.trim()) {
         const err = new Error('Gemini returned an empty or unexpected response. Try again or switch to Test Mode.');
@@ -592,9 +717,12 @@ async function generateAI(prompt, systemPrompt = "", featureType = "") {
     await new Promise(r => setTimeout(r, delay));
 
     const isTestMode = getIsTestMode();
+    const preferredProvider = (localStorage.getItem(USER_AI_PROVIDER_KEY) || '').trim().toLowerCase();
+    const isMockProvider = preferredProvider === MOCK_PROVIDER;
 
-    if (isTestMode) {
+    if (isTestMode || isMockProvider) {
         console.log(`🧪 TEST MODE: Mocking [${featureType}]`);
+        setMockSourceBadge('frontend_mock');
 
         // Use MOCK_RESPONSES from test-config.js if available, else local fallback
         const mock = getMockResponse(featureType);
@@ -608,13 +736,14 @@ async function generateAI(prompt, systemPrompt = "", featureType = "") {
     }
 
     try {
-        return await callGemini(prompt, systemPrompt);
+        return await callGemini(prompt, systemPrompt, featureType);
     } catch (error) {
         console.error('AI call failed:', error);
         const canFallback = shouldFallbackToMock();
         const mock = getMockResponse(featureType);
         if (canFallback && mock) {
             showToast('Live AI failed. Falling back to mock mode.');
+            setMockSourceBadge('frontend_mock');
             return mock;
         }
         throw error;
@@ -626,12 +755,17 @@ function checkAPIStatus() {
     const text = document.getElementById('api-status-text');
     const container = document.getElementById('api-status-container');
     const isTestMode = getIsTestMode();
-    const hasKey = typeof appConfig !== 'undefined' ? Boolean(appConfig.aiServiceEnabled) : false;
+    const preferredProvider = (localStorage.getItem(USER_AI_PROVIDER_KEY) || '').trim().toLowerCase();
+    const isMockProvider = preferredProvider === MOCK_PROVIDER;
+    const hasKey = hasUserApiKeyConfigured;
+    const providerLabel = preferredProvider && preferredProvider !== 'auto' && preferredProvider !== MOCK_PROVIDER
+        ? preferredProvider.charAt(0).toUpperCase() + preferredProvider.slice(1)
+        : 'AI';
 
     if (!dot || !text) return;
     if (container) container.classList.add('modern-tooltip');
 
-    if (isTestMode) {
+    if (isTestMode || isMockProvider) {
         dot.className = 'w-2.5 h-2.5 rounded-full bg-yellow-500 animate-pulse';
         text.textContent = 'Mock Mode';
         const tooltipText = 'Mock Mode: AI responses are simulated test data, not live Gemini output.';
@@ -640,19 +774,20 @@ function checkAPIStatus() {
         text.removeAttribute('title');
     } else if (hasKey) {
         dot.className = 'w-2.5 h-2.5 rounded-full bg-green-500';
-        text.textContent = '🟢 Gemini Connected';
-        const tooltipText = 'Gemini Connected: Responses are generated from live Gemini API.';
+        text.textContent = `🟢 ${providerLabel} Connected`;
+        const tooltipText = `${providerLabel} Connected: Responses are generated from live provider API.`;
         if (container) container.setAttribute('data-tooltip', tooltipText);
         dot.removeAttribute('title');
         text.removeAttribute('title');
     } else {
         dot.className = 'w-2.5 h-2.5 rounded-full bg-red-500';
         text.textContent = '🔴 No API Configured';
-        const tooltipText = 'No API Configured: Add `geminiApiKey` in config.js or enable Test Mode.';
+        const tooltipText = 'No API Configured: Add your provider API key in Settings.';
         if (container) container.setAttribute('data-tooltip', tooltipText);
         dot.removeAttribute('title');
         text.removeAttribute('title');
     }
+    setMockSourceBadge('idle');
 }
 
 function setPromptIndicatorState(moduleKey, prompt) {
@@ -1010,11 +1145,11 @@ function editTestCase(id, btn, event) {
     `;
 }
 
-function cancelEdit(id, event) {
+function cancelEdit() {
     renderTestCasesTable(); // Just re-render everything
 }
 
-async function saveEdit(id, event) {
+async function saveEdit(id) {
     const tcIndex = currentTestCases.findIndex(t => t.id === id);
     if (tcIndex === -1) return;
 
