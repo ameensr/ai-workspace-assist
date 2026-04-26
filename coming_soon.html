@@ -9,63 +9,101 @@
     <style>
         body {
             font-family: 'Inter', sans-serif;
-            background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+            background: radial-gradient(1200px 600px at 10% -10%, #c7d2fe 0%, #bcd8ff 40%, #d9eefc 100%);
+        }
+        .glass-card {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(243, 247, 255, 0.92));
+            box-shadow: 0 30px 80px -45px rgba(15, 23, 42, 0.45);
+        }
+        .floaty {
+            animation: floatY 5s ease-in-out infinite;
+        }
+        .floaty-delayed {
+            animation: floatY 6s ease-in-out 0.9s infinite;
+        }
+        @keyframes floatY {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
         }
         .game-canvas {
             image-rendering: crisp-edges;
             cursor: pointer;
+            background: linear-gradient(180deg, #f8fafc 0%, #eef2ff 100%);
         }
     </style>
 </head>
-<body class="min-h-screen flex flex-col items-center justify-center p-6 text-slate-800">
+<body class="min-h-screen px-4 py-10 text-slate-800 sm:px-8">
+    <div class="mx-auto flex min-h-[88vh] max-w-6xl items-center justify-center">
+        <main class="glass-card relative w-full overflow-hidden rounded-[2.25rem] border border-white/80 p-6 sm:p-10 lg:p-14">
+            <div class="pointer-events-none absolute -left-6 top-24 h-16 w-16 rounded-full bg-emerald-200/70 blur-[1px] floaty"></div>
+            <div class="pointer-events-none absolute -right-4 bottom-10 h-20 w-20 rounded-full bg-amber-200/80 blur-[1px] floaty-delayed"></div>
+            <div class="pointer-events-none absolute right-[18%] top-[62%] h-10 w-10 rounded-full border-4 border-indigo-200/70"></div>
 
-    <!-- Main Content -->
-    <div class="flex flex-col items-center text-center max-w-md w-full animate-in fade-in duration-700">
-        <!-- Creative Animated Element -->
-        <div class="relative w-16 h-16 mb-8 flex items-center justify-center">
-            <div class="absolute inset-0 bg-blue-500/10 rounded-full animate-ping"></div>
-            <div class="absolute inset-2 bg-blue-500/20 rounded-full animate-pulse"></div>
-            <svg class="w-8 h-8 text-blue-600 relative z-10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M12 2v4m0 12v4M4.93 4.93l2.83 2.83m8.48 8.48l2.83 2.83M2 12h4m12 0h4M4.93 19.07l2.83-2.83m8.48-8.48l2.83-2.83"/>
-                <circle cx="12" cy="12" r="3"/>
-            </svg>
-        </div>
-        
-        <h1 class="text-2xl font-extrabold tracking-tight text-slate-900 mb-2">
-            Something better is on the way
-        </h1>
-        <p class="text-slate-500 mb-8 text-sm leading-relaxed">
-            We’re building this feature to make your QA smarter.
-        </p>
-
-        <a href="index.html" class="inline-flex items-center gap-2 px-5 py-2.5 bg-slate-900 text-white rounded-full text-xs font-semibold hover:bg-slate-800 transition-all shadow-sm mb-16">
-            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
-            Back to Dashboard
-        </a>
-
-        <!-- Minimal Mini Game -->
-        <div class="w-full flex flex-col items-center">
-            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3 opacity-60">
-                Bored? Try this ↓
-            </p>
-            
-            <div class="relative group bg-slate-100/50 rounded-xl p-1 border border-slate-200/60 transition-all hover:bg-slate-100">
-                <canvas id="gameCanvas" width="280" height="80" class="game-canvas rounded-lg"></canvas>
-                
-                <div id="gameOverlay" class="absolute inset-0 flex items-center justify-center bg-slate-100/40 backdrop-blur-[1px] opacity-100 transition-opacity pointer-events-none">
-                    <span class="text-[9px] font-bold text-slate-400 uppercase">Click or Space to Start</span>
-                </div>
-                
-                <div class="absolute top-2 right-3 text-[10px] font-mono text-slate-400" id="scoreDisplay">
-                    00
+            <div class="mx-auto mb-10 flex max-w-sm items-center justify-center">
+                <div class="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white/95 px-4 py-2 shadow-sm">
+                    <span class="inline-flex h-6 w-6 items-center justify-center rounded-full bg-blue-600 text-xs font-bold text-white">Q</span>
+                    <p class="text-xs font-bold tracking-wide text-slate-700">Qaly Ai</p>
                 </div>
             </div>
-            
-            <p class="mt-4 text-[9px] text-slate-400 italic">High Score: <span id="highScore">0</span></p>
-        </div>
+
+            <section class="mx-auto max-w-3xl text-center">
+                <p class="mb-4 text-xs font-black uppercase tracking-[0.24em] text-slate-500">We're Still Building</p>
+                <h1 id="coming-soon-heading" class="mb-4 text-4xl font-extrabold tracking-tight text-blue-700 sm:text-5xl lg:text-6xl">
+                    Cooking This Page.
+                </h1>
+                <p id="coming-soon-subtitle" class="mx-auto max-w-2xl text-base leading-relaxed text-slate-600 sm:text-lg">
+                    We are crafting this experience to make QA workflows faster, sharper, and more delightful.
+                </p>
+
+                <div class="mt-8 flex flex-wrap items-center justify-center gap-3">
+                    <a href="index.html"
+                        class="inline-flex items-center gap-2 rounded-full bg-slate-900 px-6 py-3 text-sm font-bold text-white shadow-[0_16px_30px_-18px_rgba(15,23,42,0.9)] transition-all duration-300 hover:-translate-y-0.5 hover:bg-slate-800">
+                        <span class="text-base">←</span>
+                        Back to Dashboard
+                    </a>
+                    <button type="button"
+                        class="inline-flex items-center gap-2 rounded-full border border-indigo-100 bg-white/95 px-6 py-3 text-sm font-bold text-indigo-700 shadow-sm transition-all duration-300 hover:bg-indigo-50"
+                        aria-label="Notify me soon">
+                        <span>✉️</span>
+                        Notify Me
+                    </button>
+                </div>
+            </section>
+
+            <section class="mx-auto mt-12 max-w-2xl">
+                <div class="rounded-2xl border border-white/80 bg-white/80 p-4 shadow-[0_18px_40px_-28px_rgba(37,99,235,0.8)] backdrop-blur">
+                    <div class="mb-3 flex items-center justify-between">
+                        <p class="text-[11px] font-black uppercase tracking-[0.16em] text-slate-400">Mini Game</p>
+                        <p class="text-[11px] font-black uppercase tracking-[0.16em] text-slate-400">Score: <span id="scoreDisplay">00</span></p>
+                    </div>
+                    <div class="relative">
+                        <canvas id="gameCanvas" width="700" height="130" class="game-canvas w-full rounded-xl border border-slate-200"></canvas>
+                        <div id="gameOverlay"
+                            class="absolute inset-0 flex items-center justify-center rounded-xl bg-white/45 backdrop-blur-[1px] transition-opacity">
+                            <span class="rounded-full border border-slate-200 bg-white/90 px-4 py-2 text-[10px] font-black uppercase tracking-widest text-slate-500">
+                                Click Canvas or Press Space
+                            </span>
+                        </div>
+                    </div>
+                    <div class="mt-3 flex items-center justify-between text-[11px] text-slate-500">
+                        <p>Jump over blocks. Survive as long as possible.</p>
+                        <p class="font-bold">High Score: <span id="highScore">0</span></p>
+                    </div>
+                </div>
+            </section>
+        </main>
     </div>
 
     <script>
+        const params = new URLSearchParams(window.location.search);
+        const pageName = params.get('page');
+        if (pageName) {
+            const heading = document.getElementById('coming-soon-heading');
+            const subtitle = document.getElementById('coming-soon-subtitle');
+            heading.textContent = `Cooking ${pageName}.`;
+            subtitle.textContent = `${pageName} is under construction. We are shaping it into something clean, useful, and fun.`;
+        }
+
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
         const overlay = document.getElementById('gameOverlay');
@@ -74,17 +112,16 @@
 
         let isRunning = false;
         let score = 0;
-        let highScore = localStorage.getItem('qaly_dash_score') || 0;
+        let highScore = Number(localStorage.getItem('qaly_dash_score') || 0);
         highScoreEl.textContent = highScore;
 
         const player = {
-            x: 40,
-            y: 50,
-            size: 6,
+            x: 90,
+            y: 95,
+            size: 16,
             dy: 0,
-            jump: -4.5,
-            gravity: 0.28,
-            grounded: false
+            jump: -8.4,
+            gravity: 0.45
         };
 
         let obstacles = [];
@@ -93,7 +130,8 @@
         function init() {
             obstacles = [];
             score = 0;
-            player.y = 50;
+            frame = 0;
+            player.y = 95;
             player.dy = 0;
             scoreEl.textContent = '00';
             isRunning = true;
@@ -106,70 +144,96 @@
                 init();
                 return;
             }
-            if (player.y >= canvas.height - player.size - 10) {
+            const floor = canvas.height - player.size - 18;
+            if (player.y >= floor - 0.1) {
                 player.dy = player.jump;
             }
         }
 
-        window.addEventListener('keydown', (e) => { if (e.code === 'Space') { e.preventDefault(); jump(); } });
-        canvas.addEventListener('mousedown', (e) => { e.preventDefault(); jump(); });
+        window.addEventListener('keydown', (e) => {
+            if (e.code === 'Space') {
+                e.preventDefault();
+                jump();
+            }
+        });
+        canvas.addEventListener('mousedown', (e) => {
+            e.preventDefault();
+            jump();
+        });
+
+        function drawInitial() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.strokeStyle = '#cbd5e1';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(16, canvas.height - 18);
+            ctx.lineTo(canvas.width - 16, canvas.height - 18);
+            ctx.stroke();
+
+            ctx.fillStyle = '#2563eb';
+            ctx.beginPath();
+            ctx.arc(player.x, canvas.height - 18 - player.size / 2, player.size / 2, 0, Math.PI * 2);
+            ctx.fill();
+        }
 
         function animate() {
             if (!isRunning) return;
 
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-            
-            // Ground
-            ctx.strokeStyle = '#e2e8f0';
-            ctx.lineWidth = 1;
+
+            ctx.strokeStyle = '#cbd5e1';
+            ctx.lineWidth = 2;
             ctx.beginPath();
-            ctx.moveTo(10, canvas.height - 10);
-            ctx.lineTo(canvas.width - 10, canvas.height - 10);
+            ctx.moveTo(16, canvas.height - 18);
+            ctx.lineTo(canvas.width - 16, canvas.height - 18);
             ctx.stroke();
 
-            // Player (Dot)
             player.dy += player.gravity;
             player.y += player.dy;
-
-            const floor = canvas.height - player.size - 10;
+            const floor = canvas.height - player.size - 18;
             if (player.y > floor) {
                 player.y = floor;
                 player.dy = 0;
             }
 
-            ctx.fillStyle = '#64748b';
+            ctx.fillStyle = '#2563eb';
             ctx.beginPath();
-            ctx.arc(player.x, player.y + player.size/2, player.size/2, 0, Math.PI * 2);
+            ctx.arc(player.x, player.y + player.size / 2, player.size / 2, 0, Math.PI * 2);
             ctx.fill();
 
-            // Obstacles
-            if (frame % 85 === 0) {
-                obstacles.push({ x: canvas.width, w: 8, h: 10 + Math.random() * 15 });
+            if (frame % 75 === 0) {
+                obstacles.push({
+                    x: canvas.width,
+                    w: 14 + Math.random() * 6,
+                    h: 16 + Math.random() * 18
+                });
             }
 
             for (let i = obstacles.length - 1; i >= 0; i--) {
                 const o = obstacles[i];
-                o.x -= 3;
+                o.x -= 6;
 
-                ctx.fillStyle = '#cbd5e1';
-                ctx.fillRect(o.x, canvas.height - 10 - o.h, o.w, o.h);
+                ctx.fillStyle = '#94a3b8';
+                ctx.fillRect(o.x, canvas.height - 18 - o.h, o.w, o.h);
 
-                // Collision
                 const px = player.x;
-                const py = player.y + player.size/2;
-                if (px + player.size/2 > o.x && px - player.size/2 < o.x + o.w &&
-                    py + player.size/2 > canvas.height - 10 - o.h) {
+                const py = player.y + player.size / 2;
+                if (
+                    px + player.size / 2 > o.x &&
+                    px - player.size / 2 < o.x + o.w &&
+                    py + player.size / 2 > canvas.height - 18 - o.h
+                ) {
                     gameOver();
                 }
 
-                if (o.x < -10) {
+                if (o.x < -25) {
                     obstacles.splice(i, 1);
-                    score++;
+                    score += 1;
                     scoreEl.textContent = score.toString().padStart(2, '0');
                 }
             }
 
-            frame++;
+            frame += 1;
             requestAnimationFrame(animate);
         }
 
@@ -178,22 +242,12 @@
             overlay.style.opacity = '1';
             if (score > highScore) {
                 highScore = score;
-                localStorage.setItem('qaly_dash_score', highScore);
-                highScoreEl.textContent = highScore;
+                localStorage.setItem('qaly_dash_score', String(highScore));
+                highScoreEl.textContent = String(highScore);
             }
         }
 
-        // Draw initial state
-        ctx.strokeStyle = '#e2e8f0';
-        ctx.beginPath();
-        ctx.moveTo(10, canvas.height - 10);
-        ctx.lineTo(canvas.width - 10, canvas.height - 10);
-        ctx.stroke();
-        ctx.fillStyle = '#64748b';
-        ctx.beginPath();
-        ctx.arc(player.x, canvas.height - 10 - player.size/2, player.size/2, 0, Math.PI * 2);
-        ctx.fill();
-
+        drawInitial();
     </script>
 </body>
 </html>

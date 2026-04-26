@@ -1298,6 +1298,8 @@ async function correctSentence(e) {
         }
 
         document.getElementById('sentence-output').style.display = 'block';
+        const sentenceOutputEmpty = document.getElementById('sentence-output-empty');
+        if (sentenceOutputEmpty) sentenceOutputEmpty.style.display = 'none';
         showToast('Correction complete!');
     } catch (err) {
         showToast('Error: ' + err.message);
