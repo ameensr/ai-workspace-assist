@@ -81,8 +81,13 @@ async function requestPasswordReset(email) {
         throw new Error('Please enter your email address.');
     }
 
+    // Use the current origin for localhost/production compatibility
     const redirectTo = `${window.location.origin}/reset-password.html`;
-    const { error } = await supabase.auth.resetPasswordForEmail(safeEmail, { redirectTo });
+    
+    const { error } = await supabase.auth.resetPasswordForEmail(safeEmail, { 
+        redirectTo 
+    });
+    
     if (error) {
         throw error;
     }
@@ -139,11 +144,34 @@ async function logout() {
         throw error;
     }
 
-    localStorage.removeItem('username');
-    localStorage.removeItem('user_role');
-    localStorage.removeItem('qa_assist_auth');
-    localStorage.removeItem('qa_assist_user');
+    // Clear session data
+    clearAllSessionData();
+    
+    // Destroy idle timeout manager if exists
+    if (window.idleTimeoutManager) {
+        window.idleTimeoutManager.destroy();
+    }
+    
     window.location.href = 'login.html';
+}
+
+function clearAllSessionData() {
+    const keysToRemove = [
+        'username',
+        'user_role',
+        'qa_assist_auth',
+        'qa_assist_user',
+        'qaly_saved_testcases',
+        'qaly_last_activity',
+        'qaly_logout_trigger',
+        'qaly_activity_ping'
+    ];
+    
+    keysToRemove.forEach(key => {
+        localStorage.removeItem(key);
+    });
+    
+    sessionStorage.clear();
 }
 
 async function getCurrentSession() {
@@ -222,8 +250,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         const supabase = getSupabaseClient();
         supabase.auth.onAuthStateChange((event) => {
             if (event === 'SIGNED_OUT') {
-                localStorage.removeItem('username');
-                localStorage.removeItem('user_role');
+                clearAllSessionData();
+                
+                // Destroy idle timeout manager
+                if (window.idleTimeoutManager) {
+                    window.idleTimeoutManager.destroy();
+                }
             }
         });
     } catch (_) { }

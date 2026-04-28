@@ -10,6 +10,12 @@ const baseConfig = {
     testMode: true,
     fallbackToMockOnApiError: true,
 
+    // Session & Security Configuration
+    session: {
+        idleTimeout: 300, // Idle timeout in seconds (5 minutes)
+        warningTime: 60   // Show warning X seconds before logout (1 minute)
+    },
+
     developer: {
         name: "Ameen Huzain",
         portfolioUrl: "https://ameensr.github.io/ameenqa_portfolio/"

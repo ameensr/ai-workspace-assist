@@ -12,6 +12,7 @@ const GEMINI_TIMEOUT_MS = 25000;
 const AI_GENERATE_ENDPOINT = '/api/ai/generate';
 const USER_THEME_KEY = 'qaly_theme';
 const USER_AI_PROVIDER_KEY = 'qaly_ai_provider';
+const ACTIVE_MODULE_KEY = 'qaly_active_module';
 const MOCK_PROVIDER = 'mock';
 const PROMPT_CONFIG_TABLE = 'master_prompts';
 const MODULE_PROMPT_KEYS = [
@@ -21,6 +22,25 @@ const MODULE_PROMPT_KEYS = [
     'sentenceCorrection',
     'professionalCase'
 ];
+
+// Module route mapping
+const MODULE_ROUTES = {
+    'requirement-correction': 'requirement-intelligence',
+    'test-case-architect': 'test-suite-architect',
+    'test-case-gen': 'professional-case-architect',
+    'bug-report-gen': 'bug-report-generator',
+    'sentence-correction': 'sentence-correction'
+};
+
+const ROUTE_TO_MODULE = {
+    'requirement-intelligence': 'requirement-correction',
+    'test-suite-architect': 'test-case-architect',
+    'professional-case-architect': 'test-case-gen',
+    'bug-report-generator': 'bug-report-gen',
+    'sentence-correction': 'sentence-correction'
+};
+
+const DEFAULT_MODULE = 'requirement-correction';
 
 // UI State Management
 let currentTestCases = [];
@@ -32,6 +52,7 @@ let hasUserApiKeyConfigured = false;
 async function initApp() {
     applyPersistedTheme();
     initNavigation();
+    initRouting(); // Initialize URL-based routing
     initCopyButtons();
     initFileUploads();
     await initUserIdentity();
@@ -40,12 +61,13 @@ async function initApp() {
     checkAPIStatus();
     await updateModulePromptIndicators();
     await loadTestCases();
+    restoreActiveModule(); // Restore last active module
 }
 
 function initFileUploads() {
     const uploads = [
         { inputId: 'req-intel-file', targetId: 'req-intel-input' },
-        { inputId: 'test-suite-file', targetId: 'test-suite-input' },
+        { inputId: 'ts-file-input', targetId: 'ts-requirement' },
         { inputId: 'bug-file', targetId: 'bug-input' },
         { inputId: 'professional-case-file', targetId: 'professional-case-input' }
     ];
@@ -65,15 +87,7 @@ function initNavigation() {
     navItems.forEach(item => {
         item.addEventListener('click', () => {
             const target = item.getAttribute('data-target');
-
-            // Update Nav UI
-            navItems.forEach(i => i.classList.remove('active', 'bg-blue-50', 'text-blue-700'));
-            item.classList.add('active', 'bg-blue-50', 'text-blue-700');
-
-            // Update Section UI
-            sections.forEach(s => s.classList.remove('active'));
-            const targetSection = document.getElementById(target);
-            if (targetSection) targetSection.classList.add('active');
+            navigateToModule(target);
         });
     });
 
@@ -83,6 +97,78 @@ function initNavigation() {
             if (url) window.location.href = url;
         });
     });
+}
+
+// ============================================
+// ROUTING & NAVIGATION PERSISTENCE
+// ============================================
+
+function initRouting() {
+    // Listen for hash changes (browser back/forward)
+    window.addEventListener('hashchange', handleRouteChange);
+    
+    // Listen for popstate (browser back/forward)
+    window.addEventListener('popstate', handleRouteChange);
+}
+
+function handleRouteChange() {
+    const hash = window.location.hash.slice(1); // Remove #
+    if (hash && ROUTE_TO_MODULE[hash]) {
+        const moduleId = ROUTE_TO_MODULE[hash];
+        activateModule(moduleId, false); // false = don't update URL again
+    }
+}
+
+function navigateToModule(moduleId) {
+    activateModule(moduleId, true); // true = update URL
+}
+
+function activateModule(moduleId, updateUrl = true) {
+    const navItems = document.querySelectorAll('.nav-item');
+    const sections = document.querySelectorAll('.module-section');
+
+    // Update Nav UI
+    navItems.forEach(i => i.classList.remove('active', 'bg-blue-50', 'text-blue-700'));
+    const activeNav = document.querySelector(`.nav-item[data-target="${moduleId}"]`);
+    if (activeNav) {
+        activeNav.classList.add('active', 'bg-blue-50', 'text-blue-700');
+    }
+
+    // Update Section UI
+    sections.forEach(s => s.classList.remove('active'));
+    const targetSection = document.getElementById(moduleId);
+    if (targetSection) {
+        targetSection.classList.add('active');
+    }
+
+    // Persist to localStorage
+    localStorage.setItem(ACTIVE_MODULE_KEY, moduleId);
+
+    // Update URL hash (if requested)
+    if (updateUrl) {
+        const route = MODULE_ROUTES[moduleId] || moduleId;
+        window.location.hash = route;
+    }
+}
+
+function restoreActiveModule() {
+    // Priority 1: Check URL hash
+    const hash = window.location.hash.slice(1);
+    if (hash && ROUTE_TO_MODULE[hash]) {
+        const moduleId = ROUTE_TO_MODULE[hash];
+        activateModule(moduleId, false);
+        return;
+    }
+
+    // Priority 2: Check localStorage
+    const savedModule = localStorage.getItem(ACTIVE_MODULE_KEY);
+    if (savedModule && document.getElementById(savedModule)) {
+        activateModule(savedModule, true);
+        return;
+    }
+
+    // Priority 3: Default module
+    activateModule(DEFAULT_MODULE, true);
 }
 
 // ============================================
@@ -965,18 +1051,30 @@ async function generateRequirementIntelligence(e) {
     }
 }
 
+function clearRequirementIntelligence() {
+    if (!confirm('Clear all input and output data?')) return;
+    document.getElementById('req-intel-input').value = '';
+    document.getElementById('req-intel-output').style.display = 'none';
+    document.getElementById('req-intel-error').classList.add('hidden');
+    document.getElementById('req-intel-input').classList.remove('border-red-500', 'bg-red-50');
+    showToast('Cleared successfully!');
+}
+
 // 2. Test Suite Architect
-async function generateTestSuite(e) {
-    if (!validateInput('test-suite-input', 'test-suite-error', 'Please enter feature details before generating')) return;
+let tsCurrentCases = [];
 
-    const module = document.getElementById('module-name').value.trim();
-    const subModule = document.getElementById('sub-module-name').value.trim();
-    const input = document.getElementById('test-suite-input').value.trim();
+async function tsGenerate(e) {
+    if (!validateInput('ts-requirement', 'ts-req-error', 'Please enter feature details before generating')) return;
 
-    const btn = e.currentTarget;
+    const module = document.getElementById('ts-module-name').value.trim();
+    const subModule = document.getElementById('ts-sub-module').value.trim();
+    const input = document.getElementById('ts-requirement').value.trim();
+    const format = document.getElementById('ts-format-input').value.trim();
+
+    const btn = e?.currentTarget || document.getElementById('ts-generate-btn');
     setLoading(btn, true);
 
-    const prompt = `Module: ${module}, Sub-Module: ${subModule}\nRequirement: ${input}`;
+    const prompt = `Module: ${module}, Sub-Module: ${subModule}\nFormat: ${format}\nRequirement: ${input}`;
 
     try {
         const payload = await resolvePromptPayload('testSuite', prompt, SYSTEM_PROMPTS.testSuite, {
@@ -984,26 +1082,22 @@ async function generateTestSuite(e) {
                 requirement: input,
                 userInput: input,
                 module,
-                subModule
+                subModule,
+                format
             }
         });
         const response = await generateAI(payload.prompt, payload.systemPrompt, 'testSuite');
         const data = safeParseJSON(response);
 
         if (data && Array.isArray(data)) {
-            currentTestCases = data;
+            tsCurrentCases = data;
             await saveTestCases();
-            renderTestCasesTable();
-            updateTestSuiteSummary();
-            populateModuleFilter();
+            tsRenderTable();
+            tsUpdateStats();
 
-            // Handle Confidence Score
-            const confidence = document.getElementById('test-suite-confidence');
-            if (confidence) {
-                confidence.textContent = `${generateConfidenceScore()}%`;
-            }
-
-            document.getElementById('test-suite-output').style.display = 'block';
+            document.getElementById('ts-output').classList.remove('hidden');
+            document.getElementById('ts-regenerate-btn').classList.remove('hidden');
+            document.getElementById('ts-regenerate-btn').classList.add('flex');
             showToast('Test cases generated successfully!');
         } else {
             throw new Error("Invalid AI response format");
@@ -1014,6 +1108,161 @@ async function generateTestSuite(e) {
     } finally {
         setLoading(btn, false);
     }
+}
+
+async function tsRegenerate() {
+    await tsGenerate();
+}
+
+function tsUpdateStats() {
+    const total = tsCurrentCases.length;
+    const negative = tsCurrentCases.filter(tc => tc.type?.toLowerCase().includes('negative')).length;
+    const edge = tsCurrentCases.filter(tc => tc.type?.toLowerCase().includes('edge') || tc.type?.toLowerCase().includes('boundary')).length;
+    const functional = tsCurrentCases.filter(tc => tc.type?.toLowerCase().includes('functional')).length;
+
+    document.getElementById('ts-stat-total').textContent = total;
+    document.getElementById('ts-stat-negative').textContent = negative;
+    document.getElementById('ts-stat-edge').textContent = edge;
+    document.getElementById('ts-stat-functional').textContent = functional;
+}
+
+function tsFilter() {
+    const searchTerm = document.getElementById('ts-search').value.toLowerCase();
+    const typeFilter = document.getElementById('ts-filter-type').value;
+
+    const filtered = tsCurrentCases.filter(tc => {
+        const matchesSearch = Object.values(tc).some(val => 
+            String(val).toLowerCase().includes(searchTerm)
+        );
+        const matchesType = typeFilter === 'all' || tc.type === typeFilter;
+        return matchesSearch && matchesType;
+    });
+
+    tsRenderTable(filtered);
+}
+
+function tsRenderTable(displayList = tsCurrentCases) {
+    const thead = document.getElementById('ts-thead');
+    const tbody = document.getElementById('ts-tbody');
+    const emptyState = document.getElementById('ts-empty-state');
+
+    if (displayList.length === 0) {
+        tbody.innerHTML = '';
+        emptyState.classList.remove('hidden');
+        return;
+    }
+
+    emptyState.classList.add('hidden');
+
+    // Build header from first case keys
+    const headers = displayList[0] ? Object.keys(displayList[0]) : [];
+    thead.innerHTML = `<tr class="bg-slate-50 border-b border-slate-200">${headers.map(h => 
+        `<th class="px-4 py-3 text-left text-xs font-black uppercase tracking-widest text-slate-500">${h}</th>`
+    ).join('')}<th class="px-4 py-3 text-right text-xs font-black uppercase tracking-widest text-slate-500">Actions</th></tr>`;
+
+    tbody.innerHTML = displayList.map((tc, idx) => `
+        <tr class="border-b border-slate-100 hover:bg-slate-50 transition-colors">
+            ${headers.map(h => `<td class="px-4 py-3 text-sm text-slate-700">${tc[h] || ''}</td>`).join('')}
+            <td class="px-4 py-3 text-right">
+                <button onclick="tsEditRow(${idx})" class="action-icon-btn edit-btn" title="Edit">
+                    <span class="material-symbols-outlined text-lg">edit</span>
+                </button>
+            </td>
+        </tr>
+    `).join('');
+}
+
+function tsEditRow(idx) {
+    showToast('Edit functionality coming soon!');
+}
+
+function tsAddRow() {
+    showToast('Add row functionality coming soon!');
+}
+
+function tsCopyAll() {
+    if (tsCurrentCases.length === 0) return;
+
+    const headers = Object.keys(tsCurrentCases[0]);
+    const headerRow = headers.join('\t');
+    const body = tsCurrentCases.map(tc => headers.map(h => tc[h] || '').join('\t')).join('\n');
+
+    navigator.clipboard.writeText(headerRow + '\n' + body).then(() => {
+        showToast('Copied all for Excel!');
+    });
+}
+
+function tsDownloadExcel() {
+    if (tsCurrentCases.length === 0) return;
+    if (!window.XLSX) {
+        showToast("XLSX library not loaded!");
+        return;
+    }
+
+    const worksheet = XLSX.utils.json_to_sheet(tsCurrentCases);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Test Cases");
+
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+    const moduleName = document.getElementById('ts-module-name')?.value || 'test-cases';
+    const filename = `${slugifyFilename(moduleName)}-${timestamp}.xlsx`;
+
+    try {
+        const excelBuffer = XLSX.write(workbook, {
+            bookType: 'xlsx',
+            type: 'array',
+            compression: true
+        });
+
+        const blob = new Blob([excelBuffer], { type: EXCEL_MIME_TYPE });
+        const downloadUrl = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = downloadUrl;
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        URL.revokeObjectURL(downloadUrl);
+        showToast('Excel download started!');
+    } catch (error) {
+        console.error(error);
+        showToast('Error generating Excel file');
+    }
+}
+
+async function tsClearSuite() {
+    if (!confirm('Are you sure you want to clear all generated test cases? This action cannot be undone.')) {
+        return;
+    }
+
+    tsCurrentCases = [];
+    currentTestCases = [];
+    localStorage.removeItem('qaly_saved_testcases');
+
+    if (window.supabaseClient) {
+        const userId = await resolveCurrentUserId();
+        if (userId) {
+            await window.supabaseClient
+                .from(TEST_CASES_TABLE)
+                .upsert({ user_id: userId, test_cases: [] }, { onConflict: 'user_id' });
+        }
+    }
+
+    document.getElementById('ts-output').classList.add('hidden');
+    tsRenderTable();
+    tsUpdateStats();
+    showToast('Test suite cleared.');
+}
+
+function tsClearInput() {
+    if (!confirm('Clear all input fields?')) return;
+    document.getElementById('ts-module-name').value = '';
+    document.getElementById('ts-sub-module').value = '';
+    document.getElementById('ts-requirement').value = '';
+    document.getElementById('ts-format-input').value = 'Sl No | Test Case ID | Test Case | Pre-Conditions | Steps | Expected Result | Type';
+    document.getElementById('ts-req-error').classList.add('hidden');
+    document.getElementById('ts-requirement').classList.remove('border-red-500', 'bg-red-50');
+    showToast('Input cleared successfully!');
 }
 
 function updateTestSuiteSummary() {
@@ -1300,10 +1549,6 @@ function downloadExcel() {
     }
 }
 
-function saveTestCasesToLocal() {
-    localStorage.setItem('qaly_saved_testcases', JSON.stringify(currentTestCases));
-}
-
 async function resolveCurrentUserId() {
     if (currentUserId) return currentUserId;
     if (!window.getCurrentSession) return null;
@@ -1319,7 +1564,8 @@ async function resolveCurrentUserId() {
 }
 
 async function saveTestCases() {
-    saveTestCasesToLocal(); // Fallback cache for offline/temporary failures.
+    const casesToSave = tsCurrentCases.length > 0 ? tsCurrentCases : currentTestCases;
+    localStorage.setItem('qaly_saved_testcases', JSON.stringify(casesToSave));
 
     if (!window.supabaseClient) return;
     const userId = await resolveCurrentUserId();
@@ -1330,7 +1576,7 @@ async function saveTestCases() {
         .upsert(
             {
                 user_id: userId,
-                test_cases: currentTestCases
+                test_cases: casesToSave
             },
             { onConflict: 'user_id' }
         );
@@ -1354,7 +1600,8 @@ async function loadTestCases() {
                 .single();
 
             if (!error && data?.test_cases) {
-                currentTestCases = Array.isArray(data.test_cases) ? data.test_cases : [];
+                tsCurrentCases = Array.isArray(data.test_cases) ? data.test_cases : [];
+                currentTestCases = tsCurrentCases;
                 loadedFromSupabase = true;
             }
         }
@@ -1364,19 +1611,33 @@ async function loadTestCases() {
         const saved = localStorage.getItem('qaly_saved_testcases');
         if (saved) {
             try {
-                currentTestCases = JSON.parse(saved);
+                tsCurrentCases = JSON.parse(saved);
+                currentTestCases = tsCurrentCases;
             } catch (error) {
                 console.error('Failed to parse local test cases:', error.message);
+                tsCurrentCases = [];
                 currentTestCases = [];
             }
         }
     }
 
+    if (tsCurrentCases.length > 0) {
+        document.getElementById('ts-output')?.classList.remove('hidden');
+        document.getElementById('ts-regenerate-btn')?.classList.remove('hidden');
+        document.getElementById('ts-regenerate-btn')?.classList.add('flex');
+        tsRenderTable();
+        tsUpdateStats();
+    }
+
+    // Legacy support for old test suite
     if (currentTestCases.length > 0) {
-        document.getElementById('test-suite-output').style.display = 'block';
-        renderTestCasesTable();
-        updateTestSuiteSummary();
-        populateModuleFilter();
+        const oldOutput = document.getElementById('test-suite-output');
+        if (oldOutput) {
+            oldOutput.style.display = 'block';
+            renderTestCasesTable();
+            updateTestSuiteSummary();
+            populateModuleFilter();
+        }
     }
 }
 
@@ -1449,6 +1710,15 @@ async function generateBugReport(e) {
     }
 }
 
+function clearBugReport() {
+    if (!confirm('Clear all input and output data?')) return;
+    document.getElementById('bug-input').value = '';
+    document.getElementById('bug-output').style.display = 'none';
+    document.getElementById('bug-error').classList.add('hidden');
+    document.getElementById('bug-input').classList.remove('border-red-500', 'bg-red-50');
+    showToast('Cleared successfully!');
+}
+
 // 4. Sentence Correction
 async function correctSentence(e) {
     if (!validateInput('sentence-input', 'sentence-error', 'Please enter text to correct')) return;
@@ -1491,6 +1761,17 @@ async function correctSentence(e) {
     }
 }
 
+function clearSentenceCorrection() {
+    if (!confirm('Clear all input and output data?')) return;
+    document.getElementById('sentence-input').value = '';
+    document.getElementById('sentence-output').style.display = 'none';
+    const sentenceOutputEmpty = document.getElementById('sentence-output-empty');
+    if (sentenceOutputEmpty) sentenceOutputEmpty.style.display = 'block';
+    document.getElementById('sentence-error').classList.add('hidden');
+    document.getElementById('sentence-input').classList.remove('border-red-500', 'bg-red-50');
+    showToast('Cleared successfully!');
+}
+
 // 5. Professional Case Architect
 async function generateProfessionalCase(e) {
     if (!validateInput('professional-case-input', 'professional-case-error', 'Please enter test notes before architecting')) return;
@@ -1525,6 +1806,15 @@ async function generateProfessionalCase(e) {
     }
 }
 
+function clearProfessionalCase() {
+    if (!confirm('Clear all input and output data?')) return;
+    document.getElementById('professional-case-input').value = '';
+    document.getElementById('professional-case-output').style.display = 'none';
+    document.getElementById('professional-case-error').classList.add('hidden');
+    document.getElementById('professional-case-input').classList.remove('border-red-500', 'bg-red-50');
+    showToast('Cleared successfully!');
+}
+
 // Helper function for Excel Copy
 function copyTestCases() {
     const text = document.getElementById('test-cases-excel').textContent;
@@ -1554,5 +1844,23 @@ window.saveEdit = saveEdit;
 window.toggleRowExpansion = toggleRowExpansion;
 window.clearTestSuite = clearTestSuite;
 window.renderTestCasesTable = renderTestCasesTable;
-window.copyToClipboard = copyToClipboard; // Shared copy helper
+window.copyToClipboard = copyToClipboard;
 window.handleRequirementUpload = handleRequirementUpload;
+
+// New Test Suite Architect functions
+window.tsGenerate = tsGenerate;
+window.tsRegenerate = tsRegenerate;
+window.tsFilter = tsFilter;
+window.tsRenderTable = tsRenderTable;
+window.tsEditRow = tsEditRow;
+window.tsAddRow = tsAddRow;
+window.tsCopyAll = tsCopyAll;
+window.tsDownloadExcel = tsDownloadExcel;
+window.tsClearSuite = tsClearSuite;
+window.tsClearInput = tsClearInput;
+
+// Clear functions for all modules
+window.clearRequirementIntelligence = clearRequirementIntelligence;
+window.clearBugReport = clearBugReport;
+window.clearSentenceCorrection = clearSentenceCorrection;
+window.clearProfessionalCase = clearProfessionalCase;

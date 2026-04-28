@@ -921,3 +921,220 @@ html.dark .app-footer {
     color: #94a3b8 !important;
 }
 
+
+/* ============================================================
+   TEST SUITE ARCHITECT — new module styles
+   ============================================================ */
+.ts-label {
+    display: block;
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #475569;
+    margin-bottom: 6px;
+}
+
+.ts-input {
+    width: 100%;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 10px 14px;
+    font-size: 0.875rem;
+    color: #0f172a;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    outline: none;
+}
+
+.ts-input:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59,130,246,0.12);
+}
+
+.ts-textarea {
+    width: 100%;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 12px 14px;
+    font-size: 0.875rem;
+    color: #0f172a;
+    resize: vertical;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    min-height: 120px;
+}
+
+.ts-textarea:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59,130,246,0.12);
+}
+
+/* Dynamic preview table */
+#ts-table thead tr {
+    background: #f1f5f9;
+}
+
+#ts-table th {
+    padding: 10px 12px;
+    font-size: 0.65rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #64748b;
+    white-space: nowrap;
+    border-bottom: 2px solid #e2e8f0;
+}
+
+#ts-table th:last-child {
+    width: 60px;
+    text-align: center;
+}
+
+#ts-table td {
+    padding: 8px 12px;
+    font-size: 0.8rem;
+    color: #1e293b;
+    border-bottom: 1px solid #f1f5f9;
+    vertical-align: top;
+}
+
+#ts-table tbody tr:hover {
+    background: #f8fafc;
+}
+
+/* Inline editable cell */
+.ts-cell-edit {
+    width: 100%;
+    min-width: 80px;
+    background: #fff;
+    border: 1px solid #93c5fd;
+    border-radius: 6px;
+    padding: 4px 8px;
+    font-size: 0.8rem;
+    color: #0f172a;
+    outline: none;
+    resize: vertical;
+    box-shadow: 0 0 0 2px rgba(59,130,246,0.15);
+}
+
+.ts-type-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 9999px;
+    font-size: 0.6rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+}
+
+.ts-type-functional  { background:#eff6ff; color:#1d4ed8; }
+.ts-type-negative    { background:#fff7ed; color:#c2410c; }
+.ts-type-edge        { background:#faf5ff; color:#7e22ce; }
+.ts-type-boundary    { background:#f0fdf4; color:#15803d; }
+
+.ts-del-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    color: #94a3b8;
+    transition: background 0.15s, color 0.15s;
+    cursor: pointer;
+    border: none;
+    background: transparent;
+}
+
+.ts-del-btn:hover { background:#fee2e2; color:#dc2626; }
+
+html.dark .ts-input,
+html.dark .ts-textarea,
+html.dark .ts-cell-edit {
+    background: #0b1220 !important;
+    border-color: #334155 !important;
+    color: #e2e8f0 !important;
+}
+
+html.dark #ts-table th { color: #94a3b8; border-bottom-color: #334155; }
+html.dark #ts-table td { border-bottom-color: #1e293b; color: #cbd5e1; }
+html.dark #ts-table tbody tr:hover { background: #1e293b; }
+html.dark #ts-table thead tr { background: #1e293b; }
+
+/* ============================================================
+   REQUIREMENT INTELLIGENCE — Module Description Styling
+   ============================================================ */
+.req-intel-desc {
+    color: rgba(71, 85, 105, 0.5);
+    max-width: 42rem;
+    font-weight: 400;
+    line-height: 1.5;
+    letter-spacing: 0.3px;
+}
+
+html.dark .req-intel-desc {
+    color: rgba(203, 213, 225, 0.5);
+}
+
+/* ============================================================
+   TEST SUITE ARCHITECT — Module Description Styling
+   ============================================================ */
+.test-suite-desc {
+    color: rgba(71, 85, 105, 0.5);
+    max-width: 42rem;
+    font-weight: 400;
+    line-height: 1.5;
+    letter-spacing: 0.3px;
+    font-size: 0.875rem;
+}
+
+html.dark .test-suite-desc {
+    color: rgba(203, 213, 225, 0.5);
+}
+
+/* ============================================================
+   PROFESSIONAL CASE ARCHITECT — Module Description Styling
+   ============================================================ */
+.prof-case-desc {
+    color: rgba(71, 85, 105, 0.5);
+    max-width: 42rem;
+    font-weight: 400;
+    line-height: 1.5;
+    letter-spacing: 0.3px;
+}
+
+html.dark .prof-case-desc {
+    color: rgba(203, 213, 225, 0.5);
+}
+
+/* ============================================================
+   BUG REPORT GENERATOR — Module Description Styling
+   ============================================================ */
+.bug-report-desc {
+    color: rgba(71, 85, 105, 0.5);
+    max-width: 42rem;
+    font-weight: 400;
+    line-height: 1.5;
+    letter-spacing: 0.3px;
+}
+
+html.dark .bug-report-desc {
+    color: rgba(203, 213, 225, 0.5);
+}
+
+/* ============================================================
+   CLARITY AI - THE TEXT REFINERY — Module Description Styling
+   ============================================================ */
+.clarity-desc {
+    color: rgba(71, 85, 105, 0.5);
+    max-width: 42rem;
+    font-weight: 400;
+    line-height: 1.5;
+    letter-spacing: 0.3px;
+}
+
+html.dark .clarity-desc {
+    color: rgba(203, 213, 225, 0.5);
+}
