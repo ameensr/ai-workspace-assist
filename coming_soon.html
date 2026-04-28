@@ -96,7 +96,7 @@
                 </p>
 
                 <div class="mt-8 flex flex-wrap items-center justify-center gap-3">
-                    <a href="index.html"
+                    <a href="index.html#home"
                         class="inline-flex items-center gap-2 rounded-full bg-slate-900 px-6 py-3 text-sm font-bold text-white shadow-[0_16px_30px_-18px_rgba(15,23,42,0.9)] transition-all duration-300 hover:-translate-y-0.5 hover:bg-slate-800">
                         <span class="text-base">←</span>
                         Back to Dashboard
@@ -136,12 +136,12 @@
 
     <script>
         const params = new URLSearchParams(window.location.search);
-        const pageName = params.get('page');
-        if (pageName) {
+        const featureName = params.get('feature') || params.get('page');
+        if (featureName) {
             const heading = document.getElementById('coming-soon-heading');
             const subtitle = document.getElementById('coming-soon-subtitle');
-            heading.textContent = `Cooking ${pageName}.`;
-            subtitle.textContent = `${pageName} is under construction. We are shaping it into something clean, useful, and fun.`;
+            heading.textContent = `Cooking ${featureName}.`;
+            subtitle.textContent = `${featureName} is under construction. We are shaping it into something clean, useful, and fun.`;
         }
 
         const canvas = document.getElementById('gameCanvas');

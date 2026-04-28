@@ -1,4 +1,4 @@
-# Qaly AI
+# Qaly AI - QA Assistant
 
 > A comprehensive QA assistant web application with AI-powered test generation, requirement analysis, and intelligent bug reporting.
 
@@ -8,28 +8,20 @@
 
 Qaly AI is a professional QA assistant that leverages multiple AI providers to help QA engineers and testers streamline their workflow. From analyzing requirements to generating comprehensive test suites and professional bug reports, Qaly AI automates repetitive tasks while maintaining quality standards.
 
-### What It Does
-
-- **Analyzes Requirements** - Extracts testable scenarios from requirement documents
-- **Generates Test Suites** - Creates comprehensive test cases with multiple formats
-- **Builds Professional Test Cases** - Converts rough notes into structured test cases
-- **Creates Bug Reports** - Generates detailed, professional bug reports
-- **Improves Text** - Corrects grammar and adjusts tone (casual/formal)
-
 ---
 
 ## ✨ Features
 
 ### Core Modules
 
-#### 1. Requirement Intelligence
+#### 1. **Requirement Intelligence**
 Analyzes requirement documents and extracts:
 - Functional requirements
 - Non-functional requirements
 - Edge cases and scenarios
 - Potential risks and ambiguities
 
-#### 2. Test Suite Architect
+#### 2. **Test Suite Architect**
 Generates comprehensive test suites with:
 - Editable test case rows
 - Multiple export formats (Excel, CSV, PDF)
@@ -37,27 +29,14 @@ Generates comprehensive test suites with:
 - Cloud persistence with local fallback
 - Copy-to-clipboard functionality
 
-#### 3. Professional Case Architect
+#### 3. **Test Case Builder**
 Transforms rough test notes into:
 - Structured test cases
 - Clear preconditions and steps
 - Expected results
 - Professional formatting
 
-#### 4. Bug Report Generator
-Creates detailed bug reports with:
-- Severity classification
-- Steps to reproduce
-- Expected vs actual behavior
-- Environment details
-
-#### 5. Sentence Correction
-Improves text quality with:
-- Grammar correction
-- Tone adjustment (casual/formal/corrected)
-- Professional writing suggestions
-
-#### 6. RTM Generator
+#### 4. **RTM Generator**
 Automates traceability matrix creation with:
 - AI-powered requirement-to-test-case mapping
 - Visual coverage indicators
@@ -66,64 +45,34 @@ Automates traceability matrix creation with:
 - Excel export with summary
 - Integration with Test Case Builder
 
-### AI Integration
+#### 5. **Bug Report Generator**
+Creates detailed bug reports with:
+- Severity classification
+- Steps to reproduce
+- Expected vs actual behavior
+- Environment details
 
-- **Multi-Provider Support**: Gemini, OpenAI, Claude, DeepSeek, Grok, Perplexity
-- **Priority & Fallback**: Automatic provider switching on failure
-- **BYOK (Bring Your Own Key)**: User-specific API keys stored securely
-- **Mock Mode**: Test without API charges
+#### 6. **Clarity AI - The Text Refinery**
+Improves text quality with:
+- Grammar correction
+- Tone adjustment (casual/formal/corrected)
+- Professional writing suggestions
 
-### Authentication & Security
+#### 7. **Meeting Notes Extractor**
+Extracts structured information from meeting notes:
+- Action items with owners and due dates
+- Key decisions made
+- Open questions
+- Risks identified
+- Next steps
 
-- **Supabase Authentication**: Secure signup/login/password reset
-- **Role-Based Access**: Admin and user roles with different permissions
-- **Idle Timeout**: Automatic logout after 5 minutes of inactivity (configurable)
-- **Session Management**: Multi-tab synchronization and secure session cleanup
-- **Password Reset**: Email-based password recovery with one-time tokens
+### Coming Soon Modules
 
-### Data Persistence
-
-- **Cloud Storage**: Test suites saved to Supabase with RLS (Row Level Security)
-- **Local Fallback**: localStorage cache when offline
-- **Navigation Persistence**: Maintains active module on page refresh
-- **Multi-Tab Sync**: Activity and logout synchronized across tabs
-
-### User Experience
-
-- **Clear Buttons**: Quick reset functionality on all modules
-- **Navigation Persistence**: Bookmarkable URLs for each module
-- **Browser History**: Back/forward buttons work correctly
-- **Responsive Design**: Works on desktop and mobile devices
-- **Toast Notifications**: Clear feedback for all actions
-
----
-
-## 🏗️ Technical Architecture
-
-### Frontend
-- **HTML5** - Semantic markup
-- **CSS3** - Modern styling with Tailwind CSS (CDN)
-- **Vanilla JavaScript** - No framework dependencies
-- **Utility Libraries**: SheetJS (Excel), html2pdf, pdf.js, mammoth
-
-### Backend
-- **Node.js** - Runtime environment
-- **Express** - Web server framework
-- **Server-Side AI Orchestration** - Secure API key management
-
-### Database & Authentication
-- **Supabase** - PostgreSQL database
-- **Supabase Auth** - User authentication
-- **RLS Policies** - Row-level security
-- **RPC Functions** - Server-side logic
-
-### AI Providers (Server-Side)
-- Google Gemini
-- OpenAI (GPT-4, GPT-3.5)
-- Anthropic Claude
-- DeepSeek
-- Grok
-- Perplexity
+- **Test Case Prioritizer** - Prioritize test cases based on risk, coverage, and business impact
+- **Requirement Change Impact Analyzer** - Analyze requirement changes and identify impacted test cases
+- **Test Estimation Calculator** - Calculate test effort and duration based on complexity and scope
+- **QA Knowledge Base Builder** - Build and maintain a searchable knowledge base for QA best practices
+- **Test Case → Automation Converter** - Convert manual test cases into automation scripts automatically
 
 ---
 
@@ -237,60 +186,32 @@ http://localhost:8000
 
 ---
 
-## 📖 How It Works
+## 🏗️ Technical Architecture
 
-### User Flow
+### Frontend
+- **HTML5** - Semantic markup
+- **CSS3** - Modern styling with Tailwind CSS (CDN)
+- **Vanilla JavaScript** - No framework dependencies
+- **Utility Libraries**: SheetJS (Excel), html2pdf, pdf.js, mammoth
 
-```
-1. Sign Up (signup.html)
-   ↓
-2. Login (login.html)
-   ↓
-3. Dashboard (index.html)
-   ↓
-4. Select Module
-   ├─ Requirement Intelligence
-   ├─ Test Suite Architect
-   ├─ Professional Case Architect
-   ├─ Bug Report Generator
-   ├─ Sentence Correction
-   └─ RTM Generator
-   ↓
-5. Enter Input
-   ↓
-6. AI Processing (server-side)
-   ↓
-7. View/Edit/Export Results
-   ↓
-8. Save to Cloud (automatic)
-```
+### Backend
+- **Node.js** - Runtime environment
+- **Express** - Web server framework
+- **Server-Side AI Orchestration** - Secure API key management
 
-### Module Workflow Example: Test Suite Architect
+### Database & Authentication
+- **Supabase** - PostgreSQL database
+- **Supabase Auth** - User authentication
+- **RLS Policies** - Row-level security
+- **RPC Functions** - Server-side logic
 
-```
-1. User enters:
-   - Module name: "User Authentication"
-   - Sub-module: "Login"
-   - Requirements: "Users should be able to login with email and password"
-
-2. AI generates test cases:
-   - Valid login scenarios
-   - Invalid credentials
-   - Edge cases (empty fields, SQL injection, etc.)
-   - Security tests
-
-3. User can:
-   - Edit test cases inline
-   - Filter by priority/type
-   - Export to Excel/CSV/PDF
-   - Copy to clipboard
-   - Save to cloud
-
-4. Data persists:
-   - Saved to Supabase (cloud)
-   - Cached in localStorage (local)
-   - Accessible across devices
-```
+### AI Providers (Server-Side)
+- Google Gemini
+- OpenAI (GPT-4, GPT-3.5)
+- Anthropic Claude
+- DeepSeek
+- Grok
+- Perplexity
 
 ---
 
@@ -315,26 +236,6 @@ session: {
 - Complete session cleanup (localStorage, sessionStorage, cookies)
 - "Stay Logged In" option
 
-**User Experience**:
-```
-User inactive for 4 minutes
-↓
-Warning modal appears: "You will be logged out in 60 seconds"
-↓
-Countdown: 60... 59... 58...
-↓
-User clicks "Stay Logged In" → Timer resets
-OR
-Countdown reaches 0 → Automatic logout → Redirect to login
-```
-
-**Testing**:
-```javascript
-// In browser console
-window.idleTimeoutManager.showWarning();  // Test warning
-window.idleTimeoutManager.handleActivity();  // Reset timer
-```
-
 ### Password Reset
 
 **Purpose**: Secure email-based password recovery using Supabase authentication.
@@ -357,17 +258,6 @@ window.idleTimeoutManager.handleActivity();  // Reset timer
 - Token validation before password update
 - No email enumeration (same message for all emails)
 - HTTPS ready
-
-**Troubleshooting**:
-```javascript
-// Check URL tokens
-console.log(window.location.hash);
-// Should show: #access_token=xxx&refresh_token=yyy&type=recovery
-
-// Test session restoration
-const session = await window.getCurrentSession();
-console.log(session);
-```
 
 ### Authentication Flow
 
@@ -406,6 +296,8 @@ QA-Ai-Assistant/
 │   ├── auth.js                 # Authentication logic
 │   ├── config.js               # Configuration
 │   ├── idle-timeout.js         # Idle timeout manager
+│   ├── rtm-generator.js        # RTM Generator module
+│   ├── fuzzy-search.js         # Fuzzy search functionality
 │   └── styles.css              # Custom styles
 ├── server/
 │   ├── index.js                # Express server
@@ -434,25 +326,207 @@ QA-Ai-Assistant/
 **Solution**: AI generates complete test suites from requirements with multiple test case formats.
 **Output**: Editable test cases with export options (Excel, CSV, PDF).
 
-### Professional Case Architect
+### Test Case Builder
 **Problem**: Test notes are often unstructured and informal.
 **Solution**: AI transforms rough notes into professional, structured test cases.
 **Output**: Formatted test cases with clear steps, preconditions, and expected results.
+
+### RTM Generator
+**Problem**: Manual RTM creation is time-consuming, error-prone, and difficult to maintain.
+**Solution**: AI analyzes requirements and test cases to generate accurate traceability mappings.
+**Output**: Visual RTM table with coverage metrics, uncovered requirements, orphan test cases, and Excel export.
 
 ### Bug Report Generator
 **Problem**: Writing detailed bug reports takes time.
 **Solution**: AI creates comprehensive bug reports from brief descriptions.
 **Output**: Professional bug reports with severity, steps to reproduce, and environment details.
 
-### Sentence Correction
+### Clarity AI - The Text Refinery
 **Problem**: Documentation needs grammar correction and tone adjustment.
 **Solution**: AI improves text quality and adjusts tone based on context.
 **Output**: Corrected text in casual, formal, or corrected tone.
 
-### RTM Generator
-**Problem**: Manual RTM creation is time-consuming, error-prone, and difficult to maintain.
-**Solution**: AI analyzes requirements and test cases to generate accurate traceability mappings.
-**Output**: Visual RTM table with coverage metrics, uncovered requirements, orphan test cases, and Excel export.
+### Meeting Notes Extractor
+**Problem**: Extracting actionable items from meeting notes is tedious.
+**Solution**: AI analyzes meeting notes and extracts structured information.
+**Output**: Action items, decisions, questions, risks, and next steps in organized format.
+
+---
+
+## ✨ Recent Improvements
+
+### UI Enhancements
+- **Modern Top Header**: Clean, sticky header with glassmorphism effect
+- **Fixed Sidebar Logo**: Logo stays visible while scrolling
+- **Premium Glass UI**: Bottom sidebar items with glassmorphism styling
+- **Lighter Header Design**: Elegant indigo gradient instead of heavy purple
+- **Smooth Animations**: Polished hover effects and transitions
+
+### Fuzzy Search
+- **VS Code-like Search**: Fast, forgiving module search
+- **Keyboard Shortcuts**: Press `/` to focus search instantly
+- **Arrow Navigation**: Navigate results with keyboard
+- **Smart Matching**: Finds modules with partial text (e.g., "req intel" → "Requirement Intelligence")
+
+### Sidebar Improvements
+- **Scrollable Navigation**: Main navigation scrolls smoothly
+- **Fixed Bottom Section**: Utility links always visible
+- **Premium Scrollbar**: Thin, branded scrollbar with smooth hover
+- **Visual Separation**: Clear distinction between sections
+
+### Navigation Fixes
+- **URL Persistence**: Maintains active module on page refresh
+- **Browser History**: Back/forward buttons work correctly
+- **Bookmarkable URLs**: Direct links to specific modules
+- **Multi-tab Sync**: Activity and logout synchronized across tabs
+
+---
+
+## 🐞 Fixes & Improvements
+
+### Critical Fixes
+- **Script Loading Order**: Fixed dependency resolution (app.js loads before rtm-generator.js)
+- **SYSTEM_PROMPTS Consolidation**: Removed duplicate declarations
+- **Function Exports**: Fixed undefined function references
+- **Button Selectors**: Updated to match actual function names
+- **Cache Issues**: Added cache-busting parameters to force fresh loads
+
+### Module Fixes
+- **RTM Generator**: Fully functional with AI mapping, Excel export, and Test Case Builder integration
+- **Meeting Notes Extractor**: Complete implementation with action items, decisions, and risks extraction
+- **Clarity AI**: Consistent naming across sidebar, dashboard, and module header
+- **Coming Soon Modules**: Added 5 new modules with proper routing and redirects
+
+### UI/UX Fixes
+- **Sidebar Overflow**: Fixed content visibility at reduced zoom levels (80%)
+- **Bottom Items**: Always visible with premium glass styling
+- **Header Weight**: Reduced from heavy purple to elegant light indigo
+- **Logo Scrolling**: Fixed to stay visible at all times
+
+---
+
+## 🧪 Testing
+
+### Manual Testing Checklist
+
+**Authentication**:
+- [ ] Signup with new email
+- [ ] Login with valid credentials
+- [ ] Login with invalid credentials
+- [ ] Password reset flow
+- [ ] Logout functionality
+- [ ] Multi-tab logout sync
+
+**Modules**:
+- [ ] Requirement Intelligence generates analysis
+- [ ] Test Suite Architect creates test cases
+- [ ] Test Case Builder formats test cases
+- [ ] RTM Generator creates traceability matrix
+- [ ] Bug Report Generator creates reports
+- [ ] Clarity AI improves text
+- [ ] Meeting Notes Extractor extracts action items
+
+**Features**:
+- [ ] Clear buttons reset all inputs
+- [ ] Export to Excel/CSV/PDF works
+- [ ] Copy to clipboard works
+- [ ] Filter and search work
+- [ ] Navigation persistence on refresh
+- [ ] Browser back/forward buttons work
+- [ ] Idle timeout triggers after inactivity
+- [ ] Warning modal appears before logout
+- [ ] Fuzzy search finds modules
+- [ ] Keyboard shortcuts work
+
+---
+
+## 🚨 Troubleshooting
+
+### Common Issues
+
+#### Issue: Email Not Received (Password Reset)
+**Solutions**:
+- Check spam/junk folder
+- Verify email exists in Supabase
+- Check Supabase email logs
+- Try different email provider
+- Check email quota (free tier limits)
+
+#### Issue: Invalid or Expired Reset Link
+**Solutions**:
+- Request new reset link
+- Check URL format (should have `#access_token=xxx&type=recovery`)
+- Verify Supabase redirect URL configuration
+- Confirm link not already used
+
+#### Issue: Module Not Activating on Refresh
+**Solutions**:
+- Check URL hash is correct
+- Verify module ID in route mappings
+- Clear browser cache
+- Check browser console for errors
+
+#### Issue: Idle Timeout Not Working
+**Solutions**:
+```javascript
+// Check initialization
+console.log(window.idleTimeoutManager);
+
+// Check configuration
+console.log(window.appConfig.session);
+
+// Test manually
+window.idleTimeoutManager.handleActivity();
+```
+
+#### Issue: AI Not Responding
+**Solutions**:
+- Verify API key is set (Profile → AI Settings)
+- Check API key is valid
+- Try different AI provider
+- Check network connection
+- Review server logs
+- Verify `APP_AI_MOCK_MODE=false` for real AI
+
+#### Issue: Browser Cache Problems
+**Solutions**:
+```
+1. Close ALL browser tabs/windows
+2. Reopen browser
+3. Press Ctrl+Shift+Delete
+4. Select "All time"
+5. Check "Cached images and files"
+6. Click "Clear data"
+7. Close browser again
+8. Reopen browser
+9. Go to: http://localhost:8000
+10. Press Ctrl+F5 (hard refresh)
+```
+
+### Debug Commands
+
+```javascript
+// Check Supabase client
+console.log(window.supabaseClient);
+
+// Check configuration
+console.log(window.appConfig);
+
+// Check current session
+const session = await window.getCurrentSession();
+console.log(session);
+
+// Check active module
+console.log(localStorage.getItem('qaly_active_module'));
+
+// Check idle timeout
+console.log(window.idleTimeoutManager);
+
+// Check if functions are defined
+console.log(typeof window.showToast);
+console.log(typeof window.generateRTM);
+console.log(typeof window.activateModule);
+```
 
 ---
 
@@ -511,122 +585,15 @@ session: {
 
 ---
 
-## 🧪 Testing
+## 📊 Performance Metrics
 
-### Manual Testing Checklist
-
-**Authentication**:
-- [ ] Signup with new email
-- [ ] Login with valid credentials
-- [ ] Login with invalid credentials
-- [ ] Password reset flow
-- [ ] Logout functionality
-- [ ] Multi-tab logout sync
-
-**Modules**:
-- [ ] Requirement Intelligence generates analysis
-- [ ] Test Suite Architect creates test cases
-- [ ] Professional Case Architect formats test cases
-- [ ] Bug Report Generator creates reports
-- [ ] Sentence Correction improves text
-
-**Features**:
-- [ ] Clear buttons reset all inputs
-- [ ] Export to Excel/CSV/PDF works
-- [ ] Copy to clipboard works
-- [ ] Filter and search work
-- [ ] Navigation persistence on refresh
-- [ ] Browser back/forward buttons work
-- [ ] Idle timeout triggers after inactivity
-- [ ] Warning modal appears before logout
-
-### Testing Commands
-
-```javascript
-// Test idle timeout
-window.idleTimeoutManager.showWarning();
-
-// Test navigation
-window.location.hash = 'test-suite-architect';
-
-// Test session
-const session = await window.getCurrentSession();
-console.log(session);
-
-// Test localStorage
-localStorage.setItem('test', 'value');
-console.log(localStorage.getItem('test'));
-```
-
----
-
-## 🚨 Troubleshooting
-
-### Common Issues
-
-#### Issue: Email Not Received (Password Reset)
-**Solutions**:
-- Check spam/junk folder
-- Verify email exists in Supabase
-- Check Supabase email logs
-- Try different email provider
-- Check email quota (free tier limits)
-
-#### Issue: Invalid or Expired Reset Link
-**Solutions**:
-- Request new reset link
-- Check URL format (should have `#access_token=xxx&type=recovery`)
-- Verify Supabase redirect URL configuration
-- Confirm link not already used
-
-#### Issue: Module Not Activating on Refresh
-**Solutions**:
-- Check URL hash is correct
-- Verify module ID in route mappings
-- Clear browser cache
-- Check browser console for errors
-
-#### Issue: Idle Timeout Not Working
-**Solutions**:
-```javascript
-// Check initialization
-console.log(window.idleTimeoutManager);
-
-// Check configuration
-console.log(window.appConfig.session);
-
-// Test manually
-window.idleTimeoutManager.handleActivity();
-```
-
-#### Issue: AI Not Responding
-**Solutions**:
-- Verify API key is set (Profile → AI Settings)
-- Check API key is valid
-- Try different AI provider
-- Check network connection
-- Review server logs
-- Verify `APP_AI_MOCK_MODE=false` for real AI
-
-### Debug Commands
-
-```javascript
-// Check Supabase client
-console.log(window.supabaseClient);
-
-// Check configuration
-console.log(window.appConfig);
-
-// Check current session
-const session = await window.getCurrentSession();
-console.log(session);
-
-// Check active module
-console.log(localStorage.getItem('qaly_active_module'));
-
-// Check idle timeout
-console.log(window.idleTimeoutManager);
-```
+| Metric | Target | Status |
+|--------|--------|--------|
+| Page Load Time | < 2s | ✅ < 1s |
+| AI Response Time | < 5s | ✅ < 3s |
+| Email Delivery | < 1 min | ✅ < 30s |
+| Session Restoration | < 1s | ✅ < 500ms |
+| Export Generation | < 3s | ✅ < 2s |
 
 ---
 
@@ -673,55 +640,6 @@ console.log(window.idleTimeoutManager);
 
 ---
 
-## 📊 Performance Metrics
-
-| Metric | Target | Status |
-|--------|--------|--------|
-| Page Load Time | < 2s | ✅ < 1s |
-| AI Response Time | < 5s | ✅ < 3s |
-| Email Delivery | < 1 min | ✅ < 30s |
-| Session Restoration | < 1s | ✅ < 500ms |
-| Export Generation | < 3s | ✅ < 2s |
-
----
-
-## 🤝 Contributing
-
-### Adding New Modules
-
-1. **Update Route Mappings** (`app.js`):
-```javascript
-const MODULE_ROUTES = {
-    'your-module-id': 'your-url-route'
-};
-
-const ROUTE_TO_MODULE = {
-    'your-url-route': 'your-module-id'
-};
-```
-
-2. **Add HTML**:
-```html
-<button class="nav-item" data-target="your-module-id">
-    Your Module
-</button>
-
-<section id="your-module-id" class="module-section">
-    <!-- Module content -->
-</section>
-```
-
-3. **Add Clear Function** (`app.js`):
-```javascript
-function clearYourModule() {
-    if (!confirm('Clear all input and output data?')) return;
-    // Clear logic
-    showToast('Cleared successfully!');
-}
-```
-
----
-
 ## 📄 License
 
 This project is proprietary software. All rights reserved.
@@ -753,6 +671,8 @@ For issues, questions, or feature requests:
 - ✅ Cloud data persistence
 - ✅ Multi-tab synchronization
 - ✅ Export functionality
+- ✅ Fuzzy search
+- ✅ Premium UI/UX
 - ✅ Responsive design
 - ✅ Comprehensive documentation
 

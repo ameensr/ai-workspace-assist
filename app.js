@@ -21,29 +21,35 @@ const MODULE_PROMPT_KEYS = [
     'bugReport',
     'sentenceCorrection',
     'professionalCase',
-    'rtmGenerator'
+    'rtmGenerator',
+    'meetingNotesExtractor'
 ];
 
 // Module route mapping
 const MODULE_ROUTES = {
+    'dashboard': 'home',
     'requirement-correction': 'requirement-intelligence',
     'test-case-architect': 'test-suite-architect',
     'test-case-gen': 'professional-case-architect',
     'bug-report-gen': 'bug-report-generator',
-    'sentence-correction': 'sentence-correction',
+    'sentence-correction': 'clarity-ai',
+    'meeting-notes-extractor': 'meeting-notes-extractor',
     'rtm-generator': 'rtm-generator'
 };
 
 const ROUTE_TO_MODULE = {
+    'home': 'dashboard',
     'requirement-intelligence': 'requirement-correction',
     'test-suite-architect': 'test-case-architect',
     'professional-case-architect': 'test-case-gen',
     'bug-report-generator': 'bug-report-gen',
+    'clarity-ai': 'sentence-correction',
     'sentence-correction': 'sentence-correction',
+    'meeting-notes-extractor': 'meeting-notes-extractor',
     'rtm-generator': 'rtm-generator'
 };
 
-const DEFAULT_MODULE = 'requirement-correction';
+const DEFAULT_MODULE = 'dashboard';
 
 // UI State Management
 let currentTestCases = [];
@@ -64,6 +70,7 @@ async function initApp() {
     checkAPIStatus();
     await updateModulePromptIndicators();
     await loadTestCases();
+    initDashboardCards(); // Initialize dashboard card clicks
     restoreActiveModule(); // Restore last active module
 }
 
@@ -109,6 +116,18 @@ function initNavigation() {
         item.addEventListener('click', () => {
             const url = item.getAttribute('data-url');
             if (url) window.location.href = url;
+        });
+    });
+}
+
+function initDashboardCards() {
+    const cards = document.querySelectorAll('.dashboard-card');
+    cards.forEach(card => {
+        card.addEventListener('click', () => {
+            const moduleId = card.getAttribute('data-module');
+            if (moduleId) {
+                navigateToModule(moduleId);
+            }
         });
     });
 }
@@ -473,6 +492,12 @@ async function initUserIdentity() {
     }
 
     setHeaderIdentity(username);
+    
+    // Update dashboard username
+    const dashboardUsername = document.getElementById('dashboard-username');
+    if (dashboardUsername) {
+        dashboardUsername.textContent = username;
+    }
 }
 
 function initUserMenu() {
@@ -579,10 +604,11 @@ async function getAuthTokenForApi() {
 function setGenerateButtonsEnabled(isEnabled) {
     const selectors = [
         'button[onclick^="generateRequirementIntelligence"]',
-        'button[onclick^="generateTestSuite"]',
+        'button[onclick^="tsGenerate"]',
         'button[onclick^="generateBugReport"]',
         'button[onclick^="correctSentence"]',
-        'button[onclick^="generateProfessionalCase"]'
+        'button[onclick^="generateProfessionalCase"]',
+        'button[onclick^="extractMeetingNotes"]'
     ];
     const buttons = document.querySelectorAll(selectors.join(','));
     buttons.forEach((btn) => {
@@ -1842,7 +1868,7 @@ function copyBugReport() {
 
 // Export functions to window for HTML access securely
 window.generateRequirementIntelligence = generateRequirementIntelligence;
-window.generateTestSuite = generateTestSuite;
+window.generateTestSuite = tsGenerate; // Alias for Test Suite Architect
 window.generateBugReport = generateBugReport;
 window.correctSentence = correctSentence;
 window.generateProfessionalCase = generateProfessionalCase;
@@ -1878,3 +1904,120 @@ window.clearRequirementIntelligence = clearRequirementIntelligence;
 window.clearBugReport = clearBugReport;
 window.clearSentenceCorrection = clearSentenceCorrection;
 window.clearProfessionalCase = clearProfessionalCase;
+
+// ============================================
+// MEETING NOTES EXTRACTOR
+// ============================================
+
+async function extractMeetingNotes(e) {
+    if (!validateInput('meeting-notes-input', 'meeting-notes-error', 'Please enter meeting notes before extracting')) return;
+
+    const input = document.getElementById('meeting-notes-input').value.trim();
+    const btn = e.currentTarget;
+    setLoading(btn, true);
+
+    try {
+        const payload = await resolvePromptPayload('meetingNotesExtractor', input, SYSTEM_PROMPTS.meetingNotesExtractor, {
+            templateVars: {
+                meetingNotes: input,
+                userInput: input
+            }
+        });
+        const response = await generateAI(payload.prompt, payload.systemPrompt, 'meetingNotesExtractor');
+        const data = safeParseJSON(response);
+
+        if (!data) throw new Error("Could not parse AI response");
+
+        // Render Action Items Table
+        const actionItemsTbody = document.getElementById('action-items-tbody');
+        if (data.actionItems && data.actionItems.length > 0) {
+            actionItemsTbody.innerHTML = data.actionItems.map(item => `
+                <tr class="border-b border-slate-100 hover:bg-slate-50 transition-colors">
+                    <td class="px-4 py-3 text-sm text-slate-700">${item.task || 'N/A'}</td>
+                    <td class="px-4 py-3 text-sm text-slate-700">${item.owner || 'Not specified'}</td>
+                    <td class="px-4 py-3 text-sm text-slate-700">${item.dueDate || 'TBD'}</td>
+                </tr>
+            `).join('');
+        } else {
+            actionItemsTbody.innerHTML = '<tr><td colspan="3" class="px-4 py-3 text-sm text-slate-500 text-center">No action items found</td></tr>';
+        }
+
+        // Render Decisions
+        const decisionsList = document.getElementById('decisions-list');
+        if (data.decisions && data.decisions.length > 0) {
+            decisionsList.innerHTML = data.decisions.map(decision => `
+                <div class="flex gap-3 items-start p-3 bg-white shadow-sm rounded-xl border border-slate-100 hover:shadow-md transition-shadow duration-300">
+                    <span class="material-symbols-outlined text-green-600 text-sm mt-0.5">check_circle</span>
+                    <p class="text-xs text-slate-700 font-medium">${decision}</p>
+                </div>
+            `).join('');
+        } else {
+            decisionsList.innerHTML = '<p class="text-sm text-slate-500">No decisions recorded</p>';
+        }
+
+        // Render Questions
+        const questionsList = document.getElementById('questions-list');
+        if (data.questions && data.questions.length > 0) {
+            questionsList.innerHTML = data.questions.map(question => `
+                <div class="flex gap-3 items-start p-3 bg-white shadow-sm rounded-xl border border-slate-100 hover:shadow-md transition-shadow duration-300">
+                    <span class="material-symbols-outlined text-yellow-600 text-sm mt-0.5">help</span>
+                    <p class="text-xs text-slate-700 font-medium">${question}</p>
+                </div>
+            `).join('');
+        } else {
+            questionsList.innerHTML = '<p class="text-sm text-slate-500">No open questions</p>';
+        }
+
+        // Render Risks
+        const risksList = document.getElementById('risks-list');
+        if (data.risks && data.risks.length > 0) {
+            risksList.innerHTML = data.risks.map(risk => `
+                <div class="flex gap-3 items-start p-3 bg-white shadow-sm rounded-xl border border-slate-100 hover:shadow-md transition-shadow duration-300">
+                    <span class="material-symbols-outlined text-red-600 text-sm mt-0.5">warning</span>
+                    <p class="text-xs text-slate-700 font-medium">${risk}</p>
+                </div>
+            `).join('');
+        } else {
+            risksList.innerHTML = '<p class="text-sm text-slate-500">No risks identified</p>';
+        }
+
+        // Render Next Steps
+        const nextStepsList = document.getElementById('next-steps-list');
+        if (data.nextSteps && data.nextSteps.length > 0) {
+            nextStepsList.innerHTML = data.nextSteps.map((step, i) => `
+                <div class="flex gap-3 items-start p-3 bg-white shadow-sm rounded-xl border border-slate-100 hover:shadow-md transition-shadow duration-300">
+                    <span class="flex-shrink-0 w-6 h-6 rounded-full bg-blue-100 text-blue-700 text-[10px] flex items-center justify-center font-bold">${i + 1}</span>
+                    <p class="text-xs text-slate-700 font-medium">${step}</p>
+                </div>
+            `).join('');
+        } else {
+            nextStepsList.innerHTML = '<p class="text-sm text-slate-500">No next steps defined</p>';
+        }
+
+        // Show metadata
+        const meta = document.getElementById('meeting-notes-meta');
+        if (meta) {
+            meta.classList.remove('opacity-0');
+        }
+
+        document.getElementById('meeting-notes-output').style.display = 'block';
+        showToast('Insights extracted successfully!');
+    } catch (err) {
+        console.error(err);
+        showToast('AI Error: ' + err.message);
+    } finally {
+        setLoading(btn, false);
+    }
+}
+
+function clearMeetingNotes() {
+    if (!confirm('Clear all input and output data?')) return;
+    document.getElementById('meeting-notes-input').value = '';
+    document.getElementById('meeting-notes-output').style.display = 'none';
+    document.getElementById('meeting-notes-error').classList.add('hidden');
+    document.getElementById('meeting-notes-input').classList.remove('border-red-500', 'bg-red-50');
+    showToast('Cleared successfully!');
+}
+
+window.extractMeetingNotes = extractMeetingNotes;
+window.clearMeetingNotes = clearMeetingNotes;

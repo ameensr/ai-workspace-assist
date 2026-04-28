@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Qaly AI - Diagnostic Test</title>
+    <style>
+        body {
+            font-family: 'Courier New', monospace;
+            padding: 20px;
+            background: #0f172a;
+            color: #e2e8f0;
+        }
+        .test-section {
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .pass { color: #22c55e; }
+        .fail { color: #ef4444; }
+        .warn { color: #f59e0b; }
+        h1 { color: #3b82f6; }
+        h2 { color: #60a5fa; margin-top: 0; }
+        pre { background: #0f172a; padding: 10px; border-radius: 4px; overflow-x: auto; }
+        button {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover { background: #2563eb; }
+        .result { margin-top: 10px; padding: 10px; background: #0f172a; border-radius: 4px; }
+    </style>
+</head>
+<body>
+    <h1>🔍 Qaly AI - Diagnostic Test Suite</h1>
+    <p>This page will help diagnose what's broken in your application.</p>
+
+    <div class="test-section">
+        <h2>Test 1: Script Loading</h2>
+        <button onclick="testScriptLoading()">Run Test</button>
+        <div id="test1-result" class="result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Test 2: Function Availability</h2>
+        <button onclick="testFunctions()">Run Test</button>
+        <div id="test2-result" class="result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Test 3: DOM Elements</h2>
+        <button onclick="testDOM()">Run Test</button>
+        <div id="test3-result" class="result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Test 4: Module Activation</h2>
+        <button onclick="testModuleActivation()">Run Test</button>
+        <div id="test4-result" class="result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Test 5: Console Errors</h2>
+        <button onclick="testConsoleErrors()">Run Test</button>
+        <div id="test5-result" class="result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Quick Fix: Open Main App</h2>
+        <button onclick="window.location.href='index.html'">Open Main Application</button>
+        <p style="font-size: 12px; color: #94a3b8;">Opens the main app in this tab. Check console (F12) for errors.</p>
+    </div>
+
+    <script>
+        let errors = [];
+        
+        // Capture console errors
+        window.addEventListener('error', (e) => {
+            errors.push({
+                message: e.message,
+                source: e.filename,
+                line: e.lineno,
+                col: e.colno
+            });
+        });
+
+        function testScriptLoading() {
+            const result = document.getElementById('test1-result');
+            let html = '<h3>Script Loading Test</h3>';
+            
+            const scripts = [
+                'config.js',
+                'supabase-client.js',
+                'test-config.js',
+                'prompts.js',
+                'auth.js',
+                'idle-timeout.js',
+                'app.js',
+                'rtm-generator.js'
+            ];
+            
+            html += '<ul>';
+            scripts.forEach(script => {
+                const exists = Array.from(document.scripts).some(s => s.src.includes(script));
+                const status = exists ? '<span class="pass">✓ LOADED</span>' : '<span class="fail">✗ MISSING</span>';
+                html += `<li>${script}: ${status}</li>`;
+            });
+            html += '</ul>';
+            
+            result.innerHTML = html;
+        }
+
+        function testFunctions() {
+            const result = document.getElementById('test2-result');
+            let html = '<h3>Function Availability Test</h3>';
+            
+            const functions = [
+                'showToast',
+                'setLoading',
+                'generateAI',
+                'resolvePromptPayload',
+                'safeParseJSON',
+                'activateModule',
+                'initNavigation',
+                'generateRTM',
+                'rtmClear',
+                'rtmDownloadExcel',
+                'generateRequirementIntelligence',
+                'tsGenerate',
+                'extractMeetingNotes'
+            ];
+            
+            html += '<ul>';
+            functions.forEach(fn => {
+                const exists = typeof window[fn] === 'function';
+                const status = exists ? '<span class="pass">✓ DEFINED</span>' : '<span class="fail">✗ UNDEFINED</span>';
+                html += `<li>window.${fn}: ${status}</li>`;
+            });
+            html += '</ul>';
+            
+            result.innerHTML = html;
+        }
+
+        function testDOM() {
+            const result = document.getElementById('test3-result');
+            let html = '<h3>DOM Elements Test</h3>';
+            
+            const elements = [
+                'dashboard',
+                'requirement-correction',
+                'test-case-architect',
+                'test-case-gen',
+                'rtm-generator',
+                'bug-report-gen',
+                'sentence-correction',
+                'meeting-notes-extractor'
+            ];
+            
+            html += '<ul>';
+            elements.forEach(id => {
+                const exists = document.getElementById(id) !== null;
+                const status = exists ? '<span class="pass">✓ EXISTS</span>' : '<span class="fail">✗ MISSING</span>';
+                html += `<li>#${id}: ${status}</li>`;
+            });
+            html += '</ul>';
+            
+            result.innerHTML = html;
+        }
+
+        function testModuleActivation() {
+            const result = document.getElementById('test4-result');
+            let html = '<h3>Module Activation Test</h3>';
+            
+            if (typeof activateModule !== 'function') {
+                html += '<p class="fail">✗ activateModule function not available</p>';
+                result.innerHTML = html;
+                return;
+            }
+            
+            html += '<p class="pass">✓ activateModule function available</p>';
+            
+            // Test activating dashboard
+            try {
+                activateModule('dashboard', false);
+                const dashboard = document.getElementById('dashboard');
+                const isActive = dashboard && dashboard.classList.contains('active');
+                html += `<p>${isActive ? '<span class="pass">✓</span>' : '<span class="fail">✗</span>'} Dashboard activation: ${isActive ? 'SUCCESS' : 'FAILED'}</p>`;
+            } catch (e) {
+                html += `<p class="fail">✗ Error activating dashboard: ${e.message}</p>`;
+            }
+            
+            result.innerHTML = html;
+        }
+
+        function testConsoleErrors() {
+            const result = document.getElementById('test5-result');
+            let html = '<h3>Console Errors Test</h3>';
+            
+            if (errors.length === 0) {
+                html += '<p class="pass">✓ No JavaScript errors detected</p>';
+            } else {
+                html += `<p class="fail">✗ Found ${errors.length} error(s):</p>`;
+                html += '<ul>';
+                errors.forEach(err => {
+                    html += `<li><strong>${err.message}</strong><br>`;
+                    html += `Source: ${err.source}:${err.line}:${err.col}</li>`;
+                });
+                html += '</ul>';
+            }
+            
+            result.innerHTML = html;
+        }
+
+        // Auto-run all tests on load
+        window.addEventListener('DOMContentLoaded', () => {
+            setTimeout(() => {
+                console.log('🔍 Running diagnostic tests...');
+                testScriptLoading();
+                testFunctions();
+                testDOM();
+                testModuleActivation();
+                testConsoleErrors();
+            }, 1000);
+        });
+    </script>
+</body>
+</html>

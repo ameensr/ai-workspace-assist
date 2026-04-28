@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Minimal Test - Qaly AI</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 40px; background: #f8fafc; }
+        .module-section { display: none; padding: 20px; background: white; border-radius: 8px; margin: 10px 0; }
+        .module-section.active { display: block; }
+        button { padding: 10px 20px; margin: 5px; cursor: pointer; }
+        .active-btn { background: #3b82f6; color: white; border: none; }
+        .inactive-btn { background: #e2e8f0; color: #64748b; border: none; }
+    </style>
+</head>
+<body>
+    <h1>Minimal Module Test</h1>
+    <p>This tests if the basic module switching works.</p>
+    
+    <div>
+        <button id="btn-dashboard" class="inactive-btn" onclick="activateModule('dashboard')">Dashboard</button>
+        <button id="btn-module1" class="inactive-btn" onclick="activateModule('module1')">Module 1</button>
+        <button id="btn-module2" class="inactive-btn" onclick="activateModule('module2')">Module 2</button>
+    </div>
+    
+    <div id="dashboard" class="module-section">
+        <h2>Dashboard</h2>
+        <p>This is the dashboard content.</p>
+    </div>
+    
+    <div id="module1" class="module-section">
+        <h2>Module 1</h2>
+        <p>This is module 1 content.</p>
+    </div>
+    
+    <div id="module2" class="module-section">
+        <h2>Module 2</h2>
+        <p>This is module 2 content.</p>
+    </div>
+    
+    <div id="log" style="margin-top: 40px; padding: 20px; background: #0f172a; color: #e2e8f0; border-radius: 8px; font-family: monospace; font-size: 12px;"></div>
+    
+    <script>
+        function log(message) {
+            const logDiv = document.getElementById('log');
+            logDiv.innerHTML += `[${new Date().toLocaleTimeString()}] ${message}<br>`;
+            console.log(message);
+        }
+        
+        function activateModule(moduleId) {
+            log(`Activating module: ${moduleId}`);
+            
+            // Remove active class from all sections
+            const sections = document.querySelectorAll('.module-section');
+            sections.forEach(s => {
+                s.classList.remove('active');
+                log(`  Removed active from: ${s.id}`);
+            });
+            
+            // Add active class to target section
+            const targetSection = document.getElementById(moduleId);
+            if (targetSection) {
+                targetSection.classList.add('active');
+                log(`  ✓ Added active to: ${moduleId}`);
+            } else {
+                log(`  ✗ ERROR: Section ${moduleId} not found!`);
+            }
+            
+            // Update button styles
+            document.querySelectorAll('button').forEach(btn => {
+                btn.className = 'inactive-btn';
+            });
+            const activeBtn = document.getElementById(`btn-${moduleId}`);
+            if (activeBtn) {
+                activeBtn.className = 'active-btn';
+            }
+        }
+        
+        // Initialize on load
+        window.addEventListener('DOMContentLoaded', () => {
+            log('Page loaded');
+            log('Activating default module: dashboard');
+            activateModule('dashboard');
+        });
+    </script>
+</body>
+</html>

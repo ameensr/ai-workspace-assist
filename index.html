@@ -11,9 +11,11 @@
 
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
         rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600&display=swap"
+        rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
         rel="stylesheet" />
-    <link rel="stylesheet" href="style.css" />
+    <link rel="stylesheet" href="style.css?v=4" />
     <script id="tailwind-config">
         tailwind.config = {
             darkMode: "class",
@@ -86,8 +88,9 @@
 
     <div class="app-container relative z-10">
         <!-- Sidebar -->
-        <aside class="sidebar py-6 bg-white/40 backdrop-blur-xl border-r border-slate-200/50">
-            <div class="px-6 mb-8">
+        <aside class="sidebar bg-white/40 backdrop-blur-xl border-r border-slate-200/50">
+            <!-- Sidebar Header (Fixed Logo) -->
+            <div class="sidebar-header">
                 <div class="flex items-center gap-2">
                     <div class="qaly-logo text-2xl tracking-tighter flex items-center">
                         <span class="text-gradient-q">Q</span>aly
@@ -101,7 +104,19 @@
                 </div>
             </div>
 
-            <nav class="flex-1 space-y-1 px-3">
+            <!-- Sidebar Top (Scrollable) -->
+            <div class="sidebar-top">
+                <nav class="space-y-1 px-3">
+                <button
+                    class="nav-item w-full flex items-center px-4 py-2.5 rounded-lg text-sm font-medium transition-colors text-slate-600 hover:bg-slate-100 text-left"
+                    data-target="dashboard">
+                    <span class="material-symbols-outlined mr-3 text-lg">home</span>
+                    Dashboard
+                </button>
+                
+                <div class="px-4 pt-4 pb-2">
+                    <p class="text-[10px] font-black uppercase tracking-widest text-slate-400">Core Intelligence</p>
+                </div>
                 <button
                     class="nav-item w-full flex items-center px-4 py-2.5 rounded-lg text-sm font-medium transition-colors text-slate-600 hover:bg-slate-100 text-left"
                     data-target="requirement-correction">
@@ -120,12 +135,38 @@
                     <span class="material-symbols-outlined mr-3 text-lg">fact_check</span>
                     Test Case Builder
                 </button>
+                
+                <div class="px-4 pt-4 pb-2">
+                    <p class="text-[10px] font-black uppercase tracking-widest text-slate-400">Analysis & Traceability</p>
+                </div>
                 <button
                     class="nav-item w-full flex items-center px-4 py-2.5 rounded-lg text-sm font-medium transition-colors text-slate-600 hover:bg-slate-100 text-left"
-                    data-target="bug-report-gen">
-                    <span class="material-symbols-outlined mr-3 text-lg">bug_report</span>
-                    Bug Report Generator
+                    data-target="rtm-generator">
+                    <span class="material-symbols-outlined mr-3 text-lg">grid_on</span>
+                    RTM Generator
                 </button>
+                <button
+                    class="nav-item-special w-full flex items-center px-4 py-2.5 rounded-lg text-sm font-medium transition-colors text-slate-500 hover:bg-slate-100 text-left"
+                    data-url="coming_soon.html?feature=Requirement Change Impact Analyzer">
+                    <span class="material-symbols-outlined mr-3 text-lg">change_circle</span>
+                    Requirement Change Impact Analyzer
+                </button>
+                <button
+                    class="nav-item-special w-full flex items-center px-4 py-2.5 rounded-lg text-sm font-medium transition-colors text-slate-500 hover:bg-slate-100 text-left"
+                    data-url="coming_soon.html?feature=Test Case Prioritizer">
+                    <span class="material-symbols-outlined mr-3 text-lg">priority_high</span>
+                    Test Case Prioritizer
+                </button>
+                <button
+                    class="nav-item-special w-full flex items-center px-4 py-2.5 rounded-lg text-sm font-medium transition-colors text-slate-500 hover:bg-slate-100 text-left"
+                    data-url="coming_soon.html?feature=Test Estimation Calculator">
+                    <span class="material-symbols-outlined mr-3 text-lg">calculate</span>
+                    Test Estimation Calculator
+                </button>
+                
+                <div class="px-4 pt-4 pb-2">
+                    <p class="text-[10px] font-black uppercase tracking-widest text-slate-400">Productivity Tools</p>
+                </div>
                 <button
                     class="nav-item w-full flex items-center px-4 py-2.5 rounded-lg text-sm font-medium transition-colors text-slate-600 hover:bg-slate-100 text-left"
                     data-target="sentence-correction">
@@ -134,13 +175,33 @@
                 </button>
                 <button
                     class="nav-item w-full flex items-center px-4 py-2.5 rounded-lg text-sm font-medium transition-colors text-slate-600 hover:bg-slate-100 text-left"
-                    data-target="rtm-generator">
-                    <span class="material-symbols-outlined mr-3 text-lg">grid_on</span>
-                    RTM Generator
+                    data-target="bug-report-gen">
+                    <span class="material-symbols-outlined mr-3 text-lg">bug_report</span>
+                    Bug Report Generator
                 </button>
-            </nav>
+                <button
+                    class="nav-item w-full flex items-center px-4 py-2.5 rounded-lg text-sm font-medium transition-colors text-slate-600 hover:bg-slate-100 text-left"
+                    data-target="meeting-notes-extractor">
+                    <span class="material-symbols-outlined mr-3 text-lg">description</span>
+                    Meeting Notes Extractor
+                </button>
+                <button
+                    class="nav-item-special w-full flex items-center px-4 py-2.5 rounded-lg text-sm font-medium transition-colors text-slate-500 hover:bg-slate-100 text-left"
+                    data-url="coming_soon.html?feature=QA Knowledge Base Builder">
+                    <span class="material-symbols-outlined mr-3 text-lg">library_books</span>
+                    QA Knowledge Base Builder
+                </button>
+                <button
+                    class="nav-item-special w-full flex items-center px-4 py-2.5 rounded-lg text-sm font-medium transition-colors text-slate-500 hover:bg-slate-100 text-left"
+                    data-url="coming_soon.html?feature=Test Case to Automation Converter">
+                    <span class="material-symbols-outlined mr-3 text-lg">code</span>
+                    Test Case → Automation Converter
+                </button>
+                </nav>
+            </div>
 
-            <div class="px-3 mt-auto space-y-1">
+            <!-- Sidebar Bottom (Fixed) -->
+            <div class="sidebar-bottom">
                 <button
                     class="nav-item-special w-full flex items-center px-4 py-2.5 rounded-lg text-sm font-medium transition-colors text-slate-500 hover:bg-slate-100 text-left"
                     data-url="coming_soon.html?page=QNA">
@@ -164,38 +225,208 @@
         </aside>
 
         <div class="main-content">
+            <!-- Top Header -->
+            <header class="top-header">
+                <div class="header-left">
+                    <!-- Global Search -->
+                    <div class="global-search relative" style="width: 380px; max-width: 420px;">
+                        <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-base pointer-events-none">search</span>
+                        <input type="search" placeholder="Search modules... (Press / to focus)" 
+                            class="w-full pl-10 pr-4 py-2.5 bg-white/60 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all" />
+                    </div>
+                </div>
+                <div class="header-center">
+                    <span class="header-tagline">build quality, not just software</span>
+                </div>
+                <div class="header-right">
+                    <!-- User Identity -->
+                    <div class="top-right-identity">
+                        <div id="user-identity-trigger" class="user-identity-trigger user-profile" role="button" tabindex="0"
+                            aria-haspopup="true" aria-expanded="false">
+                            <span id="user-avatar-badge" class="user-avatar-badge user-avatar">U</span>
+                            <span id="header-username" class="header-username user-name">User</span>
+                            <span class="material-symbols-outlined user-menu-chevron">expand_more</span>
+                        </div>
+
+                        <div id="user-menu-dropdown" class="user-menu-dropdown hidden" role="menu"
+                            aria-label="User menu">
+                            <button type="button" id="header-profile-btn" class="user-menu-item">
+                                <span class="material-symbols-outlined text-base">person</span>
+                                Profile
+                            </button>
+                            <button type="button" id="header-logout-btn" class="user-menu-item text-red-600">
+                                <span class="material-symbols-outlined text-base">logout</span>
+                                Logout
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- API Status -->
+                    <div id="api-status-container"
+                        class="flex items-center gap-2 bg-white px-4 py-2 rounded-full border border-slate-200 shadow-sm header-api-status">
+                        <span id="api-status-text" class="text-sm font-bold text-slate-900">Gemini</span>
+                        <div id="api-status-dot" class="w-2.5 h-2.5 rounded-full bg-slate-300 animate-pulse"></div>
+                    </div>
+                </div>
+            </header>
+
             <div class="content-wrapper">
                 <!-- Main Content -->
                 <main class="max-w-6xl mx-auto">
 
-                    <div class="mb-6 flex justify-end">
-                        <div class="top-right-identity">
-                            <div id="user-identity-trigger" class="user-identity-trigger" role="button" tabindex="0"
-                                aria-haspopup="true" aria-expanded="false">
-                                <span id="user-avatar-badge" class="user-avatar-badge">U</span>
-                                <span id="header-username" class="header-username">User</span>
-                                <span class="material-symbols-outlined user-menu-chevron">expand_more</span>
+                    <!-- Dashboard Module -->
+                    <section id="dashboard" class="module-section">
+                        <header class="mb-8">
+                            <h2 class="text-4xl font-bold tracking-tight mb-2">Welcome back, <span id="dashboard-username">User</span>! 👋</h2>
+                            <p class="text-slate-600">Your AI-powered QA workspace. Select a module to get started.</p>
+                        </header>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+                            <!-- Requirement Intelligence Card -->
+                            <div class="dashboard-card group" data-module="requirement-correction">
+                                <div class="dashboard-card-icon">
+                                    <span class="material-symbols-outlined">psychology</span>
+                                </div>
+                                <h3 class="dashboard-card-title">Requirement Intelligence</h3>
+                                <p class="dashboard-card-desc">Analyze requirements and extract testable scenarios with AI-powered insights.</p>
+                                <div class="dashboard-card-arrow">
+                                    <span class="material-symbols-outlined">arrow_forward</span>
+                                </div>
                             </div>
 
-                            <div id="user-menu-dropdown" class="user-menu-dropdown hidden" role="menu"
-                                aria-label="User menu">
-                                <button type="button" id="header-profile-btn" class="user-menu-item">
-                                    <span class="material-symbols-outlined text-base">person</span>
-                                    Profile
-                                </button>
-                                <button type="button" id="header-logout-btn" class="user-menu-item text-red-600">
-                                    <span class="material-symbols-outlined text-base">logout</span>
-                                    Logout
-                                </button>
+                            <!-- Test Suite Architect Card -->
+                            <div class="dashboard-card group" data-module="test-case-architect">
+                                <div class="dashboard-card-icon">
+                                    <span class="material-symbols-outlined">architecture</span>
+                                </div>
+                                <h3 class="dashboard-card-title">Test Suite Architect</h3>
+                                <p class="dashboard-card-desc">Generate comprehensive test suites with customizable formats and export options.</p>
+                                <div class="dashboard-card-arrow">
+                                    <span class="material-symbols-outlined">arrow_forward</span>
+                                </div>
+                            </div>
+
+                            <!-- Test Case Builder Card -->
+                            <div class="dashboard-card group" data-module="test-case-gen">
+                                <div class="dashboard-card-icon">
+                                    <span class="material-symbols-outlined">fact_check</span>
+                                </div>
+                                <h3 class="dashboard-card-title">Test Case Builder</h3>
+                                <p class="dashboard-card-desc">Transform rough notes into structured, professional test cases instantly.</p>
+                                <div class="dashboard-card-arrow">
+                                    <span class="material-symbols-outlined">arrow_forward</span>
+                                </div>
+                            </div>
+
+                            <!-- RTM Generator Card -->
+                            <div class="dashboard-card group" data-module="rtm-generator">
+                                <div class="dashboard-card-icon">
+                                    <span class="material-symbols-outlined">grid_on</span>
+                                </div>
+                                <h3 class="dashboard-card-title">RTM Generator</h3>
+                                <p class="dashboard-card-desc">Automate traceability matrix creation with AI-powered requirement mapping.</p>
+                                <div class="dashboard-card-arrow">
+                                    <span class="material-symbols-outlined">arrow_forward</span>
+                                </div>
+                            </div>
+
+                            <!-- Bug Report Generator Card -->
+                            <div class="dashboard-card group" data-module="bug-report-gen">
+                                <div class="dashboard-card-icon">
+                                    <span class="material-symbols-outlined">bug_report</span>
+                                </div>
+                                <h3 class="dashboard-card-title">Bug Report Generator</h3>
+                                <p class="dashboard-card-desc">Create detailed, professional bug reports from brief descriptions.</p>
+                                <div class="dashboard-card-arrow">
+                                    <span class="material-symbols-outlined">arrow_forward</span>
+                                </div>
+                            </div>
+
+                            <!-- Clarity AI Card -->
+                            <div class="dashboard-card group" data-module="sentence-correction">
+                                <div class="dashboard-card-icon">
+                                    <span class="material-symbols-outlined">spellcheck</span>
+                                </div>
+                                <h3 class="dashboard-card-title">Clarity AI - The Text Refinery</h3>
+                                <p class="dashboard-card-desc">Improve text quality with grammar correction and tone adjustment.</p>
+                                <div class="dashboard-card-arrow">
+                                    <span class="material-symbols-outlined">arrow_forward</span>
+                                </div>
+                            </div>
+
+                            <!-- Meeting Notes Extractor Card -->
+                            <div class="dashboard-card group" data-module="meeting-notes-extractor">
+                                <div class="dashboard-card-icon">
+                                    <span class="material-symbols-outlined">description</span>
+                                </div>
+                                <h3 class="dashboard-card-title">Meeting Notes Extractor</h3>
+                                <p class="dashboard-card-desc">Extract action items, decisions, risks, and next steps from meeting notes using AI.</p>
+                                <div class="dashboard-card-arrow">
+                                    <span class="material-symbols-outlined">arrow_forward</span>
+                                </div>
+                            </div>
+
+                            <!-- Test Case Prioritizer Card -->
+                            <div class="dashboard-card group" onclick="window.location.href='coming_soon.html?feature=Test Case Prioritizer'">
+                                <div class="dashboard-card-icon">
+                                    <span class="material-symbols-outlined">priority_high</span>
+                                </div>
+                                <h3 class="dashboard-card-title">Test Case Prioritizer</h3>
+                                <p class="dashboard-card-desc">Prioritize test cases based on risk, coverage, and business impact.</p>
+                                <div class="dashboard-card-arrow">
+                                    <span class="material-symbols-outlined">arrow_forward</span>
+                                </div>
+                            </div>
+
+                            <!-- Requirement Change Impact Analyzer Card -->
+                            <div class="dashboard-card group" onclick="window.location.href='coming_soon.html?feature=Requirement Change Impact Analyzer'">
+                                <div class="dashboard-card-icon">
+                                    <span class="material-symbols-outlined">change_circle</span>
+                                </div>
+                                <h3 class="dashboard-card-title">Requirement Change Impact Analyzer</h3>
+                                <p class="dashboard-card-desc">Analyze requirement changes and identify impacted test cases.</p>
+                                <div class="dashboard-card-arrow">
+                                    <span class="material-symbols-outlined">arrow_forward</span>
+                                </div>
+                            </div>
+
+                            <!-- Test Estimation Calculator Card -->
+                            <div class="dashboard-card group" onclick="window.location.href='coming_soon.html?feature=Test Estimation Calculator'">
+                                <div class="dashboard-card-icon">
+                                    <span class="material-symbols-outlined">calculate</span>
+                                </div>
+                                <h3 class="dashboard-card-title">Test Estimation Calculator</h3>
+                                <p class="dashboard-card-desc">Calculate test effort and duration based on complexity and scope.</p>
+                                <div class="dashboard-card-arrow">
+                                    <span class="material-symbols-outlined">arrow_forward</span>
+                                </div>
+                            </div>
+
+                            <!-- QA Knowledge Base Builder Card -->
+                            <div class="dashboard-card group" onclick="window.location.href='coming_soon.html?feature=QA Knowledge Base Builder'">
+                                <div class="dashboard-card-icon">
+                                    <span class="material-symbols-outlined">library_books</span>
+                                </div>
+                                <h3 class="dashboard-card-title">QA Knowledge Base Builder</h3>
+                                <p class="dashboard-card-desc">Build and maintain a searchable knowledge base for QA best practices.</p>
+                                <div class="dashboard-card-arrow">
+                                    <span class="material-symbols-outlined">arrow_forward</span>
+                                </div>
+                            </div>
+
+                            <!-- Test Case to Automation Converter Card -->
+                            <div class="dashboard-card group" onclick="window.location.href='coming_soon.html?feature=Test Case to Automation Converter'">
+                                <div class="dashboard-card-icon">
+                                    <span class="material-symbols-outlined">code</span>
+                                </div>
+                                <h3 class="dashboard-card-title">Test Case → Automation Converter</h3>
+                                <p class="dashboard-card-desc">Convert manual test cases into automation scripts automatically.</p>
+                                <div class="dashboard-card-arrow">
+                                    <span class="material-symbols-outlined">arrow_forward</span>
+                                </div>
                             </div>
                         </div>
-
-                        <div id="api-status-container"
-                            class="flex items-center gap-2 bg-white px-4 py-2 rounded-full border border-slate-200 shadow-sm header-api-status">
-                            <span id="api-status-text" class="text-sm font-bold text-slate-900">Gemini</span>
-                            <div id="api-status-dot" class="w-2.5 h-2.5 rounded-full bg-slate-300 animate-pulse"></div>
-                        </div>
-                    </div>
+                    </section>
 
                     <!-- Requirement Intelligence Module -->
                     <section id="requirement-correction" class="module-section">
@@ -696,6 +927,116 @@
                         </div>
                     </section>
 
+                    <!-- Meeting Notes Extractor -->
+                    <section id="meeting-notes-extractor" class="module-section">
+                        <header class="mb-12">
+                            <h2 class="mb-2 flex flex-wrap items-center gap-3 text-4xl font-bold tracking-tight">
+                                <span>Meeting Notes Extractor</span>
+                                <span class="prompt-status-indicator hidden items-center gap-1.5 text-xs font-semibold text-gray-500"
+                                    data-prompt-module="meetingNotesExtractor" title="Prompt configured">
+                                    <span class="h-2 w-2 rounded-full bg-[#22c55e]"></span>
+                                    Configured
+                                </span>
+                            </h2>
+                            <p class="meeting-notes-desc">Extract action items, decisions, risks, and next steps from meeting notes using AI-powered analysis.</p>
+                        </header>
+
+                        <div class="bg-white rounded-2xl p-8 shadow-sm border border-slate-200 mb-8">
+                            <label class="text-xs font-bold uppercase tracking-wider text-slate-600 mb-3 block">Meeting Notes</label>
+                            <textarea id="meeting-notes-input" rows="10"
+                                class="w-full bg-slate-50 border border-slate-200 rounded-xl p-4 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none transition-all duration-300"
+                                placeholder="Paste your meeting notes here...\n\nExample:\n- Discussed new feature requirements\n- John will create design mockups by Friday\n- Need to clarify API integration approach\n- Security concerns about data encryption"></textarea>
+                            <span id="meeting-notes-error"
+                                class="validation-msg text-[10px] text-red-500 font-bold mt-1 hidden ml-4 uppercase tracking-widest"></span>
+
+                            <div class="mt-6 flex justify-end gap-3">
+                                <button onclick="clearMeetingNotes()" 
+                                    class="flex items-center gap-2 px-6 py-3 rounded-xl border-2 border-slate-200 text-slate-600 font-bold hover:bg-slate-50 transition-all duration-300">
+                                    <span class="material-symbols-outlined">refresh</span>
+                                    <span>Clear</span>
+                                </button>
+                                <button onclick="extractMeetingNotes(event)" data-loading-text="Extracting insights..."
+                                    class="generate-btn bg-purple-600 text-white px-8 py-3 rounded-xl font-bold flex items-center gap-2 hover:bg-purple-700 transition-all duration-300">
+                                    <span class="material-symbols-outlined spin-icon">description</span>
+                                    <span class="btn-text">Extract Insights</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div id="meeting-notes-output" style="display: none;" class="space-y-6">
+                            <!-- Action Items Table -->
+                            <div class="bg-white rounded-2xl p-8 border border-slate-200">
+                                <h3 class="text-xl font-bold mb-4 flex items-center gap-2">
+                                    <span class="material-symbols-outlined text-blue-600">task_alt</span>
+                                    Action Items
+                                </h3>
+                                <div class="overflow-x-auto">
+                                    <table class="w-full text-left border-collapse text-sm">
+                                        <thead>
+                                            <tr class="bg-slate-50 border-b border-slate-200">
+                                                <th class="px-4 py-3 text-xs font-black uppercase tracking-widest text-slate-500">Task</th>
+                                                <th class="px-4 py-3 text-xs font-black uppercase tracking-widest text-slate-500">Owner</th>
+                                                <th class="px-4 py-3 text-xs font-black uppercase tracking-widest text-slate-500">Due Date</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="action-items-tbody"></tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            <!-- Decisions Made -->
+                            <div class="bg-green-50 rounded-2xl p-8 border border-green-200">
+                                <h3 class="text-lg font-bold mb-4 text-green-900 flex items-center gap-2">
+                                    <span class="material-symbols-outlined">check_circle</span>
+                                    Decisions Made
+                                </h3>
+                                <div id="decisions-list" class="space-y-2"></div>
+                            </div>
+
+                            <!-- Open Questions -->
+                            <div class="bg-yellow-50 rounded-2xl p-8 border border-yellow-200">
+                                <h3 class="text-lg font-bold mb-4 text-yellow-900 flex items-center gap-2">
+                                    <span class="material-symbols-outlined">help</span>
+                                    Open Questions
+                                </h3>
+                                <div id="questions-list" class="space-y-2"></div>
+                            </div>
+
+                            <!-- Risks -->
+                            <div class="bg-red-50 rounded-2xl p-8 border border-red-200">
+                                <h3 class="text-lg font-bold mb-4 text-red-900 flex items-center gap-2">
+                                    <span class="material-symbols-outlined">warning</span>
+                                    Risks Identified
+                                </h3>
+                                <div id="risks-list" class="space-y-2"></div>
+                            </div>
+
+                            <!-- Next Steps -->
+                            <div class="bg-blue-50 rounded-2xl p-8 border border-blue-200">
+                                <h3 class="text-lg font-bold mb-4 text-blue-900 flex items-center gap-2">
+                                    <span class="material-symbols-outlined">arrow_forward</span>
+                                    Next Steps
+                                </h3>
+                                <div id="next-steps-list" class="space-y-2"></div>
+                            </div>
+
+                            <div id="meeting-notes-meta"
+                                class="flex justify-between items-center bg-slate-100 p-4 rounded-xl border border-slate-200 opacity-0 transition-opacity duration-300">
+                                <div class="flex items-center gap-4">
+                                    <div class="flex items-center gap-1.5">
+                                        <span class="material-symbols-outlined text-green-500 text-sm">verified</span>
+                                        <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Extracted</span>
+                                    </div>
+                                </div>
+                                <button onclick="copyToClipboard('meeting-notes-output')"
+                                    class="flex items-center gap-2 px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-[10px] font-black uppercase tracking-widest text-slate-600 hover:bg-slate-50 transition-colors">
+                                    <span class="material-symbols-outlined text-sm">content_copy</span>
+                                    Copy Result
+                                </button>
+                            </div>
+                        </div>
+                    </section>
+
                     <!-- RTM Generator -->
                     <section id="rtm-generator" class="module-section">
                         <header class="mb-12">
@@ -848,14 +1189,15 @@ Verify password minimum length validation
 
     <script src="/runtime-config.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="config.js"></script>
-    <script src="supabase-client.js"></script>
-    <script src="test-config.js"></script>
-    <script src="prompts.js"></script>
-    <script src="auth.js"></script>
-    <script src="idle-timeout.js"></script>
-    <script src="rtm-generator.js"></script>
-    <script src="./app.js"></script>
+    <script src="config.js?v=2"></script>
+    <script src="supabase-client.js?v=2"></script>
+    <script src="test-config.js?v=2"></script>
+    <script src="prompts.js?v=2"></script>
+    <script src="auth.js?v=2"></script>
+    <script src="idle-timeout.js?v=2"></script>
+    <script src="./app.js?v=3"></script>
+    <script src="rtm-generator.js?v=3"></script>
+    <script src="fuzzy-search.js?v=1"></script>
     <script>
 
         // Initialize Footer
