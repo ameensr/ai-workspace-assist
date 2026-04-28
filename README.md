@@ -57,6 +57,15 @@ Improves text quality with:
 - Tone adjustment (casual/formal/corrected)
 - Professional writing suggestions
 
+#### 6. RTM Generator
+Automates traceability matrix creation with:
+- AI-powered requirement-to-test-case mapping
+- Visual coverage indicators
+- Uncovered requirements detection
+- Orphan test case identification
+- Excel export with summary
+- Integration with Test Case Builder
+
 ### AI Integration
 
 - **Multi-Provider Support**: Gemini, OpenAI, Claude, DeepSeek, Grok, Perplexity
@@ -244,7 +253,8 @@ http://localhost:8000
    ├─ Test Suite Architect
    ├─ Professional Case Architect
    ├─ Bug Report Generator
-   └─ Sentence Correction
+   ├─ Sentence Correction
+   └─ RTM Generator
    ↓
 5. Enter Input
    ↓
@@ -438,6 +448,11 @@ QA-Ai-Assistant/
 **Problem**: Documentation needs grammar correction and tone adjustment.
 **Solution**: AI improves text quality and adjusts tone based on context.
 **Output**: Corrected text in casual, formal, or corrected tone.
+
+### RTM Generator
+**Problem**: Manual RTM creation is time-consuming, error-prone, and difficult to maintain.
+**Solution**: AI analyzes requirements and test cases to generate accurate traceability mappings.
+**Output**: Visual RTM table with coverage metrics, uncovered requirements, orphan test cases, and Excel export.
 
 ---
 

@@ -64,7 +64,7 @@ const DEFAULT_PROMPT_CONFIGS = {
         style: 'concise'
     },
     sentenceCorrection: {
-        module_name: 'Sentence Correction',
+        module_name: 'Clarity AI - The Text Refinery',
         role: 'Act as a Technical Writer specializing in software documentation.',
         task: 'Provide corrected, casual, and formal versions of the text.',
         constraints: [
@@ -79,7 +79,7 @@ const DEFAULT_PROMPT_CONFIGS = {
         style: 'concise'
     },
     professionalCase: {
-        module_name: 'Professional Case Architect',
+        module_name: 'Test Case Builder',
         role: 'Act as an Expert Test Architect.',
         task: 'Convert rough test notes into a highly structured professional test case.',
         constraints: [

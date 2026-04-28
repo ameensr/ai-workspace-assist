@@ -241,7 +241,17 @@ window.MOCK_RESPONSES = {
                 <li>Login attempts logged for security monitoring</li>
             </ul>
         </div>
-    </div>`
+    </div>`,
+
+    rtmGenerator: `{
+        "mappings": [
+            {"requirementId": "REQ-001", "testCaseIds": ["TC-001", "TC-002"]},
+            {"requirementId": "REQ-002", "testCaseIds": ["TC-003"]},
+            {"requirementId": "REQ-003", "testCaseIds": ["TC-004", "TC-005"]},
+            {"requirementId": "REQ-004", "testCaseIds": ["TC-006"]},
+            {"requirementId": "REQ-005", "testCaseIds": ["TC-007", "TC-008"]}
+        ]
+    }`
 };
 
 // Export for use in node tools if needed

@@ -20,7 +20,8 @@ const MODULE_PROMPT_KEYS = [
     'testSuite',
     'bugReport',
     'sentenceCorrection',
-    'professionalCase'
+    'professionalCase',
+    'rtmGenerator'
 ];
 
 // Module route mapping
@@ -29,7 +30,8 @@ const MODULE_ROUTES = {
     'test-case-architect': 'test-suite-architect',
     'test-case-gen': 'professional-case-architect',
     'bug-report-gen': 'bug-report-generator',
-    'sentence-correction': 'sentence-correction'
+    'sentence-correction': 'sentence-correction',
+    'rtm-generator': 'rtm-generator'
 };
 
 const ROUTE_TO_MODULE = {
@@ -37,7 +39,8 @@ const ROUTE_TO_MODULE = {
     'test-suite-architect': 'test-case-architect',
     'professional-case-architect': 'test-case-gen',
     'bug-report-generator': 'bug-report-gen',
-    'sentence-correction': 'sentence-correction'
+    'sentence-correction': 'sentence-correction',
+    'rtm-generator': 'rtm-generator'
 };
 
 const DEFAULT_MODULE = 'requirement-correction';
@@ -69,12 +72,23 @@ function initFileUploads() {
         { inputId: 'req-intel-file', targetId: 'req-intel-input' },
         { inputId: 'ts-file-input', targetId: 'ts-requirement' },
         { inputId: 'bug-file', targetId: 'bug-input' },
-        { inputId: 'professional-case-file', targetId: 'professional-case-input' }
+        { inputId: 'professional-case-file', targetId: 'professional-case-input' },
+        { inputId: 'rtm-req-file', targetId: 'rtm-req-input' }
     ];
     uploads.forEach(({ inputId, targetId }) => {
         const el = document.getElementById(inputId);
         if (el) el.addEventListener('change', (e) => handleRequirementUpload(e, targetId));
     });
+    
+    // Special handler for RTM test case upload (supports Excel)
+    const rtmTcFile = document.getElementById('rtm-tc-file');
+    if (rtmTcFile) {
+        rtmTcFile.addEventListener('change', (e) => {
+            if (window.handleRTMTestCaseUpload) {
+                window.handleRTMTestCaseUpload(e);
+            }
+        });
+    }
 }
 
 document.addEventListener('DOMContentLoaded', initApp);

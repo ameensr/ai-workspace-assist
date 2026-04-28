@@ -72,6 +72,12 @@
                 transform: rotate(360deg);
             }
         }
+        .rotate-text {
+            writing-mode: vertical-rl;
+            text-orientation: mixed;
+            white-space: nowrap;
+            max-width: 40px;
+        }
     </style>
 </head>
 
@@ -125,6 +131,12 @@
                     data-target="sentence-correction">
                     <span class="material-symbols-outlined mr-3 text-lg">spellcheck</span>
                     Clarity AI - The Text Refinery
+                </button>
+                <button
+                    class="nav-item w-full flex items-center px-4 py-2.5 rounded-lg text-sm font-medium transition-colors text-slate-600 hover:bg-slate-100 text-left"
+                    data-target="rtm-generator">
+                    <span class="material-symbols-outlined mr-3 text-lg">grid_on</span>
+                    RTM Generator
                 </button>
             </nav>
 
@@ -683,6 +695,142 @@
                             </div>
                         </div>
                     </section>
+
+                    <!-- RTM Generator -->
+                    <section id="rtm-generator" class="module-section">
+                        <header class="mb-12">
+                            <h2 class="mb-2 flex flex-wrap items-center gap-3 text-4xl font-bold tracking-tight">
+                                <span>Requirement Traceability Matrix</span>
+                                <span class="prompt-status-indicator hidden items-center gap-1.5 text-xs font-semibold text-gray-500"
+                                    data-prompt-module="rtmGenerator" title="Prompt configured">
+                                    <span class="h-2 w-2 rounded-full bg-[#22c55e]"></span>
+                                    Configured
+                                </span>
+                            </h2>
+                            <p class="text-slate-600">Automate RTM generation with AI-powered requirement-to-test-case mapping and comprehensive coverage analysis.</p>
+                        </header>
+
+                        <!-- Input Section -->
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                            <!-- Requirements Input -->
+                            <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+                                <div class="flex items-center justify-between mb-4">
+                                    <label class="text-xs font-bold uppercase tracking-wider text-slate-600">Requirements</label>
+                                    <label class="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-bold uppercase tracking-widest text-slate-600 hover:bg-slate-100">
+                                        <span class="material-symbols-outlined text-sm">upload_file</span>
+                                        Upload
+                                        <input id="rtm-req-file" type="file" accept=".pdf,.doc,.docx,.txt,.md" class="hidden">
+                                    </label>
+                                </div>
+                                <textarea id="rtm-req-input" rows="12"
+                                    class="w-full bg-slate-50 border border-slate-200 rounded-xl p-4 text-sm focus:ring-2 focus:ring-blue-500 resize-none"
+                                    placeholder="Enter requirements (one per line):
+
+User must be able to login with email and password
+System should validate email format
+Password must be at least 8 characters
+..."></textarea>
+                            </div>
+
+                            <!-- Test Cases Input -->
+                            <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+                                <div class="flex items-center justify-between mb-4">
+                                    <label class="text-xs font-bold uppercase tracking-wider text-slate-600">Test Cases</label>
+                                    <div class="flex gap-2">
+                                        <button onclick="rtmImportTestCases()" class="inline-flex items-center gap-2 rounded-lg border border-blue-200 bg-blue-50 px-3 py-1.5 text-xs font-bold uppercase tracking-widest text-blue-700 hover:bg-blue-100">
+                                            <span class="material-symbols-outlined text-sm">download</span>
+                                            Import from Builder
+                                        </button>
+                                        <label class="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-bold uppercase tracking-widest text-slate-600 hover:bg-slate-100">
+                                            <span class="material-symbols-outlined text-sm">upload_file</span>
+                                            Upload
+                                            <input id="rtm-tc-file" type="file" accept=".pdf,.doc,.docx,.txt,.md,.xls,.xlsx" class="hidden">
+                                        </label>
+                                    </div>
+                                </div>
+                                <textarea id="rtm-tc-input" rows="12"
+                                    class="w-full bg-slate-50 border border-slate-200 rounded-xl p-4 text-sm focus:ring-2 focus:ring-blue-500 resize-none"
+                                    placeholder="Enter test cases (one per line):
+
+Verify login with valid credentials
+Verify login with invalid email format
+Verify password minimum length validation
+..."></textarea>
+                            </div>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="flex justify-end gap-3 mb-8">
+                            <button onclick="rtmClear()" 
+                                class="flex items-center gap-2 px-6 py-3 rounded-xl border-2 border-slate-200 text-slate-600 font-bold hover:bg-slate-50 transition-all">
+                                <span class="material-symbols-outlined">refresh</span>
+                                <span>Clear</span>
+                            </button>
+                            <button id="rtm-generate-btn" onclick="generateRTM(event)" data-loading-text="Generating RTM..."
+                                class="generate-btn bg-blue-600 text-white px-8 py-3 rounded-xl font-bold flex items-center gap-2 hover:bg-blue-700 transition-all">
+                                <span class="material-symbols-outlined spin-icon">grid_on</span>
+                                <span class="btn-text">Generate RTM</span>
+                            </button>
+                        </div>
+
+                        <!-- Output Section -->
+                        <div id="rtm-output" class="hidden space-y-6">
+                            <!-- Metrics Cards -->
+                            <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                                <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm">
+                                    <p class="text-[10px] font-black uppercase tracking-widest text-blue-400 mb-1">Coverage</p>
+                                    <p id="rtm-coverage" class="text-3xl font-black text-slate-900">0%</p>
+                                </div>
+                                <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm">
+                                    <p class="text-[10px] font-black uppercase tracking-widest text-green-400 mb-1">Covered</p>
+                                    <p id="rtm-covered" class="text-3xl font-black text-slate-900">0</p>
+                                </div>
+                                <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm">
+                                    <p class="text-[10px] font-black uppercase tracking-widest text-red-400 mb-1">Uncovered</p>
+                                    <p id="rtm-uncovered" class="text-3xl font-black text-slate-900">0</p>
+                                </div>
+                                <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm">
+                                    <p class="text-[10px] font-black uppercase tracking-widest text-orange-400 mb-1">Orphan TCs</p>
+                                    <p id="rtm-orphans" class="text-3xl font-black text-slate-900">0</p>
+                                </div>
+                            </div>
+
+                            <!-- RTM Table -->
+                            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                                <div class="flex items-center justify-between p-4 border-b border-slate-200">
+                                    <h3 class="text-sm font-bold text-slate-700">Traceability Matrix</h3>
+                                    <button onclick="rtmDownloadExcel()" class="flex items-center gap-2 px-4 py-2 rounded-lg bg-green-600 text-white text-xs font-bold hover:bg-green-700">
+                                        <span class="material-symbols-outlined text-sm">download</span>
+                                        Download Excel
+                                    </button>
+                                </div>
+                                <div class="overflow-x-auto">
+                                    <table class="w-full text-left border-collapse text-sm">
+                                        <thead id="rtm-thead"></thead>
+                                        <tbody id="rtm-tbody"></tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            <!-- Insights -->
+                            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                                <div class="bg-red-50 rounded-2xl p-6 border border-red-200">
+                                    <h3 class="text-sm font-bold text-red-900 mb-4 flex items-center gap-2">
+                                        <span class="material-symbols-outlined">warning</span>
+                                        Uncovered Requirements
+                                    </h3>
+                                    <ul id="rtm-uncovered-list" class="space-y-2 list-disc list-inside"></ul>
+                                </div>
+                                <div class="bg-orange-50 rounded-2xl p-6 border border-orange-200">
+                                    <h3 class="text-sm font-bold text-orange-900 mb-4 flex items-center gap-2">
+                                        <span class="material-symbols-outlined">error</span>
+                                        Orphan Test Cases
+                                    </h3>
+                                    <ul id="rtm-orphans-list" class="space-y-2 list-disc list-inside"></ul>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
                 </main>
             </div>
         </div>
@@ -706,6 +854,7 @@
     <script src="prompts.js"></script>
     <script src="auth.js"></script>
     <script src="idle-timeout.js"></script>
+    <script src="rtm-generator.js"></script>
     <script src="./app.js"></script>
     <script>
 
