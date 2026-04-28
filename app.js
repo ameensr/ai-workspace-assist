@@ -33,12 +33,26 @@ async function initApp() {
     applyPersistedTheme();
     initNavigation();
     initCopyButtons();
+    initFileUploads();
     await initUserIdentity();
     initUserMenu();
     await syncAiKeyStatus();
     checkAPIStatus();
     await updateModulePromptIndicators();
     await loadTestCases();
+}
+
+function initFileUploads() {
+    const uploads = [
+        { inputId: 'req-intel-file', targetId: 'req-intel-input' },
+        { inputId: 'test-suite-file', targetId: 'test-suite-input' },
+        { inputId: 'bug-file', targetId: 'bug-input' },
+        { inputId: 'professional-case-file', targetId: 'professional-case-input' }
+    ];
+    uploads.forEach(({ inputId, targetId }) => {
+        const el = document.getElementById(inputId);
+        if (el) el.addEventListener('change', (e) => handleRequirementUpload(e, targetId));
+    });
 }
 
 document.addEventListener('DOMContentLoaded', initApp);
@@ -193,14 +207,40 @@ function extractPlainTextFromBinary(buffer) {
         .trim();
 }
 
+function loadExternalScript(src) {
+    return new Promise((resolve, reject) => {
+        const existing = document.querySelector(`script[src="${src}"]`);
+        if (existing) {
+            // Already fully loaded — onload already fired, just resolve.
+            if (existing.dataset.loaded === 'true') return resolve();
+            // Injected but still loading — wait for it.
+            existing.addEventListener('load', resolve, { once: true });
+            existing.addEventListener('error', () => reject(new Error(`Failed to load script: ${src}`)), { once: true });
+            return;
+        }
+        const script = document.createElement('script');
+        script.src = src;
+        script.onload = () => { script.dataset.loaded = 'true'; resolve(); };
+        script.onerror = () => reject(new Error(`Failed to load script: ${src}`));
+        document.head.appendChild(script);
+    });
+}
+
 async function extractTextFromPdf(file) {
     if (!window.pdfjsLib) {
-        throw new Error('PDF parser not loaded');
+        try {
+            await loadExternalScript('https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js');
+        } catch (e) {
+            throw new Error('Failed to load PDF parser. Check your internet connection.');
+        }
     }
 
-    if (!window.pdfjsLib.GlobalWorkerOptions.workerSrc) {
-        window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.8.69/pdf.worker.min.js';
+    if (!window.pdfjsLib) {
+        throw new Error('PDF parser failed to load.');
     }
+
+    // Always set workerSrc — it may not have been set if pdf.js was pre-loaded via <head> script.
+    window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
     const arrayBuffer = await file.arrayBuffer();
     const pdf = await window.pdfjsLib.getDocument({ data: arrayBuffer }).promise;
@@ -224,7 +264,11 @@ async function extractTextFromWord(file) {
 
     if (lowerName.endsWith('.docx')) {
         if (!window.mammoth) {
-            throw new Error('Word parser not loaded');
+            try {
+                await loadExternalScript('https://unpkg.com/mammoth@1.8.0/mammoth.browser.min.js');
+            } catch (e) {
+                throw new Error('Failed to load Word document parser.');
+            }
         }
 
         const result = await window.mammoth.extractRawText({ arrayBuffer });
@@ -245,7 +289,11 @@ async function extractTextFromRequirementFile(file) {
         return extractTextFromWord(file);
     }
 
-    throw new Error('Unsupported file type');
+    if (name.endsWith('.txt') || name.endsWith('.md') || name.endsWith('.csv') || name.endsWith('.json')) {
+        return await file.text();
+    }
+
+    throw new Error('Unsupported file type. Please upload PDF, DOCX, or text files (.txt, .md, .csv).');
 }
 
 async function handleRequirementUpload(event, targetInputId) {

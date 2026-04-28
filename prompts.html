@@ -467,15 +467,20 @@
         }
 
         async function fetchModulePromptStatusesFromSupabase() {
-            const entries = await Promise.all(MODULES.map(async moduleInfo => {
-                const prompt = await getActivePromptByModule(moduleInfo.key);
-                return [moduleInfo.key, {
-                    moduleKey: moduleInfo.key,
-                    configured: Boolean(prompt),
-                    prompt
-                }];
-            }));
-            return new Map(entries);
+            if (!window.supabaseClient) return new Map();
+            const moduleKeys = MODULES.map(m => m.key);
+            const { data, error } = await window.supabaseClient
+                .from('master_prompts')
+                .select('id, module_key, title, prompt_content, status, updated_at')
+                .in('module_key', moduleKeys)
+                .eq('status', 'ACTIVE');
+            if (error) throw error;
+            const byKey = new Map((data || []).map(row => [row.module_key, row]));
+            return new Map(moduleKeys.map(key => [key, {
+                moduleKey: key,
+                configured: byKey.has(key),
+                prompt: byKey.get(key) || null
+            }]));
         }
 
         function openConfigModal(moduleInfo, promptRecord, options = {}) {
@@ -624,8 +629,58 @@
             }
         }
 
-        async function renderModuleCards() {
+        function buildModuleCard(moduleInfo, status) {
+            const active = status?.prompt || null;
+            const isConfigured = Boolean(status?.configured);
+            const card = document.createElement('div');
+            card.className = 'prompt-card rounded-3xl border border-slate-200 bg-white p-6';
+            card.innerHTML = `
+                <div class="mb-3 flex items-start justify-between gap-3">
+                    <div class="flex items-center gap-3">
+                        <span class="material-symbols-outlined rounded-xl bg-blue-50 p-2 text-blue-600">${moduleInfo.icon}</span>
+                        <h3 class="text-sm font-black text-slate-900">${moduleInfo.title}</h3>
+                    </div>
+                    <span class="rounded-full px-2.5 py-1 text-[10px] font-black uppercase tracking-widest ${isConfigured ? 'bg-green-50 text-green-700 ring-1 ring-green-200' : 'bg-red-50 text-red-700 ring-1 ring-red-200'}">${isConfigured ? 'Configured' : 'Not Configured'}</span>
+                </div>
+                <p class="mb-4 text-xs text-slate-500">${getPromptPreview(active?.prompt_content)}</p>
+                <div class="flex items-center justify-between">
+                    <span class="text-[10px] font-bold uppercase tracking-widest text-slate-400">${active ? 'active prompt' : 'no active prompt'}</span>
+                    <button class="open-module rounded-xl border border-slate-200 px-3 py-1.5 text-[10px] font-black uppercase tracking-widest text-slate-600 hover:bg-slate-50">Open</button>
+                </div>
+            `;
+            card.querySelector('.open-module').addEventListener('click', () => openConfigModal(moduleInfo, active));
+            return card;
+        }
+
+        function renderSkeletonCards() {
             moduleGrid.innerHTML = '';
+            MODULES.forEach(() => {
+                const skeleton = document.createElement('div');
+                skeleton.className = 'rounded-3xl border border-slate-200 bg-white p-6 animate-pulse';
+                skeleton.innerHTML = `
+                    <div class="mb-3 flex items-start justify-between gap-3">
+                        <div class="flex items-center gap-3">
+                            <div class="h-10 w-10 rounded-xl bg-slate-100"></div>
+                            <div class="h-4 w-32 rounded-lg bg-slate-100"></div>
+                        </div>
+                        <div class="h-5 w-20 rounded-full bg-slate-100"></div>
+                    </div>
+                    <div class="mb-4 space-y-2">
+                        <div class="h-3 w-full rounded bg-slate-100"></div>
+                        <div class="h-3 w-4/5 rounded bg-slate-100"></div>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <div class="h-3 w-24 rounded bg-slate-100"></div>
+                        <div class="h-7 w-14 rounded-xl bg-slate-100"></div>
+                    </div>
+                `;
+                moduleGrid.appendChild(skeleton);
+            });
+        }
+
+        async function renderModuleCards() {
+            renderSkeletonCards();
+
             try {
                 modulePromptStatus = await fetchModulePromptStatuses();
             } catch (error) {
@@ -638,29 +693,10 @@
                 }
             }
 
-            for (const moduleInfo of MODULES) {
-                const status = modulePromptStatus.get(moduleInfo.key);
-                const active = status?.prompt || null;
-                const isConfigured = Boolean(status?.configured);
-                const card = document.createElement('div');
-                card.className = 'prompt-card rounded-3xl border border-slate-200 bg-white p-6';
-                card.innerHTML = `
-                    <div class="mb-3 flex items-start justify-between gap-3">
-                        <div class="flex items-center gap-3">
-                            <span class="material-symbols-outlined rounded-xl bg-blue-50 p-2 text-blue-600">${moduleInfo.icon}</span>
-                            <h3 class="text-sm font-black text-slate-900">${moduleInfo.title}</h3>
-                        </div>
-                        <span class="rounded-full px-2.5 py-1 text-[10px] font-black uppercase tracking-widest ${isConfigured ? 'bg-green-50 text-green-700 ring-1 ring-green-200' : 'bg-red-50 text-red-700 ring-1 ring-red-200'}">${isConfigured ? 'Configured' : 'Not Configured'}</span>
-                    </div>
-                    <p class="mb-4 text-xs text-slate-500">${getPromptPreview(active?.prompt_content)}</p>
-                    <div class="flex items-center justify-between">
-                        <span class="text-[10px] font-bold uppercase tracking-widest text-slate-400">${active ? 'active prompt' : 'no active prompt'}</span>
-                        <button class="open-module rounded-xl border border-slate-200 px-3 py-1.5 text-[10px] font-black uppercase tracking-widest text-slate-600 hover:bg-slate-50">Open</button>
-                    </div>
-                `;
-                card.querySelector('.open-module').addEventListener('click', () => openConfigModal(moduleInfo, active));
-                moduleGrid.appendChild(card);
-            }
+            moduleGrid.innerHTML = '';
+            MODULES.forEach(moduleInfo => {
+                moduleGrid.appendChild(buildModuleCard(moduleInfo, modulePromptStatus.get(moduleInfo.key)));
+            });
         }
 
         async function saveModulePrompt(event) {
