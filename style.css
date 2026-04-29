@@ -1730,3 +1730,121 @@ html.dark .user-menu-dropdown {
     background: rgba(15, 23, 42, 0.95);
     border-color: rgba(100, 116, 139, 0.45);
 }
+
+/* ============================================================
+   TEST CASE BUILDER — Structured Card UI
+   ============================================================ */
+.test-card {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    border-left: 4px solid #3b82f6;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+}
+
+.test-card:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    transform: translateY(-2px);
+}
+
+.test-card.verified {
+    border-left-color: #3b82f6;
+}
+
+.test-card.suggested {
+    border-left-color: #9333ea;
+    background: linear-gradient(to right, #faf5ff, #ffffff);
+}
+
+.test-card .card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+}
+
+.test-card .badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 9999px;
+    font-size: 10px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.test-card .badge-verified {
+    background: #dbeafe;
+    color: #1e40af;
+}
+
+.test-card .badge-suggested {
+    background: #f3e8ff;
+    color: #7e22ce;
+}
+
+.test-card h3 {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #0f172a;
+    line-height: 1.5;
+}
+
+.test-card .card-body {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.test-card h4 {
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #64748b;
+    margin-bottom: 8px;
+}
+
+.test-card ol {
+    padding-left: 0;
+    margin: 0;
+}
+
+.test-card ol li {
+    margin-bottom: 6px;
+    padding-left: 4px;
+}
+
+html.dark .test-card {
+    background: #1e293b;
+    border-left-color: #3b82f6;
+}
+
+html.dark .test-card.suggested {
+    background: linear-gradient(to right, #2e1065, #1e293b);
+    border-left-color: #a855f7;
+}
+
+html.dark .test-card h3 {
+    color: #e2e8f0;
+}
+
+html.dark .test-card h4 {
+    color: #94a3b8;
+}
+
+html.dark .test-card p,
+html.dark .test-card li {
+    color: #cbd5e1;
+}
+
+html.dark .test-card .badge-verified {
+    background: #1e3a8a;
+    color: #93c5fd;
+}
+
+html.dark .test-card .badge-suggested {
+    background: #581c87;
+    color: #e9d5ff;
+}

@@ -1850,7 +1850,9 @@ function clearSentenceCorrection() {
     showToast('Cleared successfully!');
 }
 
-// 5. Professional Case Architect
+// 5. Professional Case Architect (Test Case Builder)
+let professionalTestCases = [];
+
 async function generateProfessionalCase(e) {
     if (!validateInput('professional-case-input', 'professional-case-error', 'Please enter test notes before architecting')) return;
 
@@ -1858,15 +1860,61 @@ async function generateProfessionalCase(e) {
     const btn = e.currentTarget;
     setLoading(btn, true);
 
+    // STRICT JSON PROMPT
+    const strictPrompt = `You are an expert QA Engineer.
+
+Generate TWO types of test cases:
+1. VERIFIED (confirmed test cases)
+2. SUGGESTED (additional test cases to consider)
+
+STRICT RULES:
+- Title MUST start with "Check whether..."
+- Return ONLY valid JSON
+- NO explanations, NO markdown, NO extra text
+- Each test case must have: id, title, preCondition, steps (array), expectedResult, isSuggestion (boolean)
+
+FORMAT:
+{
+  "testCases": [
+    {
+      "id": "TC001",
+      "title": "Check whether user is able to login with valid credentials",
+      "preCondition": "User is on login page",
+      "steps": [
+        "Enter valid username",
+        "Enter valid password",
+        "Click login button"
+      ],
+      "expectedResult": "User logs in successfully",
+      "isSuggestion": false
+    }
+  ]
+}
+
+User Input:
+${input}`;
+
     try {
-        const payload = await resolvePromptPayload('professionalCase', input, SYSTEM_PROMPTS.professionalCase, {
-            templateVars: {
-                requirement: input,
-                userInput: input
-            }
-        });
-        const response = await generateAI(payload.prompt, payload.systemPrompt, 'professionalCase');
-        document.getElementById('professional-case-content').innerHTML = response;
+        const response = await generateAI(strictPrompt, '', 'professionalCase');
+        
+        // FORCE JSON PARSING
+        let parsed;
+        try {
+            parsed = typeof response === "string" ? safeParseJSON(response) : response;
+        } catch (e) {
+            console.error("JSON parse failed", response);
+            showToast('Invalid AI response format. Please try again.');
+            return;
+        }
+
+        if (!parsed || !parsed.testCases || !Array.isArray(parsed.testCases)) {
+            console.error("Invalid response structure", parsed);
+            showToast('AI returned invalid format. Please try again.');
+            return;
+        }
+
+        professionalTestCases = parsed.testCases;
+        renderProfessionalTestCases();
 
         const meta = document.getElementById('professional-case-meta');
         const confidence = document.getElementById('professional-case-confidence');
@@ -1876,12 +1924,55 @@ async function generateProfessionalCase(e) {
         }
 
         document.getElementById('professional-case-output').style.display = 'block';
-        showToast('Case architected!');
+        showToast('Test cases generated!');
     } catch (err) {
+        console.error('Generation error:', err);
         showToast('Error: ' + err.message);
     } finally {
         setLoading(btn, false);
     }
+}
+
+function renderProfessionalTestCases() {
+    const container = document.getElementById('professional-case-content');
+    if (!container) return;
+
+    if (professionalTestCases.length === 0) {
+        container.innerHTML = '<p class="text-slate-500 text-sm">No test cases generated</p>';
+        return;
+    }
+
+    container.innerHTML = professionalTestCases.map(tc => `
+        <div class="test-card ${tc.isSuggestion ? 'suggested' : 'verified'} mb-4">
+            <div class="card-header flex items-center justify-between mb-3">
+                <span class="badge ${tc.isSuggestion ? 'badge-suggested' : 'badge-verified'}">
+                    ${tc.isSuggestion ? 'SUGGESTED' : 'VERIFIED'}
+                </span>
+                <span class="text-xs font-mono text-slate-500">${tc.id}</span>
+            </div>
+            
+            <h3 class="text-base font-bold text-slate-800 mb-4">${tc.title}</h3>
+            
+            <div class="card-body space-y-4">
+                <div>
+                    <h4 class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">Pre-condition</h4>
+                    <p class="text-sm text-slate-700 bg-slate-50 p-3 rounded-lg">${tc.preCondition}</p>
+                </div>
+                
+                <div>
+                    <h4 class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">Steps</h4>
+                    <ol class="list-decimal list-inside space-y-1.5 text-sm text-slate-700 bg-slate-50 p-3 rounded-lg">
+                        ${tc.steps.map(step => `<li class="ml-2">${step}</li>`).join('')}
+                    </ol>
+                </div>
+                
+                <div>
+                    <h4 class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">Expected Result</h4>
+                    <p class="text-sm text-slate-700 bg-green-50 p-3 rounded-lg border border-green-200">${tc.expectedResult}</p>
+                </div>
+            </div>
+        </div>
+    `).join('');
 }
 
 function clearProfessionalCase() {
@@ -1890,6 +1981,7 @@ function clearProfessionalCase() {
     document.getElementById('professional-case-output').style.display = 'none';
     document.getElementById('professional-case-error').classList.add('hidden');
     document.getElementById('professional-case-input').classList.remove('border-red-500', 'bg-red-50');
+    professionalTestCases = [];
     showToast('Cleared successfully!');
 }
 
