@@ -8,6 +8,7 @@ import {
   detectProvidersFromApiKey as detectProvidersFromApiKeyExternal,
   ALL_SUPPORTED_PROVIDERS
 } from './services/ai/providerUtils.js';
+import { CREDIT_COSTS } from './server/config/credits.config.js';
 
 dotenv.config();
 
@@ -48,10 +49,13 @@ app.get('/runtime-config.js', (req, res) => {
 });
 
 app.get('/api/health', (_, res) => {
+  const hasSystemKeys = !!(process.env.SYSTEM_OPENAI_API_KEY || process.env.SYSTEM_GEMINI_API_KEY || process.env.SYSTEM_CLAUDE_API_KEY || process.env.SYSTEM_DEEPSEEK_API_KEY);
   res.json({
     ok: true,
     aiServiceEnabled: true,
-    byokOnly: true
+    hybridMode: true,
+    systemAIConfigured: hasSystemKeys,
+    byokOnly: !hasSystemKeys
   });
 });
 
@@ -224,7 +228,7 @@ function parseStoredApiKeys(rawDecryptedText = '') {
 async function getUserSettings(ctx, userId) {
   const rows = await supabaseRest(
     ctx,
-    `/rest/v1/${USER_SETTINGS_TABLE}?select=user_id,provider,api_key,theme,updated_at&user_id=eq.${encodeURIComponent(userId)}&limit=1`
+    `/rest/v1/${USER_SETTINGS_TABLE}?select=user_id,provider,api_key,theme,credits,plan,credits_reset_at,updated_at&user_id=eq.${encodeURIComponent(userId)}&limit=1`
   );
   const row = Array.isArray(rows) ? rows[0] : null;
   if (!row) return null;
@@ -242,7 +246,8 @@ async function getUserSettings(ctx, userId) {
     gemini: providerApiKeys.gemini || '',
     claude: providerApiKeys.claude || '',
     grok: providerApiKeys.grok || '',
-    perplexity: providerApiKeys.perplexity || ''
+    perplexity: providerApiKeys.perplexity || '',
+    nvidia: providerApiKeys.nvidia || ''
   };
 
   return {
@@ -250,7 +255,10 @@ async function getUserSettings(ctx, userId) {
     provider: normalizeProviderName(row.provider || 'auto'),
     theme: row.theme === 'dark' ? 'dark' : 'light',
     decryptedApiKey,
-    providerApiKeys: mergedProviderApiKeys
+    providerApiKeys: mergedProviderApiKeys,
+    credits: row.credits || 0,
+    plan: row.plan || 'free',
+    creditsResetAt: row.credits_reset_at
   };
 }
 
@@ -481,6 +489,13 @@ async function validateProviderApiKey(providerName, apiKey) {
           max_tokens: 8
         })
       }
+    },
+    nvidia: {
+      url: 'https://integrate.api.nvidia.com/v1/models',
+      options: {
+        method: 'GET',
+        headers: { Authorization: `Bearer ${key}` }
+      }
     }
   };
 
@@ -554,14 +569,68 @@ async function handleAIGenerate(req, res, forcedProvider = '') {
     return res.status(error.statusCode || 401).json({ error: 'Could not resolve authenticated user.' });
   }
 
-  const providerApiKeys = {
+  const userProviderApiKeys = {
     deepseek: userSettings?.providerApiKeys?.deepseek || '',
     openai: userSettings?.providerApiKeys?.openai || '',
     gemini: userSettings?.providerApiKeys?.gemini || '',
     claude: userSettings?.providerApiKeys?.claude || '',
     grok: userSettings?.providerApiKeys?.grok || '',
-    perplexity: userSettings?.providerApiKeys?.perplexity || ''
+    perplexity: userSettings?.providerApiKeys?.perplexity || '',
+    nvidia: userSettings?.providerApiKeys?.nvidia || ''
   };
+  const hasUserApiKey = Object.values(userProviderApiKeys).some(Boolean);
+  
+  // HYBRID LOGIC: Check if user has API key (BYOK) or use system key with credits
+  let providerApiKeys = userProviderApiKeys;
+  let isByok = hasUserApiKey;
+  let creditsUsed = 0;
+  let creditsRemaining = userSettings?.credits || 0;
+  
+  if (!hasUserApiKey) {
+    // Built-in AI mode: Check credits and use system keys
+    const creditCost = CREDIT_COSTS[requestType] || 3;
+    const userCredits = userSettings?.credits || 0;
+    
+    if (userCredits < creditCost) {
+      return res.status(402).json({ 
+        error: `Insufficient credits. You need ${creditCost} credits but have ${userCredits}. Please upgrade your plan or add your own API key in Settings.`,
+        requiredCredits: creditCost,
+        currentCredits: userCredits
+      });
+    }
+    
+    // Use system API keys
+    providerApiKeys = {
+      deepseek: process.env.SYSTEM_DEEPSEEK_API_KEY || '',
+      openai: process.env.SYSTEM_OPENAI_API_KEY || '',
+      gemini: process.env.SYSTEM_GEMINI_API_KEY || '',
+      claude: process.env.SYSTEM_CLAUDE_API_KEY || '',
+      grok: process.env.SYSTEM_GROK_API_KEY || '',
+      perplexity: process.env.SYSTEM_PERPLEXITY_API_KEY || '',
+      nvidia: process.env.SYSTEM_NVIDIA_API_KEY || ''
+    };
+    
+    if (!Object.values(providerApiKeys).some(Boolean)) {
+      return res.status(503).json({ error: 'System AI is not configured. Please add your own API key in Settings.' });
+    }
+    
+    // Deduct credits
+    try {
+      const deductResult = await supabaseRpc(ctx, 'deduct_credits', {
+        p_user_id: userId,
+        p_credits: creditCost
+      });
+      const result = Array.isArray(deductResult) && deductResult.length > 0 ? deductResult[0] : null;
+      if (!result || !result.success) {
+        return res.status(402).json({ error: result?.message || 'Failed to deduct credits' });
+      }
+      creditsUsed = creditCost;
+      creditsRemaining = result.remaining_credits;
+    } catch (error) {
+      return res.status(500).json({ error: 'Failed to process credits' });
+    }
+  }
+  
   const selectedProvider = normalizeProviderName(
     providerToUse ||
     userSettings?.provider ||
@@ -569,7 +638,7 @@ async function handleAIGenerate(req, res, forcedProvider = '') {
   );
 
   if (!Object.values(providerApiKeys).some(Boolean)) {
-    return res.status(400).json({ error: 'API key not configured' });
+    return res.status(400).json({ error: 'No API keys available' });
   }
 
   const startedAt = Date.now();
@@ -586,12 +655,16 @@ async function handleAIGenerate(req, res, forcedProvider = '') {
       provider: result.provider,
       tokens: result.tokens || 0,
       module: requestType,
-      request_type: requestType
+      request_type: requestType,
+      credits_used: creditsUsed,
+      is_byok: isByok
     });
     console.log(JSON.stringify({
       event: 'ai_response',
       provider: result.provider,
       success: true,
+      mode: isByok ? 'BYOK' : 'BUILT_IN',
+      creditsUsed,
       durationMs: Date.now() - startedAt
     }));
     return res.json({
@@ -599,6 +672,9 @@ async function handleAIGenerate(req, res, forcedProvider = '') {
       provider: result.provider,
       source: 'live',
       tokens: result.tokens || 0,
+      mode: isByok ? 'BYOK' : 'BUILT_IN',
+      creditsUsed,
+      creditsRemaining: isByok ? null : creditsRemaining,
       standardized: {
         success: true,
         content: result.content,
@@ -606,16 +682,35 @@ async function handleAIGenerate(req, res, forcedProvider = '') {
         provider: result.provider
       }
     });
+  } else {
+    // Refund credits on failure if using built-in AI
+    if (!isByok && creditsUsed > 0) {
+      try {
+        await supabaseRest(ctx, `/rest/v1/${USER_SETTINGS_TABLE}?user_id=eq.${encodeURIComponent(userId)}`, {
+          method: 'PATCH',
+          headers: { Prefer: 'return=minimal' },
+          body: JSON.stringify({ credits: creditsRemaining + creditsUsed })
+        });
+      } catch (error) {
+        console.error('Failed to refund credits:', error);
+      }
+    }
   }
 
   console.log(JSON.stringify({
     event: 'ai_response',
     provider: selectedProvider,
     success: false,
+    errors: result.errors,
     durationMs: Date.now() - startedAt
   }));
-  const fallbackToMock = String(process.env.APP_FALLBACK_TO_MOCK_ON_API_ERROR || 'true').toLowerCase() === 'true';
-  if (fallbackToMock) {
+  
+  // CRITICAL: Do NOT fallback to mock if user has valid API key
+  const fallbackToMock = String(process.env.APP_FALLBACK_TO_MOCK_ON_API_ERROR || 'false').toLowerCase() === 'true';
+  const shouldFallback = fallbackToMock && !hasUserApiKey; // Only fallback if NO user key
+  
+  if (shouldFallback) {
+    console.warn('⚠️ Falling back to mock (no user API key configured)');
     return res.status(200).json({
       text: getMockResponse({ prompt: combinedPrompt, featureType }),
       provider: 'mock',
@@ -630,9 +725,34 @@ async function handleAIGenerate(req, res, forcedProvider = '') {
     });
   }
 
+  // Return actual error to user
+  console.error('❌ AI request failed:', result.errors);
+  
+  // Check if it's a rate limit error
+  const isRateLimit = result.errors?.some(err => 
+    err.message?.toLowerCase().includes('rate limit') ||
+    err.statusCode === 429
+  );
+  
+  if (isRateLimit) {
+    return res.status(429).json({
+      error: '⚠️ Rate Limit Reached. Your API key has exceeded its quota. Please try:\n\n' +
+             '1. Wait a few minutes and try again\n' +
+             '2. Switch to a different AI provider in Settings\n' +
+             '3. Upgrade your OpenAI plan for higher limits\n' +
+             '4. Use a different API key',
+      errorType: 'RATE_LIMIT',
+      errors: result.errors || [],
+      provider: selectedProvider,
+      hasUserApiKey
+    });
+  }
+  
   return res.status(502).json({
-    error: result.errors?.[0]?.message || 'All configured AI providers failed.',
-    errors: result.errors || []
+    error: result.errors?.[0]?.message || 'AI request failed. Please check your API key and try again.',
+    errors: result.errors || [],
+    provider: selectedProvider,
+    hasUserApiKey
   });
 }
 
@@ -807,11 +927,14 @@ app.get('/api/usage', apiLimiter, async (req, res) => {
     const user = await getAuthenticatedUser(ctx);
     const rows = await supabaseRest(
       ctx,
-      `/rest/v1/${USAGE_LOGS_TABLE}?select=provider,tokens,module,request_type,timestamp&user_id=eq.${encodeURIComponent(user.id)}&order=timestamp.desc&limit=2000`
+      `/rest/v1/${USAGE_LOGS_TABLE}?select=provider,tokens,module,request_type,credits_used,is_byok,timestamp&user_id=eq.${encodeURIComponent(user.id)}&order=timestamp.desc&limit=2000`
     );
     const records = Array.isArray(rows) ? rows : [];
     const totalRequests = records.length;
     const totalTokens = records.reduce((sum, row) => sum + Number(row.tokens || 0), 0);
+    const totalCreditsUsed = records.reduce((sum, row) => sum + Number(row.credits_used || 0), 0);
+    const byokRequests = records.filter(row => row.is_byok).length;
+    const builtInRequests = records.filter(row => !row.is_byok).length;
     const requestsByModule = records.reduce((acc, row) => {
       const key = String(row.request_type || row.module || 'generic');
       acc[key] = (acc[key] || 0) + 1;
@@ -829,12 +952,93 @@ app.get('/api/usage', apiLimiter, async (req, res) => {
       usage: {
         totalRequests,
         totalTokens,
+        totalCreditsUsed,
+        byokRequests,
+        builtInRequests,
         requestsByModule,
         providerBreakdown
       }
     });
   } catch (error) {
     res.status(error.statusCode || 502).json({ error: error.message || 'Could not load usage.' });
+  }
+});
+
+// Credit management endpoints
+app.get('/api/credits', apiLimiter, async (req, res) => {
+  const ctx = getSecureContext(req, res);
+  if (!ctx) return;
+
+  try {
+    const user = await getAuthenticatedUser(ctx);
+    const result = await supabaseRpc(ctx, 'get_user_credits', { p_user_id: user.id });
+    const credits = Array.isArray(result) && result.length > 0 ? result[0] : null;
+
+    if (!credits) {
+      return res.status(404).json({ error: 'Credits not found' });
+    }
+
+    res.json({
+      credits: credits.credits,
+      plan: credits.plan,
+      resetAt: credits.credits_reset_at,
+      hasApiKey: credits.has_api_key
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.post('/api/credits/upgrade', apiLimiter, async (req, res) => {
+  const ctx = getSecureContext(req, res);
+  if (!ctx) return;
+
+  try {
+    const user = await getAuthenticatedUser(ctx);
+    const { plan } = req.body;
+
+    if (!['free', 'pro'].includes(plan)) {
+      return res.status(400).json({ error: 'Invalid plan' });
+    }
+
+    const result = await supabaseRpc(ctx, 'upgrade_user_plan', {
+      p_user_id: user.id,
+      p_new_plan: plan
+    });
+    const upgradeResult = Array.isArray(result) && result.length > 0 ? result[0] : null;
+
+    if (!upgradeResult || !upgradeResult.success) {
+      return res.status(400).json({ error: upgradeResult?.message || 'Upgrade failed' });
+    }
+
+    res.json({ success: true, message: upgradeResult.message });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.get('/api/ai/check', apiLimiter, async (req, res) => {
+  const ctx = getSecureContext(req, res);
+  if (!ctx) return;
+
+  try {
+    const user = await getAuthenticatedUser(ctx);
+    const settings = await getUserSettings(ctx, user.id);
+    const { module } = req.query;
+    
+    const hasUserApiKey = Object.values(settings?.providerApiKeys || {}).some(key => key && key.trim());
+    const creditCost = CREDIT_COSTS[module || 'generic'] || 3;
+    const userCredits = settings?.credits || 0;
+
+    res.json({
+      canUseAI: hasUserApiKey || userCredits >= creditCost,
+      mode: hasUserApiKey ? 'BYOK' : 'BUILT_IN',
+      credits: userCredits,
+      requiredCredits: creditCost,
+      hasApiKey: hasUserApiKey
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
   }
 });
 

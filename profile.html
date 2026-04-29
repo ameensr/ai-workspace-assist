@@ -151,6 +151,7 @@
                                         <option value="claude">Claude</option>
                                         <option value="grok">Grok</option>
                                         <option value="perplexity">Perplexity</option>
+                                        <option value="nvidia">NVIDIA</option>
                                     </select>
                                     <p id="provider-detected-text" class="mt-2 text-xs text-slate-500"></p>
                                 </div>
@@ -226,6 +227,7 @@
             if (/^sk-ant-[A-Za-z0-9\-_]{10,}$/.test(value)) return ['claude'];
             if (/^xai-[A-Za-z0-9\-_]{10,}$/.test(value)) return ['grok'];
             if (/^pplx-[A-Za-z0-9\-_]{10,}$/.test(value)) return ['perplexity'];
+            if (/^nvapi-[A-Za-z0-9\-_]{10,}$/.test(value)) return ['nvidia'];
             if (/^sk-[A-Za-z0-9\-_]{10,}$/.test(value)) return ['deepseek', 'openai'];
             return [];
         }

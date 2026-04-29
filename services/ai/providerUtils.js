@@ -1,5 +1,5 @@
-export const AUTO_PROVIDER_ORDER = ['deepseek', 'openai', 'gemini', 'claude'];
-export const ALL_SUPPORTED_PROVIDERS = ['auto', 'deepseek', 'openai', 'gemini', 'claude', 'grok', 'perplexity'];
+export const AUTO_PROVIDER_ORDER = ['deepseek', 'openai', 'gemini', 'claude', 'nvidia'];
+export const ALL_SUPPORTED_PROVIDERS = ['auto', 'deepseek', 'openai', 'gemini', 'claude', 'grok', 'perplexity', 'nvidia'];
 
 export function normalizeProviderName(value) {
   const normalized = String(value || '').trim().toLowerCase();
@@ -13,6 +13,7 @@ export function detectProvidersFromApiKey(apiKey) {
   if (/^sk-ant-[A-Za-z0-9\-_]{10,}$/.test(key)) return ['claude'];
   if (/^xai-[A-Za-z0-9\-_]{10,}$/.test(key)) return ['grok'];
   if (/^pplx-[A-Za-z0-9\-_]{10,}$/.test(key)) return ['perplexity'];
+  if (/^nvapi-[A-Za-z0-9\-_]{10,}$/.test(key)) return ['nvidia'];
   if (/^sk-[A-Za-z0-9\-_]{10,}$/.test(key)) return ['deepseek', 'openai'];
   return [];
 }
@@ -59,6 +60,13 @@ export function getProviderEnvConfig(providerName) {
       model: process.env.PERPLEXITY_MODEL || 'sonar',
       timeoutMs: Number(process.env.PERPLEXITY_TIMEOUT_MS || 20000),
       endpoint: 'https://api.perplexity.ai/chat/completions'
+    };
+  }
+  if (name === 'nvidia') {
+    return {
+      model: process.env.NVIDIA_MODEL || 'meta/llama-3.1-70b-instruct',
+      timeoutMs: Number(process.env.NVIDIA_TIMEOUT_MS || 30000),
+      endpoint: 'https://integrate.api.nvidia.com/v1/chat/completions'
     };
   }
   return null;

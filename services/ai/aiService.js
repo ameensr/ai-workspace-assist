@@ -3,6 +3,7 @@ import { openaiService } from './openaiService.js';
 import { geminiService } from './geminiService.js';
 import { claudeService } from './claudeService.js';
 import { chatCompatibleService } from './chatCompatibleService.js';
+import { nvidiaService } from './nvidiaService.js';
 import {
   AUTO_PROVIDER_ORDER,
   normalizeProviderName,
@@ -39,6 +40,7 @@ async function callAdapter({ provider, apiKey, prompt, options = {} }) {
   if (runtime.name === 'openai') return openaiService(adapterPayload);
   if (runtime.name === 'gemini') return geminiService(adapterPayload);
   if (runtime.name === 'claude') return claudeService(adapterPayload);
+  if (runtime.name === 'nvidia') return nvidiaService(adapterPayload);
   if (runtime.name === 'grok' || runtime.name === 'perplexity') {
     return chatCompatibleService({
       provider: runtime.name,

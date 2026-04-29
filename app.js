@@ -846,7 +846,8 @@ async function callGemini(prompt, systemPrompt = "", featureType = "") {
     } catch (error) {
         clearTimeout(timer);
         const isAbort = error?.name === 'AbortError';
-        const err = new Error(isAbort ? 'Gemini request timed out. Please try again.' : 'Network error while contacting Gemini. Please check your connection.');
+        console.error('❌ Network error:', error);
+        const err = new Error(isAbort ? 'Request timed out. Please try again.' : 'Network error. Please check your connection.');
         err.code = isAbort ? 'TIMEOUT' : 'NETWORK';
         throw err;
     } finally {
@@ -854,28 +855,49 @@ async function callGemini(prompt, systemPrompt = "", featureType = "") {
     }
 
     if (!response.ok) {
-        let message = `Gemini API error (${response.status}).`;
+        let message = `API error (${response.status}).`;
+        let errorType = 'API_ERROR';
+        
         try {
             const errJson = await response.json();
             message = errJson?.error || errJson?.message || message;
+            console.error('❌ API Error:', errJson);
+            
+            // Check for rate limit
+            if (response.status === 429 || message.toLowerCase().includes('rate limit')) {
+                errorType = 'RATE_LIMIT';
+                message = '⚠️ Rate Limit Reached\n\n' +
+                         'Your API key has exceeded its quota.\n\n' +
+                         'Solutions:\n' +
+                         '1. Wait a few minutes and try again\n' +
+                         '2. Switch to a different AI provider in Settings\n' +
+                         '3. Upgrade your API plan for higher limits';
+            }
         } catch (_) {
             try {
                 const errText = await response.text();
                 if (errText) message = errText;
+                console.error('❌ API Error:', errText);
             } catch (_) { }
         }
+        
         const err = new Error(message);
-        err.code = response.status === 401 || response.status === 403 ? 'INVALID_API_KEY' : 'API_ERROR';
+        err.code = response.status === 401 || response.status === 403 ? 'INVALID_API_KEY' : errorType;
+        err.statusCode = response.status;
         throw err;
     }
 
     const data = await response.json();
     const responseSource = String(data?.source || '').trim().toLowerCase();
     const responseProvider = String(data?.provider || '').trim().toLowerCase();
+    
+    // Log response for debugging
+    console.log('✅ AI Response:', { source: responseSource, provider: responseProvider, mode: data?.mode });
+    
     setMockSourceBadge(responseSource || 'live', responseProvider);
     const output = typeof data?.text === 'string' ? data.text : normalizeGeminiOutput(data);
     if (!output || typeof output !== 'string' || !output.trim()) {
-        const err = new Error('Gemini returned an empty or unexpected response. Try again or switch to Test Mode.');
+        const err = new Error('AI returned an empty response. Try again.');
         err.code = 'EMPTY_RESPONSE';
         throw err;
     }
@@ -910,16 +932,32 @@ async function generateAI(prompt, systemPrompt = "", featureType = "") {
     }
 
     try {
-        return await callGemini(prompt, systemPrompt, featureType);
+        const result = await callGemini(prompt, systemPrompt, featureType);
+        console.log('✅ AI generation successful');
+        return result;
     } catch (error) {
-        console.error('AI call failed:', error);
+        console.error('❌ AI call failed:', error);
+        
+        // CRITICAL: Do NOT fallback to mock if user has API key configured
+        const hasApiKey = hasUserApiKeyConfigured;
+        
+        if (hasApiKey) {
+            // User has API key - show real error, don't fallback
+            console.error('❌ Real API failed with user key:', error.message);
+            throw error;
+        }
+        
+        // No API key - check if fallback is allowed
         const canFallback = shouldFallbackToMock();
         const mock = getMockResponse(featureType);
+        
         if (canFallback && mock) {
+            console.warn('⚠️ Falling back to mock (no API key configured)');
             showToast('Live AI failed. Falling back to mock mode.');
             setMockSourceBadge('frontend_mock');
             return mock;
         }
+        
         throw error;
     }
 }
