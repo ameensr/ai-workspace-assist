@@ -96,11 +96,18 @@
                 </div>
             </div>
 
+            <div class="text-right -mt-1">
+                <button id="forgot-password-btn" type="button" class="text-xs font-semibold text-blue-400 hover:text-blue-300 transition-colors">
+                    Forgot password?
+                </button>
+            </div>
+
             <button type="submit"
                 class="w-full bg-blue-600 text-white py-3 rounded-lg font-bold hover:bg-blue-700 transition-all transform hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-blue-900/20">
                 Sign In
             </button>
             <div id="error-message" class="text-red-400 text-sm text-center hidden font-medium">Invalid login credentials</div>
+            <div id="reset-message" class="text-green-400 text-sm text-center hidden font-medium"></div>
         </form>
 
         <p class="text-center mt-6 text-sm text-slate-400">
@@ -110,6 +117,7 @@
 
 
     <script src="code-typing.js"></script>
+    <script src="/runtime-config.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="config.js"></script>
     <script src="supabase-client.js"></script>
@@ -127,6 +135,23 @@
                 window.location.href = 'index.html';
             } catch (error) {
                 errorDiv.textContent = error.message || 'Invalid login credentials';
+                errorDiv.classList.remove('hidden');
+            }
+        }
+
+        async function handleForgotPassword() {
+            const email = document.getElementById('email').value;
+            const errorDiv = document.getElementById('error-message');
+            const resetDiv = document.getElementById('reset-message');
+            errorDiv.classList.add('hidden');
+            resetDiv.classList.add('hidden');
+
+            try {
+                await window.requestPasswordReset(email);
+                resetDiv.textContent = 'Password reset link sent. Please check your email.';
+                resetDiv.classList.remove('hidden');
+            } catch (error) {
+                errorDiv.textContent = error.message || 'Could not send reset link.';
                 errorDiv.classList.remove('hidden');
             }
         }
@@ -161,6 +186,7 @@
             }
         }
         window.addEventListener('DOMContentLoaded', initFooter);
+        document.getElementById('forgot-password-btn').addEventListener('click', handleForgotPassword);
     </script>
     <footer id="main-footer" class="app-footer">
         <!-- Text injected from config.js -->

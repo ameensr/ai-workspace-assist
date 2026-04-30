@@ -1,9 +1,17 @@
-// test-config.js - Add this file to enable test mode
+// test-config.js - Mock data for test mode
+// This file is loaded by default on the dashboard; mock/live mode is controlled by:
+// - window.TEST_MODE (optional), or
+// - window.appConfig.testMode (recommended), or
+// - defaulting to true if nothing is provided.
 
-const TEST_MODE = true; // Set to false for production
+if (typeof window !== 'undefined') {
+    if (typeof window.TEST_MODE === 'undefined') {
+        window.TEST_MODE = true;
+    }
+}
 
 // Mock responses for testing
-const MOCK_RESPONSES = {
+window.MOCK_RESPONSES = {
     requirementIntelligence: `{
         "corrected_spec": "User Authentication Feature: Users must be able to securely log in using email and password credentials. The system shall validate credentials against the database, implement rate limiting (5 attempts per 15 minutes), support password reset functionality, and maintain session security with JWT tokens.",
         "gaps": [
@@ -233,10 +241,24 @@ const MOCK_RESPONSES = {
                 <li>Login attempts logged for security monitoring</li>
             </ul>
         </div>
-    </div>`
+    </div>`,
+
+    rtmGenerator: `{
+        "mappings": [
+            {"requirementId": "REQ-001", "testCaseIds": ["TC-001", "TC-002"]},
+            {"requirementId": "REQ-002", "testCaseIds": ["TC-003"]},
+            {"requirementId": "REQ-003", "testCaseIds": ["TC-004", "TC-005"]},
+            {"requirementId": "REQ-004", "testCaseIds": ["TC-006"]},
+            {"requirementId": "REQ-005", "testCaseIds": ["TC-007", "TC-008"]}
+        ]
+    }`
 };
 
-// Export for use in app.js
+// Export for use in node tools if needed
 if (typeof module !== 'undefined' && module.exports) {
-    module.exports = { TEST_MODE, MOCK_RESPONSES };
+    const hasWindow = typeof window !== 'undefined';
+    module.exports = {
+        TEST_MODE: hasWindow ? window.TEST_MODE : true,
+        MOCK_RESPONSES: hasWindow ? window.MOCK_RESPONSES : undefined
+    };
 }

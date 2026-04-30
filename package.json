@@ -3,10 +3,15 @@
     "version": "1.0.0",
     "description": "Qaly AI - Test Smarter. Ship Faster.",
     "main": "index.html",
+  "type": "module",
     "scripts": {
-        "dev": "python3 -m http.server 8000",
-        "deploy": "vercel --prod"
+    "dev": "node server.js"
     },
+  "dependencies": {
+    "dotenv": "^16.6.1",
+    "express": "^4.21.2",
+    "express-rate-limit": "^7.3.0"
+  },
     "keywords": [
         "qa",
         "testing",

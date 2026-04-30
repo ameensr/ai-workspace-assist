@@ -1,113 +1,154 @@
 /**
- * SYSTEM_PROMPTS - Centralized AI instructions for Qaly AI features
+ * PROMPT TEMPLATES - Structured default prompt definitions.
+ * These are runtime fallbacks when Prompt Governance data is not configured in DB.
  */
-const SYSTEM_PROMPTS = {
-    requirementIntelligence: `You are a Senior Business Analyst and QA Strategy Expert. 
-    Analyze the provided requirement and generate a JSON response with:
-    1. "corrected_spec": A professional, clear, and unambiguous version of the requirement.
-    2. "gaps": A list of missing information, edge cases, or potential risks.
-    3. "test_scenarios": A list of high-level test scenarios covering positive, negative, and edge cases.
-    
-    Format the response as pure JSON.`,
-
-    testSuite: `You are a Senior QA Automation Engineer.
-    Generate a comprehensive test suite based on the requirement.
-    Return the response as a JSON array of objects. Each object represents a test case and must have these properties:
-    - "id": (string, e.g., TC-001)
-    - "module": (string)
-    - "subModule": (string)
-    - "preCondition": (string)
-    - "testCase": (string, descriptive title)
-    - "steps": (string, numbered steps)
-    - "testData": (string)
-    - "expectedResult": (string)
-    - "actualResult": (string, leave empty or use "N/A")
-    - "status": (string, default to "Draft")
-    - "isCritical": (boolean)
-    - "isSecurity": (boolean)
-    
-    Ensure the JSON is valid and focused on high-quality QA coverage.`,
-
-    bugReport: `You are a Lead QA Engineer. 
-    Transform the provided rough notes into a professional, JIRA-ready bug report.
-    Use HTML formatting (h2, h3, p, ul, li) for structure.
-    Include:
-    - Summary
-    - Severity/Priority
-    - Environment
-    - Description
-    - Steps to Reproduce
-    - Expected Result
-    - Actual Result`,
-
-    sentenceCorrection: `You are a Technical Writer specializing in software documentation.
-    Analyze the input text and provide three versions in JSON format:
-    1. "corrected": Grammatically correct and clear technical version.
-    2. "casual": A more conversational yet professional version.
-    3. "formal": A strict, document-standard version (e.g., for specifications).
-    
-    Return as pure JSON: {"corrected": "...", "casual": "...", "formal": "..."}`,
-
-    professionalCase: `You are an Expert Test Architect.
-    Convert rough test notes into a highly structured, professional test case.
-    Use HTML formatting.
-    Include:
-    - Test Objective
-    - Preconditions
-    - Numbered Test Steps
-    - Expected Result
-    - Post-conditions (if applicable)`
+const DEFAULT_PROMPT_CONFIGS = {
+    requirementIntelligence: {
+        module_name: 'Requirement Intelligence',
+        role: 'Act as a Senior Business Analyst and QA Strategy Expert.',
+        task: 'Analyze the provided requirement and return corrected specification, gaps, and test scenarios.',
+        constraints: [
+            'Keep response technical, precise, and unambiguous.',
+            'Identify risks and edge cases.',
+            'Return strictly valid JSON only.'
+        ],
+        output_format: [
+            'corrected_spec: string',
+            'gaps: string[]',
+            'test_scenarios: string[]'
+        ],
+        style: 'concise'
+    },
+    testSuite: {
+        module_name: 'Test Suite Architect',
+        role: 'Act as a Senior QA Automation Engineer.',
+        task: 'Generate a comprehensive test suite from the requirement.',
+        constraints: [
+            'Avoid duplicates.',
+            'Include positive, negative, and edge cases.',
+            'Return strictly valid JSON array only.'
+        ],
+        output_format: [
+            'id',
+            'module',
+            'subModule',
+            'preCondition',
+            'testCase',
+            'steps',
+            'testData',
+            'expectedResult',
+            'actualResult',
+            'status',
+            'isCritical',
+            'isSecurity'
+        ],
+        style: 'detailed'
+    },
+    bugReport: {
+        module_name: 'Bug Report Generator',
+        role: 'Act as a Lead QA Engineer.',
+        task: 'Transform rough notes into a professional JIRA-ready bug report.',
+        constraints: [
+            'Use HTML formatting only (h2, h3, p, ul, li).',
+            'Keep sections explicit and actionable.'
+        ],
+        output_format: [
+            'Summary',
+            'Severity/Priority',
+            'Environment',
+            'Description',
+            'Steps to Reproduce',
+            'Expected Result',
+            'Actual Result'
+        ],
+        style: 'concise'
+    },
+    sentenceCorrection: {
+        module_name: 'Clarity AI - The Text Refinery',
+        role: 'Act as a Technical Writer specializing in software documentation.',
+        task: 'Provide corrected, casual, and formal versions of the text.',
+        constraints: [
+            'Preserve core technical meaning.',
+            'Return strictly valid JSON only.'
+        ],
+        output_format: [
+            'corrected: string',
+            'casual: string',
+            'formal: string'
+        ],
+        style: 'concise'
+    },
+    professionalCase: {
+        module_name: 'Test Case Builder',
+        role: 'Act as an Expert Test Architect.',
+        task: 'Convert rough test notes into a highly structured professional test case.',
+        constraints: [
+            'Use HTML formatting.',
+            'Keep steps explicit and testable.'
+        ],
+        output_format: [
+            'Test Objective',
+            'Preconditions',
+            'Numbered Test Steps',
+            'Expected Result',
+            'Post-conditions'
+        ],
+        style: 'detailed'
+    }
 };
+
+function buildSystemPromptFromConfig(config) {
+    if (!config || typeof config !== 'object') return '';
+    const constraints = Array.isArray(config.constraints) ? config.constraints : [];
+    const outputFormat = Array.isArray(config.output_format) ? config.output_format : [];
+    const style = String(config.style || 'concise').trim();
+    const role = String(config.role || '').trim();
+    const task = String(config.task || '').trim();
+
+    const sections = [
+        role,
+        task,
+        constraints.length ? `Constraints:\n- ${constraints.join('\n- ')}` : '',
+        outputFormat.length ? `Output Format:\n- ${outputFormat.join('\n- ')}` : '',
+        `Style: ${style}`
+    ].filter(Boolean);
+
+    return sections.join('\n\n').trim();
+}
+
+function extractPromptPlaceholders(template) {
+    const text = String(template || '');
+    const matches = text.match(/\{\{\s*([a-zA-Z0-9_]+)\s*\}\}/g) || [];
+    return [...new Set(matches.map(item => item.replace(/[{}]/g, '').trim()))];
+}
+
+function renderPromptTemplate(template, variables = {}) {
+    let output = String(template || '');
+    Object.entries(variables || {}).forEach(([key, value]) => {
+        const safeValue = String(value ?? '').trim();
+        const regex = new RegExp(`\\{\\{\\s*${key}\\s*\\}\\}`, 'g');
+        output = output.replace(regex, safeValue);
+    });
+    return output;
+}
+
+const SYSTEM_PROMPTS = Object.fromEntries(
+    Object.entries(DEFAULT_PROMPT_CONFIGS).map(([key, value]) => [key, buildSystemPromptFromConfig(value)])
+);
 
 // ============================================
 // MASTER PROMPTS LIBRARY (User Facing Gallery)
 // ============================================
-const MASTER_PROMPTS_LIBRARY = [
-    {
-        title: "Requirement Edge-Case Hunter",
-        description: "Deep dive into requirements to find hidden gaps and logic flaws.",
-        icon: "search_insights",
-        category: "Requirement Analysis",
-        prompt: "Act as a Senior QA Analyst. Read the following requirement and identify at least 10 non-obvious edge cases, including negative scenarios, boundary values, and race conditions: [PASTE_REQUIREMENT_HERE]"
-    },
-    {
-        title: "REST API Test Suite Creator",
-        description: "Generate comprehensive endpoint test cases based on Swagger/OpenAPI specs.",
-        icon: "api",
-        category: "Integration Testing",
-        prompt: "Analyze the following API Endpoint specification. Provide a set of test cases covering: 1. Success (200 OK), 2. Validation Errors (400), 3. Authentication (401/403), 4. Not Found (404), and 5. Server Errors (500). Schema: [PASTE_SCHEMA_HERE]"
-    },
-    {
-        title: "UI/UX Accessibility Reviewer",
-        description: "Audit wireframes or descriptions for WCAG compliance and usability.",
-        icon: "accessibility_new",
-        category: "UI/UX Review",
-        prompt: "Review the following UI component description for Accessibility (WCAG 2.1) and Usability. Suggest improvements for screen readers, color contrast, and keyboard navigation: [PASTE_UI_DETAILS_HERE]"
-    },
-    {
-        title: "SQL Injection & Security Audit",
-        description: "Audit code snippets or queries for common security vulnerabilities.",
-        icon: "security",
-        category: "Security",
-        prompt: "Act as a Security Auditor. Check the following code/query for SQL injection, XSS, or other OWASP Top 10 vulnerabilities. Suggest secure alternatives: [PASTE_CODE_HERE]"
-    },
-    {
-        title: "Unit Test Data Generator",
-        description: "Generate realistic mock data for automated unit or integration tests.",
-        icon: "database",
-        category: "Test Data",
-        prompt: "Generate 20 rows of realistic mock data for a user profile table. Include fields: ID (UUID), Email, Full Name (International variants), Join Date, and Role. Return in CSV format."
-    },
-    {
-        title: "E2E Scenario Synthesizer",
-        description: "Convert high-level user stories into detailed end-to-end automation scripts.",
-        icon: "route",
-        category: "Automation",
-        prompt: "Convert this user story into a Playwright/Cypress end-to-end test script using Page Object Model pattern: [PASTE_USER_STORY_HERE]"
-    }
-];
+const MASTER_PROMPTS_LIBRARY = [];
 
 // Export for use in app.js and prompts.html
 if (typeof module !== 'undefined' && module.exports) {
-    module.exports = { SYSTEM_PROMPTS, MASTER_PROMPTS_LIBRARY };
+    module.exports = {
+        SYSTEM_PROMPTS,
+        MASTER_PROMPTS_LIBRARY,
+        DEFAULT_PROMPT_CONFIGS,
+        buildSystemPromptFromConfig,
+        extractPromptPlaceholders,
+        renderPromptTemplate
+    };
 }

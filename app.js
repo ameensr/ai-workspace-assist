@@ -6,21 +6,96 @@
 // ============================================
 // CONFIGURATION & STATE
 // ============================================
-const DEBUG = true;
 const TEST_CASES_TABLE = 'user_test_suites';
+const EXCEL_MIME_TYPE = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+const GEMINI_TIMEOUT_MS = 25000;
+const AI_GENERATE_ENDPOINT = '/api/ai/generate';
+const USER_THEME_KEY = 'qaly_theme';
+const USER_AI_PROVIDER_KEY = 'qaly_ai_provider';
+const ACTIVE_MODULE_KEY = 'qaly_active_module';
+const MOCK_PROVIDER = 'mock';
+const PROMPT_CONFIG_TABLE = 'master_prompts';
+const MODULE_PROMPT_KEYS = [
+    'requirementIntelligence',
+    'testSuite',
+    'bugReport',
+    'sentenceCorrection',
+    'professionalCase',
+    'rtmGenerator',
+    'meetingNotesExtractor'
+];
+
+// Module route mapping
+const MODULE_ROUTES = {
+    'dashboard': 'home',
+    'requirement-correction': 'requirement-intelligence',
+    'test-case-architect': 'test-suite-architect',
+    'test-case-gen': 'professional-case-architect',
+    'bug-report-gen': 'bug-report-generator',
+    'sentence-correction': 'clarity-ai',
+    'meeting-notes-extractor': 'meeting-notes-extractor',
+    'rtm-generator': 'rtm-generator'
+};
+
+const ROUTE_TO_MODULE = {
+    'home': 'dashboard',
+    'requirement-intelligence': 'requirement-correction',
+    'test-suite-architect': 'test-case-architect',
+    'professional-case-architect': 'test-case-gen',
+    'bug-report-generator': 'bug-report-gen',
+    'clarity-ai': 'sentence-correction',
+    'sentence-correction': 'sentence-correction',
+    'meeting-notes-extractor': 'meeting-notes-extractor',
+    'rtm-generator': 'rtm-generator'
+};
+
+const DEFAULT_MODULE = 'dashboard';
 
 // UI State Management
 let currentTestCases = [];
 let currentUserId = null;
+const promptCache = new Map();
+let hasUserApiKeyConfigured = false;
 
 // Initialize application
 async function initApp() {
+    applyPersistedTheme();
     initNavigation();
+    initRouting(); // Initialize URL-based routing
     initCopyButtons();
+    initFileUploads();
     await initUserIdentity();
     initUserMenu();
+    await syncAiKeyStatus();
     checkAPIStatus();
+    await updateModulePromptIndicators();
     await loadTestCases();
+    initDashboardCards(); // Initialize dashboard card clicks
+    restoreActiveModule(); // Restore last active module
+}
+
+function initFileUploads() {
+    const uploads = [
+        { inputId: 'req-intel-file', targetId: 'req-intel-input' },
+        { inputId: 'ts-file-input', targetId: 'ts-requirement' },
+        { inputId: 'bug-file', targetId: 'bug-input' },
+        { inputId: 'professional-case-file', targetId: 'professional-case-input' },
+        { inputId: 'rtm-req-file', targetId: 'rtm-req-input' }
+    ];
+    uploads.forEach(({ inputId, targetId }) => {
+        const el = document.getElementById(inputId);
+        if (el) el.addEventListener('change', (e) => handleRequirementUpload(e, targetId));
+    });
+    
+    // Special handler for RTM test case upload (supports Excel)
+    const rtmTcFile = document.getElementById('rtm-tc-file');
+    if (rtmTcFile) {
+        rtmTcFile.addEventListener('change', (e) => {
+            if (window.handleRTMTestCaseUpload) {
+                window.handleRTMTestCaseUpload(e);
+            }
+        });
+    }
 }
 
 document.addEventListener('DOMContentLoaded', initApp);
@@ -33,15 +108,7 @@ function initNavigation() {
     navItems.forEach(item => {
         item.addEventListener('click', () => {
             const target = item.getAttribute('data-target');
-
-            // Update Nav UI
-            navItems.forEach(i => i.classList.remove('active', 'bg-blue-50', 'text-blue-700'));
-            item.classList.add('active', 'bg-blue-50', 'text-blue-700');
-
-            // Update Section UI
-            sections.forEach(s => s.classList.remove('active'));
-            const targetSection = document.getElementById(target);
-            if (targetSection) targetSection.classList.add('active');
+            navigateToModule(target);
         });
     });
 
@@ -51,6 +118,90 @@ function initNavigation() {
             if (url) window.location.href = url;
         });
     });
+}
+
+function initDashboardCards() {
+    const cards = document.querySelectorAll('.dashboard-card');
+    cards.forEach(card => {
+        card.addEventListener('click', () => {
+            const moduleId = card.getAttribute('data-module');
+            if (moduleId) {
+                navigateToModule(moduleId);
+            }
+        });
+    });
+}
+
+// ============================================
+// ROUTING & NAVIGATION PERSISTENCE
+// ============================================
+
+function initRouting() {
+    // Listen for hash changes (browser back/forward)
+    window.addEventListener('hashchange', handleRouteChange);
+    
+    // Listen for popstate (browser back/forward)
+    window.addEventListener('popstate', handleRouteChange);
+}
+
+function handleRouteChange() {
+    const hash = window.location.hash.slice(1); // Remove #
+    if (hash && ROUTE_TO_MODULE[hash]) {
+        const moduleId = ROUTE_TO_MODULE[hash];
+        activateModule(moduleId, false); // false = don't update URL again
+    }
+}
+
+function navigateToModule(moduleId) {
+    activateModule(moduleId, true); // true = update URL
+}
+
+function activateModule(moduleId, updateUrl = true) {
+    const navItems = document.querySelectorAll('.nav-item');
+    const sections = document.querySelectorAll('.module-section');
+
+    // Update Nav UI
+    navItems.forEach(i => i.classList.remove('active', 'bg-blue-50', 'text-blue-700'));
+    const activeNav = document.querySelector(`.nav-item[data-target="${moduleId}"]`);
+    if (activeNav) {
+        activeNav.classList.add('active', 'bg-blue-50', 'text-blue-700');
+    }
+
+    // Update Section UI
+    sections.forEach(s => s.classList.remove('active'));
+    const targetSection = document.getElementById(moduleId);
+    if (targetSection) {
+        targetSection.classList.add('active');
+    }
+
+    // Persist to localStorage
+    localStorage.setItem(ACTIVE_MODULE_KEY, moduleId);
+
+    // Update URL hash (if requested)
+    if (updateUrl) {
+        const route = MODULE_ROUTES[moduleId] || moduleId;
+        window.location.hash = route;
+    }
+}
+
+function restoreActiveModule() {
+    // Priority 1: Check URL hash
+    const hash = window.location.hash.slice(1);
+    if (hash && ROUTE_TO_MODULE[hash]) {
+        const moduleId = ROUTE_TO_MODULE[hash];
+        activateModule(moduleId, false);
+        return;
+    }
+
+    // Priority 2: Check localStorage
+    const savedModule = localStorage.getItem(ACTIVE_MODULE_KEY);
+    if (savedModule && document.getElementById(savedModule)) {
+        activateModule(savedModule, true);
+        return;
+    }
+
+    // Priority 3: Default module
+    activateModule(DEFAULT_MODULE, true);
 }
 
 // ============================================
@@ -81,7 +232,7 @@ function setLoading(btn, isLoading) {
         btn.classList.add('generating-btn', 'opacity-80');
         btn.disabled = true;
         if (btnText) {
-            btnText.textContent = 'Analyzing requirement...';
+            btnText.textContent = btn.getAttribute('data-loading-text') || 'Processing...';
         }
         btn.style.cursor = 'wait';
     } else {
@@ -123,7 +274,10 @@ function copyToClipboard(elementId) {
 function safeParseJSON(str) {
     try {
         // Clean up markdown code blocks if present
-        const cleanStr = str.replace(/```json\n?|\n?```/g, '').trim();
+        const cleanStr = (str || '')
+            .replace(/```json\s*/gi, '')
+            .replace(/```/g, '')
+            .trim();
         return JSON.parse(cleanStr);
     } catch (e) {
         console.error("JSON Parse Error:", e, "Original string:", str);
@@ -143,6 +297,146 @@ function safeParseJSON(str) {
             }
         }
         return null;
+    }
+}
+
+function slugifyFilename(value, fallback = 'test-cases') {
+    return (value || fallback)
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '')
+        || fallback;
+}
+
+function extractPlainTextFromBinary(buffer) {
+    const bytes = new Uint8Array(buffer);
+    let text = '';
+    for (let i = 0; i < bytes.length; i += 1) {
+        const code = bytes[i];
+        if (code === 9 || code === 10 || code === 13 || (code >= 32 && code <= 126)) {
+            text += String.fromCharCode(code);
+        } else {
+            text += ' ';
+        }
+    }
+
+    return text
+        .replace(/\s{2,}/g, ' ')
+        .replace(/([.?!])\s+/g, '$1\n')
+        .trim();
+}
+
+function loadExternalScript(src) {
+    return new Promise((resolve, reject) => {
+        const existing = document.querySelector(`script[src="${src}"]`);
+        if (existing) {
+            // Already fully loaded — onload already fired, just resolve.
+            if (existing.dataset.loaded === 'true') return resolve();
+            // Injected but still loading — wait for it.
+            existing.addEventListener('load', resolve, { once: true });
+            existing.addEventListener('error', () => reject(new Error(`Failed to load script: ${src}`)), { once: true });
+            return;
+        }
+        const script = document.createElement('script');
+        script.src = src;
+        script.onload = () => { script.dataset.loaded = 'true'; resolve(); };
+        script.onerror = () => reject(new Error(`Failed to load script: ${src}`));
+        document.head.appendChild(script);
+    });
+}
+
+async function extractTextFromPdf(file) {
+    if (!window.pdfjsLib) {
+        try {
+            await loadExternalScript('https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js');
+        } catch (e) {
+            throw new Error('Failed to load PDF parser. Check your internet connection.');
+        }
+    }
+
+    if (!window.pdfjsLib) {
+        throw new Error('PDF parser failed to load.');
+    }
+
+    // Always set workerSrc — it may not have been set if pdf.js was pre-loaded via <head> script.
+    window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+    const arrayBuffer = await file.arrayBuffer();
+    const pdf = await window.pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+    const pages = [];
+
+    for (let pageNumber = 1; pageNumber <= pdf.numPages; pageNumber += 1) {
+        const page = await pdf.getPage(pageNumber);
+        const textContent = await page.getTextContent();
+        const pageText = textContent.items.map(item => item.str).join(' ').replace(/\s+/g, ' ').trim();
+        if (pageText) {
+            pages.push(pageText);
+        }
+    }
+
+    return pages.join('\n\n').trim();
+}
+
+async function extractTextFromWord(file) {
+    const arrayBuffer = await file.arrayBuffer();
+    const lowerName = (file.name || '').toLowerCase();
+
+    if (lowerName.endsWith('.docx')) {
+        if (!window.mammoth) {
+            try {
+                await loadExternalScript('https://unpkg.com/mammoth@1.8.0/mammoth.browser.min.js');
+            } catch (e) {
+                throw new Error('Failed to load Word document parser.');
+            }
+        }
+
+        const result = await window.mammoth.extractRawText({ arrayBuffer });
+        return (result.value || '').trim();
+    }
+
+    return extractPlainTextFromBinary(arrayBuffer);
+}
+
+async function extractTextFromRequirementFile(file) {
+    const name = (file?.name || '').toLowerCase();
+
+    if (name.endsWith('.pdf')) {
+        return extractTextFromPdf(file);
+    }
+
+    if (name.endsWith('.doc') || name.endsWith('.docx')) {
+        return extractTextFromWord(file);
+    }
+
+    if (name.endsWith('.txt') || name.endsWith('.md') || name.endsWith('.csv') || name.endsWith('.json')) {
+        return await file.text();
+    }
+
+    throw new Error('Unsupported file type. Please upload PDF, DOCX, or text files (.txt, .md, .csv).');
+}
+
+async function handleRequirementUpload(event, targetInputId) {
+    const input = event?.target;
+    const file = input?.files?.[0];
+    const target = document.getElementById(targetInputId);
+
+    if (!file || !target) return;
+
+    try {
+        showToast(`Extracting text from ${file.name}...`, 2000);
+        const extractedText = await extractTextFromRequirementFile(file);
+        if (!extractedText) {
+            throw new Error('No readable text found in the uploaded document');
+        }
+
+        target.value = extractedText;
+        target.dispatchEvent(new Event('input', { bubbles: true }));
+        showToast('Requirement text extracted successfully!');
+    } catch (error) {
+        console.error('Requirement upload failed:', error);
+        showToast(`Upload failed: ${error.message}`);
+    } finally {
+        input.value = '';
     }
 }
 
@@ -198,6 +492,12 @@ async function initUserIdentity() {
     }
 
     setHeaderIdentity(username);
+    
+    // Update dashboard username
+    const dashboardUsername = document.getElementById('dashboard-username');
+    if (dashboardUsername) {
+        dashboardUsername.textContent = username;
+    }
 }
 
 function initUserMenu() {
@@ -260,73 +560,424 @@ function initUserMenu() {
     }
 }
 
+function getIsTestMode() {
+    if (typeof appConfig !== 'undefined' && typeof appConfig.testMode === 'boolean') {
+        return appConfig.testMode;
+    }
+
+    if (typeof window !== 'undefined' && typeof window.TEST_MODE === 'boolean') {
+        return window.TEST_MODE;
+    }
+
+    return false;
+}
+
+function getMockResponse(featureType) {
+    if (typeof window !== 'undefined' && window.MOCK_RESPONSES && featureType && window.MOCK_RESPONSES[featureType]) {
+        return window.MOCK_RESPONSES[featureType];
+    }
+    if (typeof MOCK_RESPONSES !== 'undefined' && featureType && MOCK_RESPONSES[featureType]) {
+        return MOCK_RESPONSES[featureType];
+    }
+    return null;
+}
+
+function applyPersistedTheme() {
+    const theme = localStorage.getItem(USER_THEME_KEY) || 'light';
+    const html = document.documentElement;
+    const body = document.body;
+    html.classList.toggle('dark', theme === 'dark');
+    html.classList.toggle('light', theme !== 'dark');
+    body.classList.toggle('dark', theme === 'dark');
+}
+
+async function getAuthTokenForApi() {
+    if (!window.getCurrentSession) return '';
+    try {
+        const session = await window.getCurrentSession();
+        return session?.access_token || '';
+    } catch {
+        return '';
+    }
+}
+
+function setGenerateButtonsEnabled(isEnabled) {
+    const selectors = [
+        'button[onclick^="generateRequirementIntelligence"]',
+        'button[onclick^="tsGenerate"]',
+        'button[onclick^="generateBugReport"]',
+        'button[onclick^="correctSentence"]',
+        'button[onclick^="generateProfessionalCase"]',
+        'button[onclick^="extractMeetingNotes"]'
+    ];
+    const buttons = document.querySelectorAll(selectors.join(','));
+    buttons.forEach((btn) => {
+        btn.disabled = !isEnabled;
+        btn.classList.toggle('opacity-50', !isEnabled);
+        btn.classList.toggle('cursor-not-allowed', !isEnabled);
+        btn.title = isEnabled ? '' : 'Configure API key in Settings to continue.';
+    });
+}
+
+async function syncAiKeyStatus() {
+    if (getIsTestMode()) {
+        hasUserApiKeyConfigured = true;
+        setGenerateButtonsEnabled(true);
+        return true;
+    }
+    const preferredProvider = (localStorage.getItem(USER_AI_PROVIDER_KEY) || '').trim().toLowerCase();
+    if (preferredProvider === MOCK_PROVIDER) {
+        hasUserApiKeyConfigured = true;
+        setGenerateButtonsEnabled(true);
+        return true;
+    }
+
+    const token = await getAuthTokenForApi();
+    if (!token) {
+        hasUserApiKeyConfigured = false;
+        setGenerateButtonsEnabled(false);
+        return false;
+    }
+
+    try {
+        const response = await fetch('/api/settings', {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        });
+        const payload = await response.json();
+        hasUserApiKeyConfigured = Boolean(payload?.settings?.hasApiKey);
+    } catch {
+        hasUserApiKeyConfigured = false;
+    }
+
+    setGenerateButtonsEnabled(hasUserApiKeyConfigured);
+    return hasUserApiKeyConfigured;
+}
+
+function shouldFallbackToMock() {
+    if (typeof appConfig !== 'undefined' && typeof appConfig.fallbackToMockOnApiError === 'boolean') {
+        return appConfig.fallbackToMockOnApiError;
+    }
+    return true;
+}
+
+function normalizeGeminiOutput(data) {
+    const candidate = data?.candidates?.[0];
+    const parts = candidate?.content?.parts;
+    if (Array.isArray(parts) && typeof parts[0]?.text === 'string') {
+        return parts[0].text;
+    }
+    if (typeof candidate?.output === 'string') {
+        return candidate.output;
+    }
+    return null;
+}
+
+function normalizePromptList(value) {
+    if (Array.isArray(value)) {
+        return value.map(item => String(item || '').trim()).filter(Boolean);
+    }
+    if (typeof value === 'string') {
+        return value
+            .split('\n')
+            .map(item => item.replace(/^\s*-\s*/, '').trim())
+            .filter(Boolean);
+    }
+    return [];
+}
+
+function optimizePromptText(text) {
+    return String(text || '')
+        .replace(/[ \t]+/g, ' ')
+        .replace(/\n{3,}/g, '\n\n')
+        .trim();
+}
+
+function renderTemplate(template, variables = {}) {
+    let output = String(template || '');
+    Object.entries(variables || {}).forEach(([key, value]) => {
+        const safe = String(value ?? '').trim();
+        output = output.replace(new RegExp(`\\{\\{\\s*${key}\\s*\\}\\}`, 'g'), safe);
+    });
+    return output;
+}
+
+function buildPromptFromConfig(config, userInput, options = {}) {
+    const role = String(config?.role || '').trim();
+    const task = String(config?.task || '').trim();
+    const constraints = normalizePromptList(config?.constraints);
+    const outputFormat = normalizePromptList(config?.output_format);
+    const style = String(config?.style || 'concise').trim();
+    const toggleConstraints = normalizePromptList(options?.toggleConstraints);
+
+    const sections = [
+        role ? `[Role]\n${role}` : '',
+        task ? `[Task]\n${task}` : '',
+        `[User Input]\n${String(userInput || '').trim()}`,
+        constraints.length ? `[Constraints]\n- ${constraints.join('\n- ')}` : '',
+        toggleConstraints.length ? `[Smart Toggles]\n- ${toggleConstraints.join('\n- ')}` : '',
+        outputFormat.length ? `[Output Format]\n- ${outputFormat.join('\n- ')}` : '',
+        `[Style]\n${style || 'concise'}`
+    ].filter(Boolean);
+
+    return optimizePromptText(sections.join('\n\n'));
+}
+
+async function getPromptGovernanceConfig(featureKey) {
+    if (promptCache.has(featureKey)) {
+        return promptCache.get(featureKey);
+    }
+    if (!window.supabaseClient) return null;
+
+    const { data, error } = await window.supabaseClient
+        .from(PROMPT_CONFIG_TABLE)
+        .select('module_key, role, task, constraints, output_format, style, status, prompt_content, updated_at')
+        .eq('module_key', featureKey)
+        .eq('status', 'ACTIVE')
+        .order('updated_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+    if (error || !data) return null;
+    promptCache.set(featureKey, data);
+    return data;
+}
+
+async function resolvePromptPayload(featureKey, userInput, fallbackSystemPrompt, options = {}) {
+    const config = await getPromptGovernanceConfig(featureKey);
+    if (config) {
+        const templateVars = options?.templateVars || {};
+        const templateText = String(config?.prompt_content || '').trim();
+        if (templateText.includes('{{')) {
+            const compiledFromTemplate = optimizePromptText(renderTemplate(templateText, templateVars));
+            return {
+                prompt: compiledFromTemplate || userInput,
+                systemPrompt: ''
+            };
+        }
+
+        const compiledPrompt = buildPromptFromConfig(config, userInput, options);
+        return {
+            prompt: compiledPrompt,
+            systemPrompt: ''
+        };
+    }
+
+    return {
+        prompt: userInput,
+        systemPrompt: fallbackSystemPrompt
+    };
+}
+
 // ============================================
 // AI CORE
 // ============================================
 
-async function callGemini(prompt, systemPrompt = "") {
-    const apiKey = typeof appConfig !== 'undefined' ? appConfig.geminiApiKey : null;
-    if (!apiKey || apiKey === "YOUR_API_KEY_HERE") {
-        throw new Error("Gemini API Key missing in config.js");
+function setMockSourceBadge(source, provider = '') {
+    const container = document.getElementById('api-status-container');
+    if (!container) return;
+
+    let badge = document.getElementById('mock-source-badge');
+    if (!badge) {
+        badge = document.createElement('span');
+        badge.id = 'mock-source-badge';
+        badge.className = 'inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-black uppercase tracking-wider';
+        container.appendChild(badge);
     }
 
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+    const normalizedSource = String(source || '').toLowerCase();
+    if (!normalizedSource || normalizedSource === 'idle') {
+        badge.textContent = 'Source: --';
+        badge.className = 'inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-black uppercase tracking-wider bg-slate-100 text-slate-500';
+        return;
+    }
 
-    const response = await fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-            contents: [{
-                parts: [{ text: `${systemPrompt}\n\nUser Input: ${prompt}` }]
-            }]
-        })
-    });
+    if (normalizedSource === 'frontend_mock') {
+        badge.textContent = 'Source: Frontend Mock';
+        badge.className = 'inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-black uppercase tracking-wider bg-amber-100 text-amber-800';
+        return;
+    }
+
+    if (normalizedSource === 'mock' || normalizedSource === 'backend_mock') {
+        badge.textContent = 'Source: Backend Mock';
+        badge.className = 'inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-black uppercase tracking-wider bg-yellow-100 text-yellow-800';
+        return;
+    }
+
+    if (normalizedSource === 'mock_fallback') {
+        badge.textContent = 'Source: Mock Fallback';
+        badge.className = 'inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-black uppercase tracking-wider bg-orange-100 text-orange-800';
+        return;
+    }
+
+    const labelProvider = String(provider || '').trim().toUpperCase();
+    badge.textContent = labelProvider ? `Source: Live (${labelProvider})` : 'Source: Live';
+    badge.className = 'inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-black uppercase tracking-wider bg-emerald-100 text-emerald-800';
+}
+
+async function callGemini(prompt, systemPrompt = "", featureType = "") {
+    const keyConfigured = await syncAiKeyStatus();
+    if (!keyConfigured) {
+        showToast('API key not configured. Open Settings to add your key.');
+        const err = new Error('API key not configured');
+        err.code = 'MISSING_API_KEY';
+        throw err;
+    }
+
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), GEMINI_TIMEOUT_MS);
+
+    const token = await getAuthTokenForApi();
+    const preferredProvider = (localStorage.getItem(USER_AI_PROVIDER_KEY) || '').trim().toLowerCase();
+    const headers = { 'Content-Type': 'application/json' };
+    if (token) {
+        headers.Authorization = `Bearer ${token}`;
+    }
+
+    let response;
+    try {
+        response = await fetch(AI_GENERATE_ENDPOINT, {
+            method: 'POST',
+            headers,
+            signal: controller.signal,
+            body: JSON.stringify({ prompt, systemPrompt, featureType, provider: preferredProvider || undefined })
+        });
+    } catch (error) {
+        clearTimeout(timer);
+        const isAbort = error?.name === 'AbortError';
+        console.error('❌ Network error:', error);
+        const err = new Error(isAbort ? 'Request timed out. Please try again.' : 'Network error. Please check your connection.');
+        err.code = isAbort ? 'TIMEOUT' : 'NETWORK';
+        throw err;
+    } finally {
+        clearTimeout(timer);
+    }
 
     if (!response.ok) {
-        const err = await response.json();
-        throw new Error(err.error?.message || "API Call Failed");
+        let message = `API error (${response.status}).`;
+        let errorType = 'API_ERROR';
+        
+        try {
+            const errJson = await response.json();
+            message = errJson?.error || errJson?.message || message;
+            console.error('❌ API Error:', errJson);
+            
+            // Check for rate limit
+            if (response.status === 429 || message.toLowerCase().includes('rate limit')) {
+                errorType = 'RATE_LIMIT';
+                message = '⚠️ Rate Limit Reached\n\n' +
+                         'Your API key has exceeded its quota.\n\n' +
+                         'Solutions:\n' +
+                         '1. Wait a few minutes and try again\n' +
+                         '2. Switch to a different AI provider in Settings\n' +
+                         '3. Upgrade your API plan for higher limits';
+            }
+        } catch (_) {
+            try {
+                const errText = await response.text();
+                if (errText) message = errText;
+                console.error('❌ API Error:', errText);
+            } catch (_) { }
+        }
+        
+        const err = new Error(message);
+        err.code = response.status === 401 || response.status === 403 ? 'INVALID_API_KEY' : errorType;
+        err.statusCode = response.status;
+        throw err;
     }
 
     const data = await response.json();
-    return data.candidates[0].content.parts[0].text;
+    const responseSource = String(data?.source || '').trim().toLowerCase();
+    const responseProvider = String(data?.provider || '').trim().toLowerCase();
+    
+    // Log response for debugging
+    console.log('✅ AI Response:', { source: responseSource, provider: responseProvider, mode: data?.mode });
+    
+    setMockSourceBadge(responseSource || 'live', responseProvider);
+    const output = typeof data?.text === 'string' ? data.text : normalizeGeminiOutput(data);
+    if (!output || typeof output !== 'string' || !output.trim()) {
+        const err = new Error('AI returned an empty response. Try again.');
+        err.code = 'EMPTY_RESPONSE';
+        throw err;
+    }
+    return output;
 }
 
 async function generateAI(prompt, systemPrompt = "", featureType = "") {
     // Show "Processing..." toast immediately
-    showToast('🚀 Analyzing requirement...', 2000);
+    showToast('Processing request...', 2000);
 
     // Add artificial delay to manage UX expectations (1.5s - 2s)
     const delay = Math.floor(Math.random() * 500) + 1500;
     await new Promise(r => setTimeout(r, delay));
 
-    // Check if test mode is enabled
-    const isTestMode = (typeof TEST_MODE !== 'undefined' && TEST_MODE) || (typeof appConfig !== 'undefined' && appConfig.testMode);
+    const isTestMode = getIsTestMode();
+    const preferredProvider = (localStorage.getItem(USER_AI_PROVIDER_KEY) || '').trim().toLowerCase();
+    const isMockProvider = preferredProvider === MOCK_PROVIDER;
 
-    if (isTestMode) {
+    if (isTestMode || isMockProvider) {
         console.log(`🧪 TEST MODE: Mocking [${featureType}]`);
+        setMockSourceBadge('frontend_mock');
 
         // Use MOCK_RESPONSES from test-config.js if available, else local fallback
-        if (typeof MOCK_RESPONSES !== 'undefined' && MOCK_RESPONSES[featureType]) {
-            return MOCK_RESPONSES[featureType];
-        }
-        return "Mock response: Please integrate test-config.js for detailed mocks.";
+        const mock = getMockResponse(featureType);
+        return mock || "Mock response missing for this feature.";
     }
 
-    return await callGemini(prompt, systemPrompt);
+    if (!(prompt || '').trim()) {
+        const err = new Error('Input is empty. Please enter your requirement before processing.');
+        err.code = 'EMPTY_INPUT';
+        throw err;
+    }
+
+    try {
+        const result = await callGemini(prompt, systemPrompt, featureType);
+        console.log('✅ AI generation successful');
+        return result;
+    } catch (error) {
+        console.error('❌ AI call failed:', error);
+        
+        // CRITICAL: Do NOT fallback to mock if user has API key configured
+        const hasApiKey = hasUserApiKeyConfigured;
+        
+        if (hasApiKey) {
+            // User has API key - show real error, don't fallback
+            console.error('❌ Real API failed with user key:', error.message);
+            throw error;
+        }
+        
+        // No API key - check if fallback is allowed
+        const canFallback = shouldFallbackToMock();
+        const mock = getMockResponse(featureType);
+        
+        if (canFallback && mock) {
+            console.warn('⚠️ Falling back to mock (no API key configured)');
+            showToast('Live AI failed. Falling back to mock mode.');
+            setMockSourceBadge('frontend_mock');
+            return mock;
+        }
+        
+        throw error;
+    }
 }
 
 function checkAPIStatus() {
     const dot = document.getElementById('api-status-dot');
     const text = document.getElementById('api-status-text');
     const container = document.getElementById('api-status-container');
-    const isTestMode = (typeof TEST_MODE !== 'undefined' && TEST_MODE);
-    const apiKey = typeof appConfig !== 'undefined' ? appConfig.geminiApiKey : null;
-    const hasKey = apiKey && apiKey !== "YOUR_API_KEY_HERE";
+    const isTestMode = getIsTestMode();
+    const preferredProvider = (localStorage.getItem(USER_AI_PROVIDER_KEY) || '').trim().toLowerCase();
+    const isMockProvider = preferredProvider === MOCK_PROVIDER;
+    const hasKey = hasUserApiKeyConfigured;
+    const providerLabel = preferredProvider && preferredProvider !== 'auto' && preferredProvider !== MOCK_PROVIDER
+        ? preferredProvider.charAt(0).toUpperCase() + preferredProvider.slice(1)
+        : 'AI';
 
     if (!dot || !text) return;
     if (container) container.classList.add('modern-tooltip');
 
-    if (isTestMode) {
+    if (isTestMode || isMockProvider) {
         dot.className = 'w-2.5 h-2.5 rounded-full bg-yellow-500 animate-pulse';
         text.textContent = 'Mock Mode';
         const tooltipText = 'Mock Mode: AI responses are simulated test data, not live Gemini output.';
@@ -335,18 +986,88 @@ function checkAPIStatus() {
         text.removeAttribute('title');
     } else if (hasKey) {
         dot.className = 'w-2.5 h-2.5 rounded-full bg-green-500';
-        text.textContent = '🟢 Gemini Connected';
-        const tooltipText = 'Gemini Connected: Responses are generated from live Gemini API.';
+        text.textContent = `🟢 ${providerLabel} Connected`;
+        const tooltipText = `${providerLabel} Connected: Responses are generated from live provider API.`;
         if (container) container.setAttribute('data-tooltip', tooltipText);
         dot.removeAttribute('title');
         text.removeAttribute('title');
     } else {
         dot.className = 'w-2.5 h-2.5 rounded-full bg-red-500';
         text.textContent = '🔴 No API Configured';
-        const tooltipText = 'No API Configured: Add geminiApiKey in config.js to enable live AI responses.';
+        const tooltipText = 'No API Configured: Add your provider API key in Settings.';
         if (container) container.setAttribute('data-tooltip', tooltipText);
         dot.removeAttribute('title');
         text.removeAttribute('title');
+    }
+    setMockSourceBadge('idle');
+}
+
+function setPromptIndicatorState(moduleKey, prompt) {
+    const indicator = document.querySelector(`.prompt-status-indicator[data-prompt-module="${moduleKey}"]`);
+    if (!indicator) return;
+
+    const isConfigured = Boolean(prompt);
+    indicator.classList.toggle('hidden', !isConfigured);
+    indicator.classList.toggle('inline-flex', isConfigured);
+    indicator.title = isConfigured ? 'Prompt configured' : '';
+}
+
+async function fetchPromptIndicatorStatusFromApi() {
+    if (!window.getCurrentSession) return null;
+    const session = await window.getCurrentSession();
+    const token = session?.access_token;
+    if (!token) return null;
+
+    const modules = MODULE_PROMPT_KEYS.join(',');
+    const response = await fetch(`/api/module-prompt-status?modules=${encodeURIComponent(modules)}`, {
+        headers: {
+            Authorization: `Bearer ${token}`
+        }
+    });
+
+    if (!response.ok) {
+        throw new Error('Could not load prompt indicators.');
+    }
+
+    const payload = await response.json();
+    return new Map((payload.modules || []).map(item => [item.moduleKey, item.prompt || null]));
+}
+
+async function fetchPromptIndicatorStatusFromSupabase() {
+    if (!window.supabaseClient) return new Map();
+
+    const { data, error } = await window.supabaseClient
+        .from(PROMPT_CONFIG_TABLE)
+        .select('module_key, title, prompt_content, status')
+        .in('module_key', MODULE_PROMPT_KEYS)
+        .eq('status', 'ACTIVE');
+
+    if (error) throw error;
+    return new Map((data || []).map(item => [item.module_key, item]));
+}
+
+async function updateModulePromptIndicators() {
+    MODULE_PROMPT_KEYS.forEach(moduleKey => setPromptIndicatorState(moduleKey, null));
+
+    try {
+        let statusByModule = await fetchPromptIndicatorStatusFromApi();
+        if (!statusByModule) {
+            statusByModule = await fetchPromptIndicatorStatusFromSupabase();
+        }
+
+        MODULE_PROMPT_KEYS.forEach(moduleKey => {
+            setPromptIndicatorState(moduleKey, statusByModule.get(moduleKey) || null);
+        });
+    } catch (error) {
+        console.error('Prompt indicator update failed:', error.message);
+        try {
+            const fallbackStatus = await fetchPromptIndicatorStatusFromSupabase();
+            MODULE_PROMPT_KEYS.forEach(moduleKey => {
+                setPromptIndicatorState(moduleKey, fallbackStatus.get(moduleKey) || null);
+            });
+        } catch (fallbackError) {
+            console.error('Prompt indicator fallback failed:', fallbackError.message);
+        }
     }
 }
 
@@ -363,7 +1084,13 @@ async function generateRequirementIntelligence(e) {
     setLoading(btn, true);
 
     try {
-        const response = await generateAI(input, SYSTEM_PROMPTS.requirementIntelligence, 'requirementIntelligence');
+        const payload = await resolvePromptPayload('requirementIntelligence', input, SYSTEM_PROMPTS.requirementIntelligence, {
+            templateVars: {
+                requirement: input,
+                userInput: input
+            }
+        });
+        const response = await generateAI(payload.prompt, payload.systemPrompt, 'requirementIntelligence');
         const data = safeParseJSON(response);
 
         if (!data) throw new Error("Could not parse AI response");
@@ -402,37 +1129,53 @@ async function generateRequirementIntelligence(e) {
     }
 }
 
+function clearRequirementIntelligence() {
+    if (!confirm('Clear all input and output data?')) return;
+    document.getElementById('req-intel-input').value = '';
+    document.getElementById('req-intel-output').style.display = 'none';
+    document.getElementById('req-intel-error').classList.add('hidden');
+    document.getElementById('req-intel-input').classList.remove('border-red-500', 'bg-red-50');
+    showToast('Cleared successfully!');
+}
+
 // 2. Test Suite Architect
-async function generateTestSuite(e) {
-    if (!validateInput('test-suite-input', 'test-suite-error', 'Please enter feature details before generating')) return;
+let tsCurrentCases = [];
 
-    const module = document.getElementById('module-name').value.trim();
-    const subModule = document.getElementById('sub-module-name').value.trim();
-    const input = document.getElementById('test-suite-input').value.trim();
+async function tsGenerate(e) {
+    if (!validateInput('ts-requirement', 'ts-req-error', 'Please enter feature details before generating')) return;
 
-    const btn = e.currentTarget;
+    const module = document.getElementById('ts-module-name').value.trim();
+    const subModule = document.getElementById('ts-sub-module').value.trim();
+    const input = document.getElementById('ts-requirement').value.trim();
+    const format = document.getElementById('ts-format-input').value.trim();
+
+    const btn = e?.currentTarget || document.getElementById('ts-generate-btn');
     setLoading(btn, true);
 
-    const prompt = `Module: ${module}, Sub-Module: ${subModule}\nRequirement: ${input}`;
+    const prompt = `Module: ${module}, Sub-Module: ${subModule}\nFormat: ${format}\nRequirement: ${input}`;
 
     try {
-        const response = await generateAI(prompt, SYSTEM_PROMPTS.testSuite, 'testSuite');
+        const payload = await resolvePromptPayload('testSuite', prompt, SYSTEM_PROMPTS.testSuite, {
+            templateVars: {
+                requirement: input,
+                userInput: input,
+                module,
+                subModule,
+                format
+            }
+        });
+        const response = await generateAI(payload.prompt, payload.systemPrompt, 'testSuite');
         const data = safeParseJSON(response);
 
         if (data && Array.isArray(data)) {
-            currentTestCases = data;
+            tsCurrentCases = data;
             await saveTestCases();
-            renderTestCasesTable();
-            updateTestSuiteSummary();
-            populateModuleFilter();
+            tsRenderTable();
+            tsUpdateStats();
 
-            // Handle Confidence Score
-            const confidence = document.getElementById('test-suite-confidence');
-            if (confidence) {
-                confidence.textContent = `${generateConfidenceScore()}%`;
-            }
-
-            document.getElementById('test-suite-output').style.display = 'block';
+            document.getElementById('ts-output').classList.remove('hidden');
+            document.getElementById('ts-regenerate-btn').classList.remove('hidden');
+            document.getElementById('ts-regenerate-btn').classList.add('flex');
             showToast('Test cases generated successfully!');
         } else {
             throw new Error("Invalid AI response format");
@@ -443,6 +1186,161 @@ async function generateTestSuite(e) {
     } finally {
         setLoading(btn, false);
     }
+}
+
+async function tsRegenerate() {
+    await tsGenerate();
+}
+
+function tsUpdateStats() {
+    const total = tsCurrentCases.length;
+    const negative = tsCurrentCases.filter(tc => tc.type?.toLowerCase().includes('negative')).length;
+    const edge = tsCurrentCases.filter(tc => tc.type?.toLowerCase().includes('edge') || tc.type?.toLowerCase().includes('boundary')).length;
+    const functional = tsCurrentCases.filter(tc => tc.type?.toLowerCase().includes('functional')).length;
+
+    document.getElementById('ts-stat-total').textContent = total;
+    document.getElementById('ts-stat-negative').textContent = negative;
+    document.getElementById('ts-stat-edge').textContent = edge;
+    document.getElementById('ts-stat-functional').textContent = functional;
+}
+
+function tsFilter() {
+    const searchTerm = document.getElementById('ts-search').value.toLowerCase();
+    const typeFilter = document.getElementById('ts-filter-type').value;
+
+    const filtered = tsCurrentCases.filter(tc => {
+        const matchesSearch = Object.values(tc).some(val => 
+            String(val).toLowerCase().includes(searchTerm)
+        );
+        const matchesType = typeFilter === 'all' || tc.type === typeFilter;
+        return matchesSearch && matchesType;
+    });
+
+    tsRenderTable(filtered);
+}
+
+function tsRenderTable(displayList = tsCurrentCases) {
+    const thead = document.getElementById('ts-thead');
+    const tbody = document.getElementById('ts-tbody');
+    const emptyState = document.getElementById('ts-empty-state');
+
+    if (displayList.length === 0) {
+        tbody.innerHTML = '';
+        emptyState.classList.remove('hidden');
+        return;
+    }
+
+    emptyState.classList.add('hidden');
+
+    // Build header from first case keys
+    const headers = displayList[0] ? Object.keys(displayList[0]) : [];
+    thead.innerHTML = `<tr class="bg-slate-50 border-b border-slate-200">${headers.map(h => 
+        `<th class="px-4 py-3 text-left text-xs font-black uppercase tracking-widest text-slate-500">${h}</th>`
+    ).join('')}<th class="px-4 py-3 text-right text-xs font-black uppercase tracking-widest text-slate-500">Actions</th></tr>`;
+
+    tbody.innerHTML = displayList.map((tc, idx) => `
+        <tr class="border-b border-slate-100 hover:bg-slate-50 transition-colors">
+            ${headers.map(h => `<td class="px-4 py-3 text-sm text-slate-700">${tc[h] || ''}</td>`).join('')}
+            <td class="px-4 py-3 text-right">
+                <button onclick="tsEditRow(${idx})" class="action-icon-btn edit-btn" title="Edit">
+                    <span class="material-symbols-outlined text-lg">edit</span>
+                </button>
+            </td>
+        </tr>
+    `).join('');
+}
+
+function tsEditRow(idx) {
+    showToast('Edit functionality coming soon!');
+}
+
+function tsAddRow() {
+    showToast('Add row functionality coming soon!');
+}
+
+function tsCopyAll() {
+    if (tsCurrentCases.length === 0) return;
+
+    const headers = Object.keys(tsCurrentCases[0]);
+    const headerRow = headers.join('\t');
+    const body = tsCurrentCases.map(tc => headers.map(h => tc[h] || '').join('\t')).join('\n');
+
+    navigator.clipboard.writeText(headerRow + '\n' + body).then(() => {
+        showToast('Copied all for Excel!');
+    });
+}
+
+function tsDownloadExcel() {
+    if (tsCurrentCases.length === 0) return;
+    if (!window.XLSX) {
+        showToast("XLSX library not loaded!");
+        return;
+    }
+
+    const worksheet = XLSX.utils.json_to_sheet(tsCurrentCases);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Test Cases");
+
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+    const moduleName = document.getElementById('ts-module-name')?.value || 'test-cases';
+    const filename = `${slugifyFilename(moduleName)}-${timestamp}.xlsx`;
+
+    try {
+        const excelBuffer = XLSX.write(workbook, {
+            bookType: 'xlsx',
+            type: 'array',
+            compression: true
+        });
+
+        const blob = new Blob([excelBuffer], { type: EXCEL_MIME_TYPE });
+        const downloadUrl = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = downloadUrl;
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        URL.revokeObjectURL(downloadUrl);
+        showToast('Excel download started!');
+    } catch (error) {
+        console.error(error);
+        showToast('Error generating Excel file');
+    }
+}
+
+async function tsClearSuite() {
+    if (!confirm('Are you sure you want to clear all generated test cases? This action cannot be undone.')) {
+        return;
+    }
+
+    tsCurrentCases = [];
+    currentTestCases = [];
+    localStorage.removeItem('qaly_saved_testcases');
+
+    if (window.supabaseClient) {
+        const userId = await resolveCurrentUserId();
+        if (userId) {
+            await window.supabaseClient
+                .from(TEST_CASES_TABLE)
+                .upsert({ user_id: userId, test_cases: [] }, { onConflict: 'user_id' });
+        }
+    }
+
+    document.getElementById('ts-output').classList.add('hidden');
+    tsRenderTable();
+    tsUpdateStats();
+    showToast('Test suite cleared.');
+}
+
+function tsClearInput() {
+    if (!confirm('Clear all input fields?')) return;
+    document.getElementById('ts-module-name').value = '';
+    document.getElementById('ts-sub-module').value = '';
+    document.getElementById('ts-requirement').value = '';
+    document.getElementById('ts-format-input').value = 'Sl No | Test Case ID | Test Case | Pre-Conditions | Steps | Expected Result | Type';
+    document.getElementById('ts-req-error').classList.add('hidden');
+    document.getElementById('ts-requirement').classList.remove('border-red-500', 'bg-red-50');
+    showToast('Input cleared successfully!');
 }
 
 function updateTestSuiteSummary() {
@@ -622,11 +1520,11 @@ function editTestCase(id, btn, event) {
     `;
 }
 
-function cancelEdit(id, event) {
+function cancelEdit() {
     renderTestCasesTable(); // Just re-render everything
 }
 
-async function saveEdit(id, event) {
+async function saveEdit(id) {
     const tcIndex = currentTestCases.findIndex(t => t.id === id);
     if (tcIndex === -1) return;
 
@@ -697,24 +1595,36 @@ function downloadExcel() {
         { wch: 15 }, { wch: 15 }, { wch: 20 }, { wch: 20 }, { wch: 25 },
         { wch: 40 }, { wch: 20 }, { wch: 30 }, { wch: 30 }, { wch: 12 }
     ];
+    worksheet['!autofilter'] = { ref: worksheet['!ref'] };
 
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, "Test Cases");
 
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
-    const filename = `test-cases-${timestamp}.xlsx`;
+    const moduleName = document.getElementById('module-name')?.value || 'test-cases';
+    const filename = `${slugifyFilename(moduleName)}-${timestamp}.xlsx`;
 
     try {
-        XLSX.writeFile(workbook, filename);
+        const excelBuffer = XLSX.write(workbook, {
+            bookType: 'xlsx',
+            type: 'array',
+            compression: true
+        });
+
+        const blob = new Blob([excelBuffer], { type: EXCEL_MIME_TYPE });
+        const downloadUrl = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = downloadUrl;
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        URL.revokeObjectURL(downloadUrl);
         showToast('Excel download started!');
     } catch (error) {
         console.error(error);
         showToast('Error generating Excel file');
     }
-}
-
-function saveTestCasesToLocal() {
-    localStorage.setItem('qaly_saved_testcases', JSON.stringify(currentTestCases));
 }
 
 async function resolveCurrentUserId() {
@@ -732,7 +1642,8 @@ async function resolveCurrentUserId() {
 }
 
 async function saveTestCases() {
-    saveTestCasesToLocal(); // Fallback cache for offline/temporary failures.
+    const casesToSave = tsCurrentCases.length > 0 ? tsCurrentCases : currentTestCases;
+    localStorage.setItem('qaly_saved_testcases', JSON.stringify(casesToSave));
 
     if (!window.supabaseClient) return;
     const userId = await resolveCurrentUserId();
@@ -743,7 +1654,7 @@ async function saveTestCases() {
         .upsert(
             {
                 user_id: userId,
-                test_cases: currentTestCases
+                test_cases: casesToSave
             },
             { onConflict: 'user_id' }
         );
@@ -767,7 +1678,8 @@ async function loadTestCases() {
                 .single();
 
             if (!error && data?.test_cases) {
-                currentTestCases = Array.isArray(data.test_cases) ? data.test_cases : [];
+                tsCurrentCases = Array.isArray(data.test_cases) ? data.test_cases : [];
+                currentTestCases = tsCurrentCases;
                 loadedFromSupabase = true;
             }
         }
@@ -777,19 +1689,33 @@ async function loadTestCases() {
         const saved = localStorage.getItem('qaly_saved_testcases');
         if (saved) {
             try {
-                currentTestCases = JSON.parse(saved);
+                tsCurrentCases = JSON.parse(saved);
+                currentTestCases = tsCurrentCases;
             } catch (error) {
                 console.error('Failed to parse local test cases:', error.message);
+                tsCurrentCases = [];
                 currentTestCases = [];
             }
         }
     }
 
+    if (tsCurrentCases.length > 0) {
+        document.getElementById('ts-output')?.classList.remove('hidden');
+        document.getElementById('ts-regenerate-btn')?.classList.remove('hidden');
+        document.getElementById('ts-regenerate-btn')?.classList.add('flex');
+        tsRenderTable();
+        tsUpdateStats();
+    }
+
+    // Legacy support for old test suite
     if (currentTestCases.length > 0) {
-        document.getElementById('test-suite-output').style.display = 'block';
-        renderTestCasesTable();
-        updateTestSuiteSummary();
-        populateModuleFilter();
+        const oldOutput = document.getElementById('test-suite-output');
+        if (oldOutput) {
+            oldOutput.style.display = 'block';
+            renderTestCasesTable();
+            updateTestSuiteSummary();
+            populateModuleFilter();
+        }
     }
 }
 
@@ -837,7 +1763,13 @@ async function generateBugReport(e) {
     setLoading(btn, true);
 
     try {
-        const response = await generateAI(input, SYSTEM_PROMPTS.bugReport, 'bugReport');
+        const payload = await resolvePromptPayload('bugReport', input, SYSTEM_PROMPTS.bugReport, {
+            templateVars: {
+                requirement: input,
+                userInput: input
+            }
+        });
+        const response = await generateAI(payload.prompt, payload.systemPrompt, 'bugReport');
         document.getElementById('bug-report-content').innerHTML = response;
 
         const meta = document.getElementById('bug-meta');
@@ -856,6 +1788,15 @@ async function generateBugReport(e) {
     }
 }
 
+function clearBugReport() {
+    if (!confirm('Clear all input and output data?')) return;
+    document.getElementById('bug-input').value = '';
+    document.getElementById('bug-output').style.display = 'none';
+    document.getElementById('bug-error').classList.add('hidden');
+    document.getElementById('bug-input').classList.remove('border-red-500', 'bg-red-50');
+    showToast('Cleared successfully!');
+}
+
 // 4. Sentence Correction
 async function correctSentence(e) {
     if (!validateInput('sentence-input', 'sentence-error', 'Please enter text to correct')) return;
@@ -865,7 +1806,13 @@ async function correctSentence(e) {
     setLoading(btn, true);
 
     try {
-        const response = await generateAI(input, SYSTEM_PROMPTS.sentenceCorrection, 'sentenceCorrection');
+        const payload = await resolvePromptPayload('sentenceCorrection', input, SYSTEM_PROMPTS.sentenceCorrection, {
+            templateVars: {
+                requirement: input,
+                userInput: input
+            }
+        });
+        const response = await generateAI(payload.prompt, payload.systemPrompt, 'sentenceCorrection');
         const data = safeParseJSON(response);
 
         if (!data) throw new Error("Invalid format");
@@ -882,6 +1829,8 @@ async function correctSentence(e) {
         }
 
         document.getElementById('sentence-output').style.display = 'block';
+        const sentenceOutputEmpty = document.getElementById('sentence-output-empty');
+        if (sentenceOutputEmpty) sentenceOutputEmpty.style.display = 'none';
         showToast('Correction complete!');
     } catch (err) {
         showToast('Error: ' + err.message);
@@ -890,7 +1839,20 @@ async function correctSentence(e) {
     }
 }
 
-// 5. Professional Case Architect
+function clearSentenceCorrection() {
+    if (!confirm('Clear all input and output data?')) return;
+    document.getElementById('sentence-input').value = '';
+    document.getElementById('sentence-output').style.display = 'none';
+    const sentenceOutputEmpty = document.getElementById('sentence-output-empty');
+    if (sentenceOutputEmpty) sentenceOutputEmpty.style.display = 'block';
+    document.getElementById('sentence-error').classList.add('hidden');
+    document.getElementById('sentence-input').classList.remove('border-red-500', 'bg-red-50');
+    showToast('Cleared successfully!');
+}
+
+// 5. Professional Case Architect (Test Case Builder)
+let professionalTestCases = [];
+
 async function generateProfessionalCase(e) {
     if (!validateInput('professional-case-input', 'professional-case-error', 'Please enter test notes before architecting')) return;
 
@@ -898,9 +1860,61 @@ async function generateProfessionalCase(e) {
     const btn = e.currentTarget;
     setLoading(btn, true);
 
+    // STRICT JSON PROMPT
+    const strictPrompt = `You are an expert QA Engineer.
+
+Generate TWO types of test cases:
+1. VERIFIED (confirmed test cases)
+2. SUGGESTED (additional test cases to consider)
+
+STRICT RULES:
+- Title MUST start with "Check whether..."
+- Return ONLY valid JSON
+- NO explanations, NO markdown, NO extra text
+- Each test case must have: id, title, preCondition, steps (array), expectedResult, isSuggestion (boolean)
+
+FORMAT:
+{
+  "testCases": [
+    {
+      "id": "TC001",
+      "title": "Check whether user is able to login with valid credentials",
+      "preCondition": "User is on login page",
+      "steps": [
+        "Enter valid username",
+        "Enter valid password",
+        "Click login button"
+      ],
+      "expectedResult": "User logs in successfully",
+      "isSuggestion": false
+    }
+  ]
+}
+
+User Input:
+${input}`;
+
     try {
-        const response = await generateAI(input, SYSTEM_PROMPTS.professionalCase, 'professionalCase');
-        document.getElementById('professional-case-content').innerHTML = response;
+        const response = await generateAI(strictPrompt, '', 'professionalCase');
+        
+        // FORCE JSON PARSING
+        let parsed;
+        try {
+            parsed = typeof response === "string" ? safeParseJSON(response) : response;
+        } catch (e) {
+            console.error("JSON parse failed", response);
+            showToast('Invalid AI response format. Please try again.');
+            return;
+        }
+
+        if (!parsed || !parsed.testCases || !Array.isArray(parsed.testCases)) {
+            console.error("Invalid response structure", parsed);
+            showToast('AI returned invalid format. Please try again.');
+            return;
+        }
+
+        professionalTestCases = parsed.testCases;
+        renderProfessionalTestCases();
 
         const meta = document.getElementById('professional-case-meta');
         const confidence = document.getElementById('professional-case-confidence');
@@ -910,12 +1924,65 @@ async function generateProfessionalCase(e) {
         }
 
         document.getElementById('professional-case-output').style.display = 'block';
-        showToast('Case architected!');
+        showToast('Test cases generated!');
     } catch (err) {
+        console.error('Generation error:', err);
         showToast('Error: ' + err.message);
     } finally {
         setLoading(btn, false);
     }
+}
+
+function renderProfessionalTestCases() {
+    const container = document.getElementById('professional-case-content');
+    if (!container) return;
+
+    if (professionalTestCases.length === 0) {
+        container.innerHTML = '<p class="text-slate-500 text-sm">No test cases generated</p>';
+        return;
+    }
+
+    container.innerHTML = professionalTestCases.map(tc => `
+        <div class="test-card ${tc.isSuggestion ? 'suggested' : 'verified'} mb-4">
+            <div class="card-header flex items-center justify-between mb-3">
+                <span class="badge ${tc.isSuggestion ? 'badge-suggested' : 'badge-verified'}">
+                    ${tc.isSuggestion ? 'SUGGESTED' : 'VERIFIED'}
+                </span>
+                <span class="text-xs font-mono text-slate-500">${tc.id}</span>
+            </div>
+            
+            <h3 class="text-base font-bold text-slate-800 mb-4">${tc.title}</h3>
+            
+            <div class="card-body space-y-4">
+                <div>
+                    <h4 class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">Pre-condition</h4>
+                    <p class="text-sm text-slate-700 bg-slate-50 p-3 rounded-lg">${tc.preCondition}</p>
+                </div>
+                
+                <div>
+                    <h4 class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">Steps</h4>
+                    <ol class="list-decimal list-inside space-y-1.5 text-sm text-slate-700 bg-slate-50 p-3 rounded-lg">
+                        ${tc.steps.map(step => `<li class="ml-2">${step}</li>`).join('')}
+                    </ol>
+                </div>
+                
+                <div>
+                    <h4 class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">Expected Result</h4>
+                    <p class="text-sm text-slate-700 bg-green-50 p-3 rounded-lg border border-green-200">${tc.expectedResult}</p>
+                </div>
+            </div>
+        </div>
+    `).join('');
+}
+
+function clearProfessionalCase() {
+    if (!confirm('Clear all input and output data?')) return;
+    document.getElementById('professional-case-input').value = '';
+    document.getElementById('professional-case-output').style.display = 'none';
+    document.getElementById('professional-case-error').classList.add('hidden');
+    document.getElementById('professional-case-input').classList.remove('border-red-500', 'bg-red-50');
+    professionalTestCases = [];
+    showToast('Cleared successfully!');
 }
 
 // Helper function for Excel Copy
@@ -931,7 +1998,7 @@ function copyBugReport() {
 
 // Export functions to window for HTML access securely
 window.generateRequirementIntelligence = generateRequirementIntelligence;
-window.generateTestSuite = generateTestSuite;
+window.generateTestSuite = tsGenerate; // Alias for Test Suite Architect
 window.generateBugReport = generateBugReport;
 window.correctSentence = correctSentence;
 window.generateProfessionalCase = generateProfessionalCase;
@@ -947,4 +2014,140 @@ window.saveEdit = saveEdit;
 window.toggleRowExpansion = toggleRowExpansion;
 window.clearTestSuite = clearTestSuite;
 window.renderTestCasesTable = renderTestCasesTable;
-window.copyToClipboard = copyToClipboard; // Shared copy helper
+window.copyToClipboard = copyToClipboard;
+window.handleRequirementUpload = handleRequirementUpload;
+
+// New Test Suite Architect functions
+window.tsGenerate = tsGenerate;
+window.tsRegenerate = tsRegenerate;
+window.tsFilter = tsFilter;
+window.tsRenderTable = tsRenderTable;
+window.tsEditRow = tsEditRow;
+window.tsAddRow = tsAddRow;
+window.tsCopyAll = tsCopyAll;
+window.tsDownloadExcel = tsDownloadExcel;
+window.tsClearSuite = tsClearSuite;
+window.tsClearInput = tsClearInput;
+
+// Clear functions for all modules
+window.clearRequirementIntelligence = clearRequirementIntelligence;
+window.clearBugReport = clearBugReport;
+window.clearSentenceCorrection = clearSentenceCorrection;
+window.clearProfessionalCase = clearProfessionalCase;
+
+// ============================================
+// MEETING NOTES EXTRACTOR
+// ============================================
+
+async function extractMeetingNotes(e) {
+    if (!validateInput('meeting-notes-input', 'meeting-notes-error', 'Please enter meeting notes before extracting')) return;
+
+    const input = document.getElementById('meeting-notes-input').value.trim();
+    const btn = e.currentTarget;
+    setLoading(btn, true);
+
+    try {
+        const payload = await resolvePromptPayload('meetingNotesExtractor', input, SYSTEM_PROMPTS.meetingNotesExtractor, {
+            templateVars: {
+                meetingNotes: input,
+                userInput: input
+            }
+        });
+        const response = await generateAI(payload.prompt, payload.systemPrompt, 'meetingNotesExtractor');
+        const data = safeParseJSON(response);
+
+        if (!data) throw new Error("Could not parse AI response");
+
+        // Render Action Items Table
+        const actionItemsTbody = document.getElementById('action-items-tbody');
+        if (data.actionItems && data.actionItems.length > 0) {
+            actionItemsTbody.innerHTML = data.actionItems.map(item => `
+                <tr class="border-b border-slate-100 hover:bg-slate-50 transition-colors">
+                    <td class="px-4 py-3 text-sm text-slate-700">${item.task || 'N/A'}</td>
+                    <td class="px-4 py-3 text-sm text-slate-700">${item.owner || 'Not specified'}</td>
+                    <td class="px-4 py-3 text-sm text-slate-700">${item.dueDate || 'TBD'}</td>
+                </tr>
+            `).join('');
+        } else {
+            actionItemsTbody.innerHTML = '<tr><td colspan="3" class="px-4 py-3 text-sm text-slate-500 text-center">No action items found</td></tr>';
+        }
+
+        // Render Decisions
+        const decisionsList = document.getElementById('decisions-list');
+        if (data.decisions && data.decisions.length > 0) {
+            decisionsList.innerHTML = data.decisions.map(decision => `
+                <div class="flex gap-3 items-start p-3 bg-white shadow-sm rounded-xl border border-slate-100 hover:shadow-md transition-shadow duration-300">
+                    <span class="material-symbols-outlined text-green-600 text-sm mt-0.5">check_circle</span>
+                    <p class="text-xs text-slate-700 font-medium">${decision}</p>
+                </div>
+            `).join('');
+        } else {
+            decisionsList.innerHTML = '<p class="text-sm text-slate-500">No decisions recorded</p>';
+        }
+
+        // Render Questions
+        const questionsList = document.getElementById('questions-list');
+        if (data.questions && data.questions.length > 0) {
+            questionsList.innerHTML = data.questions.map(question => `
+                <div class="flex gap-3 items-start p-3 bg-white shadow-sm rounded-xl border border-slate-100 hover:shadow-md transition-shadow duration-300">
+                    <span class="material-symbols-outlined text-yellow-600 text-sm mt-0.5">help</span>
+                    <p class="text-xs text-slate-700 font-medium">${question}</p>
+                </div>
+            `).join('');
+        } else {
+            questionsList.innerHTML = '<p class="text-sm text-slate-500">No open questions</p>';
+        }
+
+        // Render Risks
+        const risksList = document.getElementById('risks-list');
+        if (data.risks && data.risks.length > 0) {
+            risksList.innerHTML = data.risks.map(risk => `
+                <div class="flex gap-3 items-start p-3 bg-white shadow-sm rounded-xl border border-slate-100 hover:shadow-md transition-shadow duration-300">
+                    <span class="material-symbols-outlined text-red-600 text-sm mt-0.5">warning</span>
+                    <p class="text-xs text-slate-700 font-medium">${risk}</p>
+                </div>
+            `).join('');
+        } else {
+            risksList.innerHTML = '<p class="text-sm text-slate-500">No risks identified</p>';
+        }
+
+        // Render Next Steps
+        const nextStepsList = document.getElementById('next-steps-list');
+        if (data.nextSteps && data.nextSteps.length > 0) {
+            nextStepsList.innerHTML = data.nextSteps.map((step, i) => `
+                <div class="flex gap-3 items-start p-3 bg-white shadow-sm rounded-xl border border-slate-100 hover:shadow-md transition-shadow duration-300">
+                    <span class="flex-shrink-0 w-6 h-6 rounded-full bg-blue-100 text-blue-700 text-[10px] flex items-center justify-center font-bold">${i + 1}</span>
+                    <p class="text-xs text-slate-700 font-medium">${step}</p>
+                </div>
+            `).join('');
+        } else {
+            nextStepsList.innerHTML = '<p class="text-sm text-slate-500">No next steps defined</p>';
+        }
+
+        // Show metadata
+        const meta = document.getElementById('meeting-notes-meta');
+        if (meta) {
+            meta.classList.remove('opacity-0');
+        }
+
+        document.getElementById('meeting-notes-output').style.display = 'block';
+        showToast('Insights extracted successfully!');
+    } catch (err) {
+        console.error(err);
+        showToast('AI Error: ' + err.message);
+    } finally {
+        setLoading(btn, false);
+    }
+}
+
+function clearMeetingNotes() {
+    if (!confirm('Clear all input and output data?')) return;
+    document.getElementById('meeting-notes-input').value = '';
+    document.getElementById('meeting-notes-output').style.display = 'none';
+    document.getElementById('meeting-notes-error').classList.add('hidden');
+    document.getElementById('meeting-notes-input').classList.remove('border-red-500', 'bg-red-50');
+    showToast('Cleared successfully!');
+}
+
+window.extractMeetingNotes = extractMeetingNotes;
+window.clearMeetingNotes = clearMeetingNotes;

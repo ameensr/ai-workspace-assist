@@ -1,6 +1,18 @@
 // auth.js - Supabase authentication logic
-const AUTH_PAGES = ['login.html', 'signup.html'];
+const AUTH_PAGES = ['login.html', 'signup.html', 'reset-password.html'];
 const DEFAULT_ROLE = 'user';
+
+function getCurrentPageName() {
+    const path = window.location.pathname;
+    return path.substring(path.lastIndexOf('/') + 1) || 'index.html';
+}
+
+function redirectToLoginIfProtectedPage() {
+    const page = getCurrentPageName();
+    if (!AUTH_PAGES.includes(page)) {
+        window.location.href = 'login.html';
+    }
+}
 
 function getSupabaseClient() {
     if (!window.supabaseClient) {
@@ -18,6 +30,16 @@ async function login(email, password) {
 
     if (error) {
         throw error;
+    }
+
+    // Enforce email verification (Supabase must have "Confirm email" enabled).
+    // If email is not confirmed, immediately sign out to prevent access.
+    const confirmedAt = data?.user?.email_confirmed_at || data?.user?.confirmed_at;
+    if (!confirmedAt) {
+        await supabase.auth.signOut({ scope: 'local' });
+        const err = new Error('Please verify your email before signing in.');
+        err.code = 'EMAIL_NOT_VERIFIED';
+        throw err;
     }
 
     const profileName = data?.user?.user_metadata?.full_name;
@@ -49,6 +71,40 @@ async function signup(email, password, fullName) {
     localStorage.setItem('username', username);
     localStorage.setItem('user_role', DEFAULT_ROLE);
 
+    return true;
+}
+
+async function requestPasswordReset(email) {
+    const supabase = getSupabaseClient();
+    const safeEmail = (email || '').trim().toLowerCase();
+    if (!safeEmail) {
+        throw new Error('Please enter your email address.');
+    }
+
+    // Use the current origin for localhost/production compatibility
+    const redirectTo = `${window.location.origin}/reset-password.html`;
+    
+    const { error } = await supabase.auth.resetPasswordForEmail(safeEmail, { 
+        redirectTo 
+    });
+    
+    if (error) {
+        throw error;
+    }
+    return true;
+}
+
+async function updatePassword(newPassword) {
+    const supabase = getSupabaseClient();
+    const password = (newPassword || '').trim();
+    if (password.length < 6) {
+        throw new Error('Password must be at least 6 characters.');
+    }
+
+    const { error } = await supabase.auth.updateUser({ password });
+    if (error) {
+        throw error;
+    }
     return true;
 }
 
@@ -88,11 +144,34 @@ async function logout() {
         throw error;
     }
 
-    localStorage.removeItem('username');
-    localStorage.removeItem('user_role');
-    localStorage.removeItem('qa_assist_auth');
-    localStorage.removeItem('qa_assist_user');
+    // Clear session data
+    clearAllSessionData();
+    
+    // Destroy idle timeout manager if exists
+    if (window.idleTimeoutManager) {
+        window.idleTimeoutManager.destroy();
+    }
+    
     window.location.href = 'login.html';
+}
+
+function clearAllSessionData() {
+    const keysToRemove = [
+        'username',
+        'user_role',
+        'qa_assist_auth',
+        'qa_assist_user',
+        'qaly_saved_testcases',
+        'qaly_last_activity',
+        'qaly_logout_trigger',
+        'qaly_activity_ping'
+    ];
+    
+    keysToRemove.forEach(key => {
+        localStorage.removeItem(key);
+    });
+    
+    sessionStorage.clear();
 }
 
 async function getCurrentSession() {
@@ -110,8 +189,7 @@ async function isAuthenticated() {
 }
 
 async function checkAuthRedirect() {
-    const path = window.location.pathname;
-    const page = path.substring(path.lastIndexOf('/') + 1) || 'index.html';
+    const page = getCurrentPageName();
     const isAuthPage = AUTH_PAGES.includes(page);
     const session = await getCurrentSession();
 
@@ -120,7 +198,7 @@ async function checkAuthRedirect() {
         return;
     }
 
-    if (session && isAuthPage) {
+    if (session && isAuthPage && page !== 'reset-password.html') {
         window.location.href = 'index.html';
     }
 }
@@ -146,6 +224,8 @@ function initLogoutDelegation() {
 
 window.login = login;
 window.signup = signup;
+window.requestPasswordReset = requestPasswordReset;
+window.updatePassword = updatePassword;
 window.logout = logout;
 window.isAuthenticated = isAuthenticated;
 window.getCurrentSession = getCurrentSession;
@@ -161,7 +241,24 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     } catch (error) {
         console.error('Auth initialization failed:', error.message);
+        // Fail closed: if auth bootstrap fails on protected pages, force login.
+        redirectToLoginIfProtectedPage();
     }
+
+    // Keep UI safe on session expiry / logout in other tabs.
+    try {
+        const supabase = getSupabaseClient();
+        supabase.auth.onAuthStateChange((event) => {
+            if (event === 'SIGNED_OUT') {
+                clearAllSessionData();
+                
+                // Destroy idle timeout manager
+                if (window.idleTimeoutManager) {
+                    window.idleTimeoutManager.destroy();
+                }
+            }
+        });
+    } catch (_) { }
 
     initLogoutDelegation();
 });

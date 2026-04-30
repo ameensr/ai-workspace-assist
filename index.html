@@ -5,16 +5,17 @@
     <meta charset="utf-8" />
     <meta content="width=device-width, initial-scale=1.0" name="viewport" />
     <title>Qaly AI - Test Smarter. Ship Faster.</title>
-    <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+    <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
+        rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600&display=swap"
         rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
         rel="stylesheet" />
-    <link rel="stylesheet" href="style.css" />
-    <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
-
+    <link rel="stylesheet" href="style.css?v=4" />
     <script id="tailwind-config">
         tailwind.config = {
             darkMode: "class",
@@ -73,6 +74,12 @@
                 transform: rotate(360deg);
             }
         }
+        .rotate-text {
+            writing-mode: vertical-rl;
+            text-orientation: mixed;
+            white-space: nowrap;
+            max-width: 40px;
+        }
     </style>
 </head>
 
@@ -81,8 +88,9 @@
 
     <div class="app-container relative z-10">
         <!-- Sidebar -->
-        <aside class="sidebar py-6 bg-white/40 backdrop-blur-xl border-r border-slate-200/50">
-            <div class="px-6 mb-8">
+        <aside class="sidebar bg-white/40 backdrop-blur-xl border-r border-slate-200/50">
+            <!-- Sidebar Header (Fixed Logo) -->
+            <div class="sidebar-header">
                 <div class="flex items-center gap-2">
                     <div class="qaly-logo text-2xl tracking-tighter flex items-center">
                         <span class="text-gradient-q">Q</span>aly
@@ -96,9 +104,21 @@
                 </div>
             </div>
 
-            <nav class="flex-1 space-y-1 px-3">
+            <!-- Sidebar Top (Scrollable) -->
+            <div class="sidebar-top">
+                <nav class="space-y-1 px-3">
                 <button
-                    class="nav-item active w-full flex items-center px-4 py-2.5 rounded-lg text-sm font-medium transition-colors bg-blue-50 text-blue-700 text-left"
+                    class="nav-item w-full flex items-center px-4 py-2.5 rounded-lg text-sm font-medium transition-colors text-slate-600 hover:bg-slate-100 text-left"
+                    data-target="dashboard">
+                    <span class="material-symbols-outlined mr-3 text-lg">home</span>
+                    Dashboard
+                </button>
+                
+                <div class="px-4 pt-4 pb-2">
+                    <p class="text-[10px] font-black uppercase tracking-widest text-slate-400">Core Intelligence</p>
+                </div>
+                <button
+                    class="nav-item w-full flex items-center px-4 py-2.5 rounded-lg text-sm font-medium transition-colors text-slate-600 hover:bg-slate-100 text-left"
                     data-target="requirement-correction">
                     <span class="material-symbols-outlined mr-3 text-lg">psychology</span>
                     Requirement Intelligence
@@ -113,7 +133,45 @@
                     class="nav-item w-full flex items-center px-4 py-2.5 rounded-lg text-sm font-medium transition-colors text-slate-600 hover:bg-slate-100 text-left"
                     data-target="test-case-gen">
                     <span class="material-symbols-outlined mr-3 text-lg">fact_check</span>
-                    Professional Case Architect
+                    Test Case Builder
+                </button>
+                
+                <div class="px-4 pt-4 pb-2">
+                    <p class="text-[10px] font-black uppercase tracking-widest text-slate-400">Analysis & Traceability</p>
+                </div>
+                <button
+                    class="nav-item w-full flex items-center px-4 py-2.5 rounded-lg text-sm font-medium transition-colors text-slate-600 hover:bg-slate-100 text-left"
+                    data-target="rtm-generator">
+                    <span class="material-symbols-outlined mr-3 text-lg">grid_on</span>
+                    RTM Generator
+                </button>
+                <button
+                    class="nav-item-special w-full flex items-center px-4 py-2.5 rounded-lg text-sm font-medium transition-colors text-slate-500 hover:bg-slate-100 text-left"
+                    data-url="coming_soon.html?feature=Requirement Change Impact Analyzer">
+                    <span class="material-symbols-outlined mr-3 text-lg">change_circle</span>
+                    Requirement Change Impact Analyzer
+                </button>
+                <button
+                    class="nav-item-special w-full flex items-center px-4 py-2.5 rounded-lg text-sm font-medium transition-colors text-slate-500 hover:bg-slate-100 text-left"
+                    data-url="coming_soon.html?feature=Test Case Prioritizer">
+                    <span class="material-symbols-outlined mr-3 text-lg">priority_high</span>
+                    Test Case Prioritizer
+                </button>
+                <button
+                    class="nav-item-special w-full flex items-center px-4 py-2.5 rounded-lg text-sm font-medium transition-colors text-slate-500 hover:bg-slate-100 text-left"
+                    data-url="coming_soon.html?feature=Test Estimation Calculator">
+                    <span class="material-symbols-outlined mr-3 text-lg">calculate</span>
+                    Test Estimation Calculator
+                </button>
+                
+                <div class="px-4 pt-4 pb-2">
+                    <p class="text-[10px] font-black uppercase tracking-widest text-slate-400">Productivity Tools</p>
+                </div>
+                <button
+                    class="nav-item w-full flex items-center px-4 py-2.5 rounded-lg text-sm font-medium transition-colors text-slate-600 hover:bg-slate-100 text-left"
+                    data-target="sentence-correction">
+                    <span class="material-symbols-outlined mr-3 text-lg">spellcheck</span>
+                    Clarity AI - The Text Refinery
                 </button>
                 <button
                     class="nav-item w-full flex items-center px-4 py-2.5 rounded-lg text-sm font-medium transition-colors text-slate-600 hover:bg-slate-100 text-left"
@@ -123,13 +181,27 @@
                 </button>
                 <button
                     class="nav-item w-full flex items-center px-4 py-2.5 rounded-lg text-sm font-medium transition-colors text-slate-600 hover:bg-slate-100 text-left"
-                    data-target="sentence-correction">
-                    <span class="material-symbols-outlined mr-3 text-lg">spellcheck</span>
-                    Sentence Correction
+                    data-target="meeting-notes-extractor">
+                    <span class="material-symbols-outlined mr-3 text-lg">description</span>
+                    Meeting Notes Extractor
                 </button>
-            </nav>
+                <button
+                    class="nav-item-special w-full flex items-center px-4 py-2.5 rounded-lg text-sm font-medium transition-colors text-slate-500 hover:bg-slate-100 text-left"
+                    data-url="coming_soon.html?feature=QA Knowledge Base Builder">
+                    <span class="material-symbols-outlined mr-3 text-lg">library_books</span>
+                    QA Knowledge Base Builder
+                </button>
+                <button
+                    class="nav-item-special w-full flex items-center px-4 py-2.5 rounded-lg text-sm font-medium transition-colors text-slate-500 hover:bg-slate-100 text-left"
+                    data-url="coming_soon.html?feature=Test Case to Automation Converter">
+                    <span class="material-symbols-outlined mr-3 text-lg">code</span>
+                    Test Case → Automation Converter
+                </button>
+                </nav>
+            </div>
 
-            <div class="px-3 mt-auto space-y-1">
+            <!-- Sidebar Bottom (Fixed) -->
+            <div class="sidebar-bottom">
                 <button
                     class="nav-item-special w-full flex items-center px-4 py-2.5 rounded-lg text-sm font-medium transition-colors text-slate-500 hover:bg-slate-100 text-left"
                     data-url="coming_soon.html?page=QNA">
@@ -153,46 +225,221 @@
         </aside>
 
         <div class="main-content">
+            <!-- Top Header -->
+            <header class="top-header">
+                <div class="header-left">
+                    <!-- Global Search -->
+                    <div class="global-search relative" style="width: 380px; max-width: 420px;">
+                        <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-base pointer-events-none">search</span>
+                        <input type="search" placeholder="Search modules... (Press / to focus)" 
+                            class="w-full pl-10 pr-4 py-2.5 bg-white/60 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all" />
+                    </div>
+                </div>
+                <div class="header-center">
+                    <span class="header-tagline">build quality, not just software</span>
+                </div>
+                <div class="header-right">
+                    <!-- User Identity -->
+                    <div class="top-right-identity">
+                        <div id="user-identity-trigger" class="user-identity-trigger user-profile" role="button" tabindex="0"
+                            aria-haspopup="true" aria-expanded="false">
+                            <span id="user-avatar-badge" class="user-avatar-badge user-avatar">U</span>
+                            <span id="header-username" class="header-username user-name">User</span>
+                            <span class="material-symbols-outlined user-menu-chevron">expand_more</span>
+                        </div>
+
+                        <div id="user-menu-dropdown" class="user-menu-dropdown hidden" role="menu"
+                            aria-label="User menu">
+                            <button type="button" id="header-profile-btn" class="user-menu-item">
+                                <span class="material-symbols-outlined text-base">person</span>
+                                Profile
+                            </button>
+                            <button type="button" id="header-logout-btn" class="user-menu-item text-red-600">
+                                <span class="material-symbols-outlined text-base">logout</span>
+                                Logout
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- API Status -->
+                    <div id="api-status-container"
+                        class="flex items-center gap-2 bg-white px-4 py-2 rounded-full border border-slate-200 shadow-sm header-api-status">
+                        <span id="api-status-text" class="text-sm font-bold text-slate-900">Gemini</span>
+                        <div id="api-status-dot" class="w-2.5 h-2.5 rounded-full bg-slate-300 animate-pulse"></div>
+                    </div>
+                </div>
+            </header>
+
             <div class="content-wrapper">
                 <!-- Main Content -->
                 <main class="max-w-6xl mx-auto">
 
-                    <div class="mb-6 flex justify-end">
-                        <div class="top-right-identity">
-                            <div id="user-identity-trigger" class="user-identity-trigger" role="button" tabindex="0"
-                                aria-haspopup="true" aria-expanded="false">
-                                <span id="user-avatar-badge" class="user-avatar-badge">U</span>
-                                <span id="header-username" class="header-username">User</span>
-                                <span class="material-symbols-outlined user-menu-chevron">expand_more</span>
+                    <!-- Dashboard Module -->
+                    <section id="dashboard" class="module-section">
+                        <header class="mb-8">
+                            <h2 class="text-4xl font-bold tracking-tight mb-2">Welcome back, <span id="dashboard-username">User</span>! 👋</h2>
+                            <p class="text-slate-600">Your AI-powered QA workspace. Select a module to get started.</p>
+                        </header>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+                            <!-- Requirement Intelligence Card -->
+                            <div class="dashboard-card group" data-module="requirement-correction">
+                                <div class="dashboard-card-icon">
+                                    <span class="material-symbols-outlined">psychology</span>
+                                </div>
+                                <h3 class="dashboard-card-title">Requirement Intelligence</h3>
+                                <p class="dashboard-card-desc">Analyze requirements and extract testable scenarios with AI-powered insights.</p>
+                                <div class="dashboard-card-arrow">
+                                    <span class="material-symbols-outlined">arrow_forward</span>
+                                </div>
                             </div>
 
-                            <div id="user-menu-dropdown" class="user-menu-dropdown hidden" role="menu"
-                                aria-label="User menu">
-                                <button type="button" id="header-profile-btn" class="user-menu-item">
-                                    <span class="material-symbols-outlined text-base">person</span>
-                                    Profile
-                                </button>
-                                <button type="button" id="header-logout-btn" class="user-menu-item text-red-600">
-                                    <span class="material-symbols-outlined text-base">logout</span>
-                                    Logout
-                                </button>
+                            <!-- Test Suite Architect Card -->
+                            <div class="dashboard-card group" data-module="test-case-architect">
+                                <div class="dashboard-card-icon">
+                                    <span class="material-symbols-outlined">architecture</span>
+                                </div>
+                                <h3 class="dashboard-card-title">Test Suite Architect</h3>
+                                <p class="dashboard-card-desc">Generate comprehensive test suites with customizable formats and export options.</p>
+                                <div class="dashboard-card-arrow">
+                                    <span class="material-symbols-outlined">arrow_forward</span>
+                                </div>
+                            </div>
+
+                            <!-- Test Case Builder Card -->
+                            <div class="dashboard-card group" data-module="test-case-gen">
+                                <div class="dashboard-card-icon">
+                                    <span class="material-symbols-outlined">fact_check</span>
+                                </div>
+                                <h3 class="dashboard-card-title">Test Case Builder</h3>
+                                <p class="dashboard-card-desc">Transform rough notes into structured, professional test cases instantly.</p>
+                                <div class="dashboard-card-arrow">
+                                    <span class="material-symbols-outlined">arrow_forward</span>
+                                </div>
+                            </div>
+
+                            <!-- RTM Generator Card -->
+                            <div class="dashboard-card group" data-module="rtm-generator">
+                                <div class="dashboard-card-icon">
+                                    <span class="material-symbols-outlined">grid_on</span>
+                                </div>
+                                <h3 class="dashboard-card-title">RTM Generator</h3>
+                                <p class="dashboard-card-desc">Automate traceability matrix creation with AI-powered requirement mapping.</p>
+                                <div class="dashboard-card-arrow">
+                                    <span class="material-symbols-outlined">arrow_forward</span>
+                                </div>
+                            </div>
+
+                            <!-- Bug Report Generator Card -->
+                            <div class="dashboard-card group" data-module="bug-report-gen">
+                                <div class="dashboard-card-icon">
+                                    <span class="material-symbols-outlined">bug_report</span>
+                                </div>
+                                <h3 class="dashboard-card-title">Bug Report Generator</h3>
+                                <p class="dashboard-card-desc">Create detailed, professional bug reports from brief descriptions.</p>
+                                <div class="dashboard-card-arrow">
+                                    <span class="material-symbols-outlined">arrow_forward</span>
+                                </div>
+                            </div>
+
+                            <!-- Clarity AI Card -->
+                            <div class="dashboard-card group" data-module="sentence-correction">
+                                <div class="dashboard-card-icon">
+                                    <span class="material-symbols-outlined">spellcheck</span>
+                                </div>
+                                <h3 class="dashboard-card-title">Clarity AI - The Text Refinery</h3>
+                                <p class="dashboard-card-desc">Improve text quality with grammar correction and tone adjustment.</p>
+                                <div class="dashboard-card-arrow">
+                                    <span class="material-symbols-outlined">arrow_forward</span>
+                                </div>
+                            </div>
+
+                            <!-- Meeting Notes Extractor Card -->
+                            <div class="dashboard-card group" data-module="meeting-notes-extractor">
+                                <div class="dashboard-card-icon">
+                                    <span class="material-symbols-outlined">description</span>
+                                </div>
+                                <h3 class="dashboard-card-title">Meeting Notes Extractor</h3>
+                                <p class="dashboard-card-desc">Extract action items, decisions, risks, and next steps from meeting notes using AI.</p>
+                                <div class="dashboard-card-arrow">
+                                    <span class="material-symbols-outlined">arrow_forward</span>
+                                </div>
+                            </div>
+
+                            <!-- Test Case Prioritizer Card -->
+                            <div class="dashboard-card group" onclick="window.location.href='coming_soon.html?feature=Test Case Prioritizer'">
+                                <div class="dashboard-card-icon">
+                                    <span class="material-symbols-outlined">priority_high</span>
+                                </div>
+                                <h3 class="dashboard-card-title">Test Case Prioritizer</h3>
+                                <p class="dashboard-card-desc">Prioritize test cases based on risk, coverage, and business impact.</p>
+                                <div class="dashboard-card-arrow">
+                                    <span class="material-symbols-outlined">arrow_forward</span>
+                                </div>
+                            </div>
+
+                            <!-- Requirement Change Impact Analyzer Card -->
+                            <div class="dashboard-card group" onclick="window.location.href='coming_soon.html?feature=Requirement Change Impact Analyzer'">
+                                <div class="dashboard-card-icon">
+                                    <span class="material-symbols-outlined">change_circle</span>
+                                </div>
+                                <h3 class="dashboard-card-title">Requirement Change Impact Analyzer</h3>
+                                <p class="dashboard-card-desc">Analyze requirement changes and identify impacted test cases.</p>
+                                <div class="dashboard-card-arrow">
+                                    <span class="material-symbols-outlined">arrow_forward</span>
+                                </div>
+                            </div>
+
+                            <!-- Test Estimation Calculator Card -->
+                            <div class="dashboard-card group" onclick="window.location.href='coming_soon.html?feature=Test Estimation Calculator'">
+                                <div class="dashboard-card-icon">
+                                    <span class="material-symbols-outlined">calculate</span>
+                                </div>
+                                <h3 class="dashboard-card-title">Test Estimation Calculator</h3>
+                                <p class="dashboard-card-desc">Calculate test effort and duration based on complexity and scope.</p>
+                                <div class="dashboard-card-arrow">
+                                    <span class="material-symbols-outlined">arrow_forward</span>
+                                </div>
+                            </div>
+
+                            <!-- QA Knowledge Base Builder Card -->
+                            <div class="dashboard-card group" onclick="window.location.href='coming_soon.html?feature=QA Knowledge Base Builder'">
+                                <div class="dashboard-card-icon">
+                                    <span class="material-symbols-outlined">library_books</span>
+                                </div>
+                                <h3 class="dashboard-card-title">QA Knowledge Base Builder</h3>
+                                <p class="dashboard-card-desc">Build and maintain a searchable knowledge base for QA best practices.</p>
+                                <div class="dashboard-card-arrow">
+                                    <span class="material-symbols-outlined">arrow_forward</span>
+                                </div>
+                            </div>
+
+                            <!-- Test Case to Automation Converter Card -->
+                            <div class="dashboard-card group" onclick="window.location.href='coming_soon.html?feature=Test Case to Automation Converter'">
+                                <div class="dashboard-card-icon">
+                                    <span class="material-symbols-outlined">code</span>
+                                </div>
+                                <h3 class="dashboard-card-title">Test Case → Automation Converter</h3>
+                                <p class="dashboard-card-desc">Convert manual test cases into automation scripts automatically.</p>
+                                <div class="dashboard-card-arrow">
+                                    <span class="material-symbols-outlined">arrow_forward</span>
+                                </div>
                             </div>
                         </div>
-
-                        <div id="api-status-container"
-                            class="flex items-center gap-2 bg-white px-4 py-2 rounded-full border border-slate-200 shadow-sm header-api-status">
-                            <span id="api-status-text" class="text-sm font-bold text-slate-900">Gemini</span>
-                            <div id="api-status-dot" class="w-2.5 h-2.5 rounded-full bg-slate-300 animate-pulse"></div>
-                        </div>
-                    </div>
+                    </section>
 
                     <!-- Requirement Intelligence Module -->
-                    <section id="requirement-correction" class="module-section active">
+                    <section id="requirement-correction" class="module-section">
                         <header class="mb-12">
-                            <h2 class="text-4xl font-bold tracking-tight mb-2">Requirement Intelligence</h2>
-                            <p class="text-slate-600 max-w-2xl">AI-powered requirement analysis, gap detection, and test
-                                scenario
-                                generation</p>
+                            <h2 class="mb-2 flex flex-wrap items-center gap-3 text-4xl font-bold tracking-tight">
+                                <span>Requirement Intelligence</span>
+                                <span class="prompt-status-indicator hidden items-center gap-1.5 text-xs font-semibold text-gray-500"
+                                    data-prompt-module="requirementIntelligence" title="Prompt configured">
+                                    <span class="h-2 w-2 rounded-full bg-[#22c55e]"></span>
+                                    Configured
+                                </span>
+                            </h2>
+                            <p class="req-intel-desc">Transform your raw requirements into structured insights, uncover hidden gaps, and generate precise, execution-ready test scenarios.</p>
                         </header>
 
                         <div class="bg-white rounded-2xl p-8 shadow-sm border border-slate-200 mb-8">
@@ -203,12 +450,25 @@
                                 placeholder="Paste your requirement or user story here..."></textarea>
                             <span id="req-intel-error"
                                 class="validation-msg text-[10px] text-red-500 font-bold mt-1 hidden ml-4 uppercase tracking-widest"></span>
+                            <div class="mt-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                                <p class="text-[11px] text-slate-500">Upload `.pdf`, `.doc`, `.docx`, `.txt`, or `.md` to extract requirement text into the editor.</p>
+                                <label class="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-4 py-2 text-xs font-bold uppercase tracking-widest text-slate-600 hover:bg-slate-100">
+                                    <span class="material-symbols-outlined text-sm">upload_file</span>
+                                    Upload File
+                                    <input id="req-intel-file" type="file" accept=".pdf,.doc,.docx,.txt,.md" class="hidden">
+                                </label>
+                            </div>
 
-                            <div class="mt-6 flex justify-end">
-                                <button onclick="generateRequirementIntelligence(event)"
+                            <div class="mt-6 flex justify-end gap-3">
+                                <button onclick="clearRequirementIntelligence()" 
+                                    class="flex items-center gap-2 px-6 py-3 rounded-xl border-2 border-slate-200 text-slate-600 font-bold hover:bg-slate-50 transition-all duration-300">
+                                    <span class="material-symbols-outlined">refresh</span>
+                                    <span>Clear</span>
+                                </button>
+                                <button onclick="generateRequirementIntelligence(event)" data-loading-text="Reviewing requirement..."
                                     class="generate-btn bg-blue-600 text-white px-8 py-3 rounded-xl font-bold flex items-center gap-2 hover:bg-blue-700 transition-all duration-300">
                                     <span class="material-symbols-outlined spin-icon">psychology</span>
-                                    <span class="btn-text">Analyze Requirement</span>
+                                    <span class="btn-text">Review Requirement</span>
                                 </button>
                             </div>
                         </div>
@@ -266,190 +526,160 @@
 
                     <!-- Test Suite Architect -->
                     <section id="test-case-architect" class="module-section">
-                        <header class="mb-12">
-                            <h2 class="text-4xl font-bold tracking-tight mb-2">Test Suite Architect</h2>
-                            <p class="text-slate-600 max-w-2xl">Generate comprehensive test cases with AI-powered
-                                coverage analysis
-                            </p>
+                        <header class="mb-8">
+                            <h2 class="mb-2 flex flex-wrap items-center gap-3 text-4xl font-bold tracking-tight">
+                                <span>Test Suite Architect</span>
+                                <span class="prompt-status-indicator hidden items-center gap-1.5 text-xs font-semibold text-gray-500" data-prompt-module="testSuite" title="Prompt configured">
+                                    <span class="h-2 w-2 rounded-full bg-[#22c55e]"></span>Configured
+                                </span>
+                            </h2>
+                            <p class="test-suite-desc">Create a complete test suite by defining your format and converting requirements into structured, editable test cases.</p>
                         </header>
 
-                        <div class="bg-white rounded-2xl p-8 shadow-sm border border-slate-200 mb-8">
-                            <div class="grid grid-cols-2 gap-6 mb-6">
+                        <!-- Input Card -->
+                        <div class="bg-white rounded-2xl p-8 shadow-sm border border-slate-200 mb-6 space-y-6">
+
+                            <!-- Row 1: Module + Sub-module -->
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div>
-                                    <label
-                                        class="text-xs font-bold uppercase tracking-wider text-slate-600 mb-2 block">Module
-                                        Name</label>
-                                    <input type="text" id="module-name"
-                                        class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm"
-                                        placeholder="e.g., Authentication">
+                                    <label class="ts-label">Module Name</label>
+                                    <input type="text" id="ts-module-name" class="ts-input" placeholder="e.g., Authentication">
                                 </div>
                                 <div>
-                                    <label
-                                        class="text-xs font-bold uppercase tracking-wider text-slate-600 mb-2 block">Sub
-                                        Module</label>
-                                    <input type="text" id="sub-module-name"
-                                        class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm"
-                                        placeholder="e.g., Login">
+                                    <label class="ts-label">Sub-Module</label>
+                                    <input type="text" id="ts-sub-module" class="ts-input" placeholder="e.g., Login">
                                 </div>
                             </div>
 
-                            <label
-                                class="text-xs font-bold uppercase tracking-wider text-slate-600 mb-3 block">Requirement
-                                Description</label>
-                            <textarea id="test-suite-input" rows="6"
-                                class="w-full bg-slate-50 border border-slate-200 rounded-xl p-4 text-sm focus:ring-2 focus:ring-blue-500 resize-none transition-all duration-300"
-                                placeholder="Describe the feature or requirement..."></textarea>
-                            <span id="test-suite-error"
-                                class="validation-msg text-[10px] text-red-500 font-bold mt-1 hidden ml-4 uppercase tracking-widest"></span>
+                            <!-- Row 2: Custom Format -->
+                            <div>
+                                <label class="ts-label">Output Column Format
+                                    <span class="ml-1 text-[10px] font-normal text-slate-400 normal-case tracking-normal">(pipe-separated column names)</span>
+                                </label>
+                                <input type="text" id="ts-format-input" class="ts-input font-mono"
+                                    value="Sl No | Test Case ID | Test Case | Pre-Conditions | Steps | Expected Result | Type"
+                                    placeholder="Sl No | Test Case ID | Test Case | Pre-Conditions | Steps | Expected Result">
+                                <p class="mt-1.5 text-[11px] text-slate-400">AI will generate exactly these columns. Edit to match your project's template.</p>
+                            </div>
 
-                            <div class="mt-6 flex justify-end">
-                                <button onclick="generateTestSuite(event)"
-                                    class="generate-btn bg-blue-600 text-white px-8 py-3 rounded-xl font-bold flex items-center gap-2 hover:bg-blue-700 transition-all duration-300">
-                                    <span class="material-symbols-outlined spin-icon">auto_awesome</span>
-                                    <span class="btn-text">Analyze Requirement</span>
-                                </button>
+                            <!-- Row 3: Requirement input -->
+                            <div>
+                                <label class="ts-label">Requirement Description</label>
+                                <textarea id="ts-requirement" rows="5" class="ts-textarea"
+                                    placeholder="Paste your requirement, user story, or feature description here..."></textarea>
+                                <span id="ts-req-error" class="validation-msg text-[10px] text-red-500 font-bold mt-1 hidden ml-1 uppercase tracking-widest"></span>
+                            </div>
+
+                            <!-- Row 4: Upload + Actions -->
+                            <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                                <label class="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-4 py-2 text-xs font-bold uppercase tracking-widest text-slate-600 hover:bg-slate-100 transition-colors">
+                                    <span class="material-symbols-outlined text-sm">upload_file</span>
+                                    Upload File
+                                    <input id="ts-file-input" type="file" accept=".pdf,.doc,.docx,.txt,.md" class="hidden">
+                                </label>
+                                <p class="text-[11px] text-slate-400">Supports .pdf, .docx, .txt, .md</p>
+                                <div class="flex items-center gap-3 ml-auto">
+                                    <button onclick="tsClearInput()" class="flex items-center gap-2 px-5 py-2.5 rounded-xl border-2 border-slate-200 text-slate-600 text-sm font-bold hover:bg-slate-50 transition-colors">
+                                        <span class="material-symbols-outlined text-sm">refresh</span>
+                                        <span>Clear Input</span>
+                                    </button>
+                                    <button id="ts-regenerate-btn" onclick="tsRegenerate()" class="hidden items-center gap-2 px-5 py-2.5 rounded-xl border border-slate-200 text-slate-600 text-sm font-bold hover:bg-slate-50 transition-colors">
+                                        <span class="material-symbols-outlined text-sm">refresh</span>
+                                        <span>Regenerate</span>
+                                    </button>
+                                    <button id="ts-generate-btn" onclick="tsGenerate(event)" data-loading-text="Generating..."
+                                        class="generate-btn flex items-center gap-2 bg-blue-600 text-white px-7 py-2.5 rounded-xl font-bold hover:bg-blue-700 transition-all">
+                                        <span class="material-symbols-outlined spin-icon text-sm">auto_awesome</span>
+                                        <span class="btn-text">Generate Test Suite</span>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Progress bar -->
+                            <div id="ts-progress-wrap" class="hidden">
+                                <div class="flex items-center justify-between mb-1">
+                                    <span id="ts-progress-label" class="text-[11px] font-bold text-blue-600 uppercase tracking-widest">Generating…</span>
+                                    <span id="ts-progress-pct" class="text-[11px] font-bold text-slate-400">0%</span>
+                                </div>
+                                <div class="h-1.5 w-full rounded-full bg-slate-100 overflow-hidden">
+                                    <div id="ts-progress-bar" class="h-full rounded-full bg-blue-500 transition-all duration-300" style="width:0%"></div>
+                                </div>
                             </div>
                         </div>
 
-                        <!-- Enhanced Test Suite Output -->
-                        <div id="test-suite-output" style="display: none;" class="space-y-6">
+                        <!-- Output area -->
+                        <div id="ts-output" class="hidden space-y-5">
 
-                            <!-- Summary Dashboard -->
-                            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                                <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-                                    <div class="flex items-center gap-3 mb-2">
-                                        <div class="p-2 bg-blue-50 text-blue-600 rounded-lg">
-                                            <span class="material-symbols-outlined">analytics</span>
-                                        </div>
-                                        <span class="text-sm font-bold text-slate-500 uppercase tracking-wider">Total
-                                            Cases</span>
-                                    </div>
-                                    <p id="total-cases-count" class="text-3xl font-bold text-slate-900">0</p>
+                            <!-- Stats row -->
+                            <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                                <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm">
+                                    <p class="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Total</p>
+                                    <p id="ts-stat-total" class="text-3xl font-black text-slate-900">0</p>
                                 </div>
-                                <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-                                    <div class="flex items-center gap-3 mb-2">
-                                        <div class="p-2 bg-orange-50 text-orange-600 rounded-lg">
-                                            <span class="material-symbols-outlined">priority_high</span>
-                                        </div>
-                                        <span
-                                            class="text-sm font-bold text-slate-500 uppercase tracking-wider">Critical</span>
-                                    </div>
-                                    <p id="critical-cases-count" class="text-3xl font-bold text-slate-900">0</p>
+                                <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm">
+                                    <p class="text-[10px] font-black uppercase tracking-widest text-orange-400 mb-1">Negative</p>
+                                    <p id="ts-stat-negative" class="text-3xl font-black text-slate-900">0</p>
                                 </div>
-                                <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-                                    <div class="flex items-center gap-3 mb-2">
-                                        <div class="p-2 bg-red-50 text-red-600 rounded-lg">
-                                            <span class="material-symbols-outlined">security</span>
-                                        </div>
-                                        <span
-                                            class="text-sm font-bold text-slate-500 uppercase tracking-wider">Security</span>
-                                    </div>
-                                    <p id="security-cases-count" class="text-3xl font-bold text-slate-900">0</p>
+                                <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm">
+                                    <p class="text-[10px] font-black uppercase tracking-widest text-purple-400 mb-1">Edge / Boundary</p>
+                                    <p id="ts-stat-edge" class="text-3xl font-black text-slate-900">0</p>
+                                </div>
+                                <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm">
+                                    <p class="text-[10px] font-black uppercase tracking-widest text-green-400 mb-1">Functional</p>
+                                    <p id="ts-stat-functional" class="text-3xl font-black text-slate-900">0</p>
                                 </div>
                             </div>
 
-                            <!-- Filter & Actions Bar -->
-                            <div
-                                class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-wrap items-center gap-4">
-                                <div class="flex-1 min-w-[200px] relative">
-                                    <span
-                                        class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">search</span>
-                                    <input type="text" id="tc-search" oninput="filterTestCases()"
-                                        placeholder="Search by ID or Test Case..."
-                                        class="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500">
+                            <!-- Toolbar -->
+                            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-3 flex flex-wrap items-center gap-3">
+                                <div class="relative flex-1 min-w-[180px]">
+                                    <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-base">search</span>
+                                    <input id="ts-search" type="text" oninput="tsFilter()" placeholder="Search test cases…"
+                                        class="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
                                 </div>
-                                <div class="flex items-center gap-2">
-                                    <select id="filter-module" onchange="filterTestCases()"
-                                        class="bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm">
-                                        <option value="all">All Modules</option>
-                                    </select>
-                                    <select id="filter-status" onchange="filterTestCases()"
-                                        class="bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm">
-                                        <option value="all">All Status</option>
-                                        <option value="Draft">Draft</option>
-                                        <option value="Ready">Ready</option>
-                                        <option value="In Progress">In Progress</option>
-                                        <option value="Pass">Pass</option>
-                                        <option value="Fail">Fail</option>
-                                    </select>
-                                </div>
+                                <select id="ts-filter-type" onchange="tsFilter()" class="bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm">
+                                    <option value="all">All Types</option>
+                                    <option value="Functional">Functional</option>
+                                    <option value="Negative">Negative</option>
+                                    <option value="Edge">Edge</option>
+                                    <option value="Boundary">Boundary</option>
+                                </select>
                                 <div class="flex items-center gap-2 ml-auto">
-                                    <button onclick="copyAllForExcel()"
-                                        class="flex items-center gap-2 px-4 py-2 bg-slate-100 text-slate-700 rounded-lg text-sm font-bold hover:bg-slate-200 transition-colors">
-                                        <span class="material-symbols-outlined text-sm">content_copy</span>
-                                        Copy All
+                                    <button onclick="tsAddRow()" class="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-slate-200 text-slate-600 text-xs font-bold hover:bg-slate-50 transition-colors">
+                                        <span class="material-symbols-outlined text-sm">add</span>Add Row
                                     </button>
-                                    <button onclick="downloadExcel()"
-                                        class="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-bold hover:bg-green-700 transition-colors">
-                                        <span class="material-symbols-outlined text-sm">download</span>
-                                        Excel (.xlsx)
+                                    <button onclick="tsCopyAll()" class="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-slate-100 text-slate-700 text-xs font-bold hover:bg-slate-200 transition-colors">
+                                        <span class="material-symbols-outlined text-sm">content_copy</span>Copy
                                     </button>
-                                    <button onclick="clearTestSuite()"
-                                        class="flex items-center gap-2 px-4 py-2 bg-red-50 text-red-600 rounded-lg text-sm font-bold hover:bg-red-100 transition-colors">
-                                        <span class="material-symbols-outlined text-sm">delete_sweep</span>
-                                        Clear Data
+                                    <button onclick="tsDownloadExcel()" class="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-green-600 text-white text-xs font-bold hover:bg-green-700 transition-colors">
+                                        <span class="material-symbols-outlined text-sm">download</span>Excel
+                                    </button>
+                                    <button onclick="tsClearSuite()" class="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-red-50 text-red-600 text-xs font-bold hover:bg-red-100 transition-colors">
+                                        <span class="material-symbols-outlined text-sm">delete_sweep</span>Clear
                                     </button>
                                 </div>
                             </div>
 
-                            <!-- Test Suite Meta Info -->
-                            <div id="test-suite-meta"
-                                class="flex justify-between items-center bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
-                                <div class="flex items-center gap-4">
-                                    <div class="flex items-center gap-1.5">
-                                        <span
-                                            class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Confidence
-                                            Score:</span>
-                                        <span id="test-suite-confidence"
-                                            class="text-sm font-black text-blue-600">--%</span>
-                                    </div>
-                                    <div class="w-px h-4 bg-slate-300"></div>
-                                    <div class="flex items-center gap-1.5">
-                                        <span class="material-symbols-outlined text-green-500 text-sm">verified</span>
-                                        <span
-                                            class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Coverage Validated</span>
-                                    </div>
-                                </div>
-                                <div class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                                    AI-Generated Test Suite
-                                </div>
-                            </div>
-
-                            <!-- Interactive Table Area -->
+                            <!-- Dynamic preview table -->
                             <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-                                <div class="overflow-x-auto">
-                                    <table class="w-full text-left border-collapse min-w-[800px]">
-                                        <thead>
-                                            <tr class="bg-slate-50 border-bottom border-slate-200">
-                                                <th
-                                                    class="px-4 py-3 text-[11px] font-bold text-slate-500 uppercase tracking-widest w-12 text-center">
-                                                </th>
-                                                <th
-                                                    class="px-4 py-3 text-[11px] font-bold text-slate-500 uppercase tracking-widest w-24">
-                                                    ID</th>
-                                                <th
-                                                    class="px-4 py-3 text-[11px] font-bold text-slate-500 uppercase tracking-widest w-32">
-                                                    Module</th>
-                                                <th
-                                                    class="px-4 py-3 text-[11px] font-bold text-slate-500 uppercase tracking-widest">
-                                                    Test Case</th>
-                                                <th
-                                                    class="px-4 py-3 text-[11px] font-bold text-slate-500 uppercase tracking-widest w-28">
-                                                    Status</th>
-                                                <th
-                                                    class="px-4 py-3 text-[11px] font-bold text-slate-500 uppercase tracking-widest w-24 text-right">
-                                                    Actions</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody id="tc-table-body">
-                                            <!-- Rows generated by JS -->
-                                        </tbody>
+                                <div id="ts-table-wrap" class="overflow-x-auto">
+                                    <table id="ts-table" class="w-full text-left border-collapse text-sm">
+                                        <thead id="ts-thead"></thead>
+                                        <tbody id="ts-tbody"></tbody>
                                     </table>
                                 </div>
-                                <div id="tc-empty-state" class="p-12 text-center hidden">
-                                    <span class="material-symbols-outlined text-4xl text-slate-300 mb-2">inbox</span>
-                                    <p class="text-slate-500 text-sm">No test cases match your filters.</p>
+                                <div id="ts-empty-state" class="hidden p-12 text-center">
+                                    <span class="material-symbols-outlined text-4xl text-slate-300">table_view</span>
+                                    <p class="mt-2 text-slate-400 text-sm">No test cases match your search.</p>
                                 </div>
+                            </div>
+
+                            <!-- Footer meta -->
+                            <div class="flex items-center justify-between bg-white rounded-xl border border-slate-200 px-5 py-3 shadow-sm">
+                                <span class="text-[10px] font-black uppercase tracking-widest text-slate-400">AI-Generated · Editable · Auto-saved</span>
+                                <button onclick="tsDownloadExcel()" class="flex items-center gap-2 px-4 py-2 rounded-lg bg-green-600 text-white text-xs font-bold hover:bg-green-700 transition-colors">
+                                    <span class="material-symbols-outlined text-sm">download</span>Download Excel
+                                </button>
                             </div>
                         </div>
                     </section>
@@ -457,9 +687,15 @@
                     <!-- Bug Report Generator -->
                     <section id="bug-report-gen" class="module-section">
                         <header class="mb-12">
-                            <h2 class="text-4xl font-bold tracking-tight mb-2">Bug Report Generator</h2>
-                            <p class="text-slate-600 max-w-2xl">Transform rough notes into professional JIRA-ready bug
-                                reports</p>
+                            <h2 class="mb-2 flex flex-wrap items-center gap-3 text-4xl font-bold tracking-tight">
+                                <span>Bug Report Generator</span>
+                                <span class="prompt-status-indicator hidden items-center gap-1.5 text-xs font-semibold text-gray-500"
+                                    data-prompt-module="bugReport" title="Prompt configured">
+                                    <span class="h-2 w-2 rounded-full bg-[#22c55e]"></span>
+                                    Configured
+                                </span>
+                            </h2>
+                            <p class="bug-report-desc">Transform unstructured bug notes into professional, execution-ready bug reports using AI.</p>
                         </header>
 
                         <div class="bg-white rounded-2xl p-8 shadow-sm border border-slate-200 mb-8">
@@ -472,11 +708,16 @@
                             <span id="bug-error"
                                 class="validation-msg text-[10px] text-red-500 font-bold mt-1 hidden ml-4 uppercase tracking-widest"></span>
 
-                            <div class="mt-6 flex justify-end">
-                                <button onclick="generateBugReport(event)"
+                            <div class="mt-6 flex justify-end gap-3">
+                                <button onclick="clearBugReport()" 
+                                    class="flex items-center gap-2 px-6 py-3 rounded-xl border-2 border-slate-200 text-slate-600 font-bold hover:bg-slate-50 transition-all duration-300">
+                                    <span class="material-symbols-outlined">refresh</span>
+                                    <span>Clear</span>
+                                </button>
+                                <button onclick="generateBugReport(event)" data-loading-text="Preparing bug report..."
                                     class="generate-btn bg-red-600 text-white px-8 py-3 rounded-xl font-bold flex items-center gap-2 hover:bg-red-700 transition-all duration-300">
                                     <span class="material-symbols-outlined spin-icon">bug_report</span>
-                                    <span class="btn-text">Analyze Requirement</span>
+                                    <span class="btn-text">Create Bug Report</span>
                                 </button>
                             </div>
                         </div>
@@ -514,63 +755,105 @@
 
                     <!-- Sentence Correction -->
                     <section id="sentence-correction" class="module-section">
-                        <header class="mb-12">
-                            <h2 class="text-4xl font-bold tracking-tight mb-2">Sentence Correction</h2>
-                            <p class="text-slate-600 max-w-2xl">Improve grammar, clarity, and tone of technical
-                                documentation</p>
+                        <header class="mb-10">
+                            <h2 class="mb-2 flex flex-wrap items-center gap-3 text-4xl font-bold tracking-tight">
+                                <span>Clarity AI - The Text Refinery</span>
+                                <span class="prompt-status-indicator hidden items-center gap-1.5 text-xs font-semibold text-gray-500"
+                                    data-prompt-module="sentenceCorrection" title="Prompt configured">
+                                    <span class="h-2 w-2 rounded-full bg-[#22c55e]"></span>
+                                    Configured
+                                </span>
+                            </h2>
+                            <p class="clarity-desc">Transform rough text into clear, polished, and professional communication using AI.</p>
+                            <p class="mt-2 text-xs font-semibold uppercase tracking-[0.14em] text-slate-400">Before -> After</p>
                         </header>
 
-                        <div class="bg-white rounded-2xl p-8 shadow-sm border border-slate-200 mb-8">
-                            <label class="text-xs font-bold uppercase tracking-wider text-slate-600 mb-3 block">Enter
-                                Text</label>
-                            <textarea id="sentence-input" rows="4"
-                                class="w-full bg-slate-50 border border-slate-200 rounded-xl p-4 text-sm focus:ring-2 focus:ring-blue-500 resize-none transition-all duration-300"
-                                placeholder="Enter the sentence to correct..."></textarea>
-                            <span id="sentence-error"
-                                class="validation-msg text-[10px] text-red-500 font-bold mt-1 hidden ml-4 uppercase tracking-widest"></span>
-
-                            <div class="mt-6 flex justify-end">
-                                <button onclick="correctSentence(event)"
-                                    class="generate-btn bg-blue-600 text-white px-8 py-3 rounded-xl font-bold flex items-center gap-2 hover:bg-blue-700 transition-all duration-300">
-                                    <span class="material-symbols-outlined spin-icon">spellcheck</span>
-                                    <span class="btn-text">Analyze Requirement</span>
-                                </button>
-                            </div>
-                        </div>
-
-                        <div id="sentence-output" style="display: none;" class="space-y-6">
-                            <div class="bg-white rounded-2xl p-8 border border-slate-200">
-                                <h3 class="text-lg font-bold mb-4">Corrected Version</h3>
-                                <p id="corrected-sentence" class="text-lg text-slate-700 leading-relaxed"></p>
-                            </div>
-
-                            <div class="grid grid-cols-2 gap-6">
-                                <div class="bg-slate-50 rounded-xl p-6">
-                                    <h4 class="text-sm font-bold text-slate-600 mb-3">Casual Tone</h4>
-                                    <p id="casual-tone" class="text-sm text-slate-700"></p>
-                                </div>
-                                <div class="bg-slate-50 rounded-xl p-6">
-                                    <h4 class="text-sm font-bold text-slate-600 mb-3">Formal Tone</h4>
-                                    <p id="formal-tone" class="text-sm text-slate-700"></p>
-                                </div>
-                            </div>
-
-                            <div id="sentence-meta"
-                                class="flex justify-between items-center bg-slate-100 p-4 rounded-xl border border-slate-200 opacity-0 transition-opacity duration-300">
-                                <div class="flex items-center gap-4">
-                                    <div class="flex items-center gap-1.5">
-                                        <span
-                                            class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Confidence
-                                            Score:</span>
-                                        <span id="sentence-confidence"
-                                            class="text-sm font-black text-blue-600">--%</span>
+                        <div class="grid gap-6 lg:grid-cols-2">
+                            <div class="rounded-3xl bg-gradient-to-b from-slate-50 to-white p-6 shadow-[0_12px_30px_-24px_rgba(15,23,42,0.55)] border border-slate-100 transition-all duration-300">
+                                <div class="mb-4 flex items-center justify-between">
+                                    <div class="flex items-center gap-2">
+                                        <span class="inline-flex h-8 w-8 items-center justify-center rounded-full bg-white text-sm shadow-sm">✏️</span>
+                                        <div>
+                                            <p class="text-[11px] font-black uppercase tracking-[0.16em] text-slate-400">Input</p>
+                                            <p class="text-sm font-semibold text-slate-700">Before</p>
+                                        </div>
                                     </div>
                                 </div>
-                                <button onclick="copyToClipboard('sentence-output')"
-                                    class="flex items-center gap-2 px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-[10px] font-black uppercase tracking-widest text-slate-600 hover:bg-slate-50 transition-colors">
-                                    <span class="material-symbols-outlined text-sm">content_copy</span>
-                                    Copy Result
-                                </button>
+                                <label class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-3 block">Enter Text</label>
+                                <textarea id="sentence-input" rows="10"
+                                    class="w-full rounded-2xl border border-slate-200 bg-white p-5 text-sm leading-relaxed text-slate-700 shadow-sm transition-all duration-300 placeholder:text-slate-400 focus:border-blue-400 focus:outline-none focus:ring-4 focus:ring-blue-100 resize-none"
+                                    placeholder="Enter the sentence to improve..."></textarea>
+                                <span id="sentence-error"
+                                    class="validation-msg text-[10px] text-red-500 font-bold mt-2 hidden ml-1 uppercase tracking-widest"></span>
+                                <div class="mt-5 flex justify-end gap-3">
+                                    <button onclick="clearSentenceCorrection()" 
+                                        class="group inline-flex items-center gap-2 rounded-xl border-2 border-slate-200 bg-white px-6 py-3 text-sm font-bold text-slate-600 transition-all duration-300 hover:bg-slate-50">
+                                        <span class="material-symbols-outlined text-[18px]">refresh</span>
+                                        <span>Clear</span>
+                                    </button>
+                                    <button onclick="correctSentence(event)" data-loading-text="Improving text..."
+                                        class="generate-btn group inline-flex items-center gap-2 rounded-xl bg-blue-600 px-6 py-3 text-sm font-bold text-white shadow-[0_12px_20px_-14px_rgba(37,99,235,0.9)] transition-all duration-300 hover:-translate-y-0.5 hover:bg-blue-700 hover:shadow-[0_16px_24px_-14px_rgba(37,99,235,0.95)]">
+                                        <span class="material-symbols-outlined spin-icon text-[18px] transition-transform duration-300 group-hover:scale-110">auto_awesome</span>
+                                        <span class="btn-text">Improve Text</span>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="rounded-3xl bg-gradient-to-b from-blue-50/70 to-white p-6 shadow-[0_12px_30px_-24px_rgba(37,99,235,0.55)] border border-blue-100 transition-all duration-300">
+                                <div class="mb-4 flex items-center justify-between">
+                                    <div class="flex items-center gap-2">
+                                        <span class="inline-flex h-8 w-8 items-center justify-center rounded-full bg-white text-sm shadow-sm">✨</span>
+                                        <div>
+                                            <p class="text-[11px] font-black uppercase tracking-[0.16em] text-blue-400">Output</p>
+                                            <p class="text-sm font-semibold text-slate-700">After</p>
+                                        </div>
+                                    </div>
+                                    <button onclick="copyToClipboard('sentence-output')"
+                                        class="inline-flex items-center gap-1.5 rounded-lg bg-white px-3 py-1.5 text-[10px] font-black uppercase tracking-widest text-slate-600 shadow-sm transition-colors hover:bg-slate-50">
+                                        <span class="material-symbols-outlined text-sm">content_copy</span>
+                                        Copy
+                                    </button>
+                                </div>
+
+                                <div id="sentence-output" style="display: none;" class="space-y-5 transition-all duration-300">
+                                    <div class="rounded-2xl bg-white/90 p-5 border border-blue-100 shadow-sm">
+                                        <h3 class="mb-3 text-xs font-black uppercase tracking-[0.16em] text-blue-500">Improved Sentence</h3>
+                                        <p id="corrected-sentence" class="text-lg font-medium text-slate-800 leading-relaxed"></p>
+                                    </div>
+
+                                    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                                        <div class="rounded-xl bg-white/90 p-4 border border-slate-100">
+                                            <h4 class="text-[11px] font-black uppercase tracking-[0.14em] text-slate-400 mb-2">Casual Tone</h4>
+                                            <p id="casual-tone" class="text-sm text-slate-700 leading-relaxed"></p>
+                                        </div>
+                                        <div class="rounded-xl bg-white/90 p-4 border border-slate-100">
+                                            <h4 class="text-[11px] font-black uppercase tracking-[0.14em] text-slate-400 mb-2">Formal Tone</h4>
+                                            <p id="formal-tone" class="text-sm text-slate-700 leading-relaxed"></p>
+                                        </div>
+                                    </div>
+
+                                    <div id="sentence-meta"
+                                        class="flex justify-between items-center bg-white p-4 rounded-xl border border-slate-200 opacity-0 transition-opacity duration-300">
+                                        <div class="flex items-center gap-4">
+                                            <div class="flex items-center gap-1.5">
+                                                <span
+                                                    class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Confidence
+                                                    Score:</span>
+                                                <span id="sentence-confidence"
+                                                    class="text-sm font-black text-blue-600">--%</span>
+                                            </div>
+                                        </div>
+                                        <button onclick="copyToClipboard('sentence-output')"
+                                            class="flex items-center gap-2 px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-[10px] font-black uppercase tracking-widest text-slate-600 hover:bg-slate-100 transition-colors">
+                                            <span class="material-symbols-outlined text-sm">content_copy</span>
+                                            Copy Result
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div id="sentence-output-empty" class="rounded-2xl border border-dashed border-blue-200 bg-white/70 p-5 text-sm text-slate-500">
+                                    Your improved sentence will appear here after you click <span class="font-semibold text-slate-700">Improve Text</span>.
+                                </div>
                             </div>
                         </div>
                     </section>
@@ -578,10 +861,15 @@
                     <!-- Professional Case Architect -->
                     <section id="test-case-gen" class="module-section">
                         <header class="mb-12">
-                            <h2 class="text-4xl font-bold tracking-tight mb-2">Professional Case Architect</h2>
-                            <p class="text-slate-600 max-w-2xl">Transform rough test notes into structured professional
-                                test cases
-                            </p>
+                            <h2 class="mb-2 flex flex-wrap items-center gap-3 text-4xl font-bold tracking-tight">
+                                <span>Test Case Builder</span>
+                                <span class="prompt-status-indicator hidden items-center gap-1.5 text-xs font-semibold text-gray-500"
+                                    data-prompt-module="professionalCase" title="Prompt configured">
+                                    <span class="h-2 w-2 rounded-full bg-[#22c55e]"></span>
+                                    Configured
+                                </span>
+                            </h2>
+                            <p class="prof-case-desc">Convert rough test notes into structured, professional test cases with clear steps, conditions, and expected results.</p>
                         </header>
 
                         <div class="bg-white rounded-2xl p-8 shadow-sm border border-slate-200 mb-8">
@@ -594,11 +882,16 @@
                             <span id="professional-case-error"
                                 class="validation-msg text-[10px] text-red-500 font-bold mt-1 hidden ml-4 uppercase tracking-widest"></span>
 
-                            <div class="mt-6 flex justify-end">
-                                <button onclick="generateProfessionalCase(event)"
+                            <div class="mt-6 flex justify-end gap-3">
+                                <button onclick="clearProfessionalCase()" 
+                                    class="flex items-center gap-2 px-6 py-3 rounded-xl border-2 border-slate-200 text-slate-600 font-bold hover:bg-slate-50 transition-all duration-300">
+                                    <span class="material-symbols-outlined">refresh</span>
+                                    <span>Clear</span>
+                                </button>
+                                <button onclick="generateProfessionalCase(event)" data-loading-text="Building test case..."
                                     class="generate-btn bg-blue-600 text-white px-8 py-3 rounded-xl font-bold flex items-center gap-2 hover:bg-blue-700 transition-all duration-300">
                                     <span class="material-symbols-outlined spin-icon">architecture</span>
-                                    <span class="btn-text">Analyze Requirement</span>
+                                    <span class="btn-text">Build Test Case</span>
                                 </button>
                             </div>
                         </div>
@@ -633,6 +926,252 @@
                             </div>
                         </div>
                     </section>
+
+                    <!-- Meeting Notes Extractor -->
+                    <section id="meeting-notes-extractor" class="module-section">
+                        <header class="mb-12">
+                            <h2 class="mb-2 flex flex-wrap items-center gap-3 text-4xl font-bold tracking-tight">
+                                <span>Meeting Notes Extractor</span>
+                                <span class="prompt-status-indicator hidden items-center gap-1.5 text-xs font-semibold text-gray-500"
+                                    data-prompt-module="meetingNotesExtractor" title="Prompt configured">
+                                    <span class="h-2 w-2 rounded-full bg-[#22c55e]"></span>
+                                    Configured
+                                </span>
+                            </h2>
+                            <p class="meeting-notes-desc">Extract action items, decisions, risks, and next steps from meeting notes using AI-powered analysis.</p>
+                        </header>
+
+                        <div class="bg-white rounded-2xl p-8 shadow-sm border border-slate-200 mb-8">
+                            <label class="text-xs font-bold uppercase tracking-wider text-slate-600 mb-3 block">Meeting Notes</label>
+                            <textarea id="meeting-notes-input" rows="10"
+                                class="w-full bg-slate-50 border border-slate-200 rounded-xl p-4 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none transition-all duration-300"
+                                placeholder="Paste your meeting notes here...\n\nExample:\n- Discussed new feature requirements\n- John will create design mockups by Friday\n- Need to clarify API integration approach\n- Security concerns about data encryption"></textarea>
+                            <span id="meeting-notes-error"
+                                class="validation-msg text-[10px] text-red-500 font-bold mt-1 hidden ml-4 uppercase tracking-widest"></span>
+
+                            <div class="mt-6 flex justify-end gap-3">
+                                <button onclick="clearMeetingNotes()" 
+                                    class="flex items-center gap-2 px-6 py-3 rounded-xl border-2 border-slate-200 text-slate-600 font-bold hover:bg-slate-50 transition-all duration-300">
+                                    <span class="material-symbols-outlined">refresh</span>
+                                    <span>Clear</span>
+                                </button>
+                                <button onclick="extractMeetingNotes(event)" data-loading-text="Extracting insights..."
+                                    class="generate-btn bg-purple-600 text-white px-8 py-3 rounded-xl font-bold flex items-center gap-2 hover:bg-purple-700 transition-all duration-300">
+                                    <span class="material-symbols-outlined spin-icon">description</span>
+                                    <span class="btn-text">Extract Insights</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div id="meeting-notes-output" style="display: none;" class="space-y-6">
+                            <!-- Action Items Table -->
+                            <div class="bg-white rounded-2xl p-8 border border-slate-200">
+                                <h3 class="text-xl font-bold mb-4 flex items-center gap-2">
+                                    <span class="material-symbols-outlined text-blue-600">task_alt</span>
+                                    Action Items
+                                </h3>
+                                <div class="overflow-x-auto">
+                                    <table class="w-full text-left border-collapse text-sm">
+                                        <thead>
+                                            <tr class="bg-slate-50 border-b border-slate-200">
+                                                <th class="px-4 py-3 text-xs font-black uppercase tracking-widest text-slate-500">Task</th>
+                                                <th class="px-4 py-3 text-xs font-black uppercase tracking-widest text-slate-500">Owner</th>
+                                                <th class="px-4 py-3 text-xs font-black uppercase tracking-widest text-slate-500">Due Date</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="action-items-tbody"></tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            <!-- Decisions Made -->
+                            <div class="bg-green-50 rounded-2xl p-8 border border-green-200">
+                                <h3 class="text-lg font-bold mb-4 text-green-900 flex items-center gap-2">
+                                    <span class="material-symbols-outlined">check_circle</span>
+                                    Decisions Made
+                                </h3>
+                                <div id="decisions-list" class="space-y-2"></div>
+                            </div>
+
+                            <!-- Open Questions -->
+                            <div class="bg-yellow-50 rounded-2xl p-8 border border-yellow-200">
+                                <h3 class="text-lg font-bold mb-4 text-yellow-900 flex items-center gap-2">
+                                    <span class="material-symbols-outlined">help</span>
+                                    Open Questions
+                                </h3>
+                                <div id="questions-list" class="space-y-2"></div>
+                            </div>
+
+                            <!-- Risks -->
+                            <div class="bg-red-50 rounded-2xl p-8 border border-red-200">
+                                <h3 class="text-lg font-bold mb-4 text-red-900 flex items-center gap-2">
+                                    <span class="material-symbols-outlined">warning</span>
+                                    Risks Identified
+                                </h3>
+                                <div id="risks-list" class="space-y-2"></div>
+                            </div>
+
+                            <!-- Next Steps -->
+                            <div class="bg-blue-50 rounded-2xl p-8 border border-blue-200">
+                                <h3 class="text-lg font-bold mb-4 text-blue-900 flex items-center gap-2">
+                                    <span class="material-symbols-outlined">arrow_forward</span>
+                                    Next Steps
+                                </h3>
+                                <div id="next-steps-list" class="space-y-2"></div>
+                            </div>
+
+                            <div id="meeting-notes-meta"
+                                class="flex justify-between items-center bg-slate-100 p-4 rounded-xl border border-slate-200 opacity-0 transition-opacity duration-300">
+                                <div class="flex items-center gap-4">
+                                    <div class="flex items-center gap-1.5">
+                                        <span class="material-symbols-outlined text-green-500 text-sm">verified</span>
+                                        <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Extracted</span>
+                                    </div>
+                                </div>
+                                <button onclick="copyToClipboard('meeting-notes-output')"
+                                    class="flex items-center gap-2 px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-[10px] font-black uppercase tracking-widest text-slate-600 hover:bg-slate-50 transition-colors">
+                                    <span class="material-symbols-outlined text-sm">content_copy</span>
+                                    Copy Result
+                                </button>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- RTM Generator -->
+                    <section id="rtm-generator" class="module-section">
+                        <header class="mb-12">
+                            <h2 class="mb-2 flex flex-wrap items-center gap-3 text-4xl font-bold tracking-tight">
+                                <span>Requirement Traceability Matrix</span>
+                                <span class="prompt-status-indicator hidden items-center gap-1.5 text-xs font-semibold text-gray-500"
+                                    data-prompt-module="rtmGenerator" title="Prompt configured">
+                                    <span class="h-2 w-2 rounded-full bg-[#22c55e]"></span>
+                                    Configured
+                                </span>
+                            </h2>
+                            <p class="text-slate-600">Automate RTM generation with AI-powered requirement-to-test-case mapping and comprehensive coverage analysis.</p>
+                        </header>
+
+                        <!-- Input Section -->
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                            <!-- Requirements Input -->
+                            <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+                                <div class="flex items-center justify-between mb-4">
+                                    <label class="text-xs font-bold uppercase tracking-wider text-slate-600">Requirements</label>
+                                    <label class="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-bold uppercase tracking-widest text-slate-600 hover:bg-slate-100">
+                                        <span class="material-symbols-outlined text-sm">upload_file</span>
+                                        Upload
+                                        <input id="rtm-req-file" type="file" accept=".pdf,.doc,.docx,.txt,.md" class="hidden">
+                                    </label>
+                                </div>
+                                <textarea id="rtm-req-input" rows="12"
+                                    class="w-full bg-slate-50 border border-slate-200 rounded-xl p-4 text-sm focus:ring-2 focus:ring-blue-500 resize-none"
+                                    placeholder="Enter requirements (one per line):
+
+User must be able to login with email and password
+System should validate email format
+Password must be at least 8 characters
+..."></textarea>
+                            </div>
+
+                            <!-- Test Cases Input -->
+                            <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+                                <div class="flex items-center justify-between mb-4">
+                                    <label class="text-xs font-bold uppercase tracking-wider text-slate-600">Test Cases</label>
+                                    <div class="flex gap-2">
+                                        <button onclick="rtmImportTestCases()" class="inline-flex items-center gap-2 rounded-lg border border-blue-200 bg-blue-50 px-3 py-1.5 text-xs font-bold uppercase tracking-widest text-blue-700 hover:bg-blue-100">
+                                            <span class="material-symbols-outlined text-sm">download</span>
+                                            Import from Builder
+                                        </button>
+                                        <label class="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-bold uppercase tracking-widest text-slate-600 hover:bg-slate-100">
+                                            <span class="material-symbols-outlined text-sm">upload_file</span>
+                                            Upload
+                                            <input id="rtm-tc-file" type="file" accept=".pdf,.doc,.docx,.txt,.md,.xls,.xlsx" class="hidden">
+                                        </label>
+                                    </div>
+                                </div>
+                                <textarea id="rtm-tc-input" rows="12"
+                                    class="w-full bg-slate-50 border border-slate-200 rounded-xl p-4 text-sm focus:ring-2 focus:ring-blue-500 resize-none"
+                                    placeholder="Enter test cases (one per line):
+
+Verify login with valid credentials
+Verify login with invalid email format
+Verify password minimum length validation
+..."></textarea>
+                            </div>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="flex justify-end gap-3 mb-8">
+                            <button onclick="rtmClear()" 
+                                class="flex items-center gap-2 px-6 py-3 rounded-xl border-2 border-slate-200 text-slate-600 font-bold hover:bg-slate-50 transition-all">
+                                <span class="material-symbols-outlined">refresh</span>
+                                <span>Clear</span>
+                            </button>
+                            <button id="rtm-generate-btn" onclick="generateRTM(event)" data-loading-text="Generating RTM..."
+                                class="generate-btn bg-blue-600 text-white px-8 py-3 rounded-xl font-bold flex items-center gap-2 hover:bg-blue-700 transition-all">
+                                <span class="material-symbols-outlined spin-icon">grid_on</span>
+                                <span class="btn-text">Generate RTM</span>
+                            </button>
+                        </div>
+
+                        <!-- Output Section -->
+                        <div id="rtm-output" class="hidden space-y-6">
+                            <!-- Metrics Cards -->
+                            <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                                <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm">
+                                    <p class="text-[10px] font-black uppercase tracking-widest text-blue-400 mb-1">Coverage</p>
+                                    <p id="rtm-coverage" class="text-3xl font-black text-slate-900">0%</p>
+                                </div>
+                                <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm">
+                                    <p class="text-[10px] font-black uppercase tracking-widest text-green-400 mb-1">Covered</p>
+                                    <p id="rtm-covered" class="text-3xl font-black text-slate-900">0</p>
+                                </div>
+                                <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm">
+                                    <p class="text-[10px] font-black uppercase tracking-widest text-red-400 mb-1">Uncovered</p>
+                                    <p id="rtm-uncovered" class="text-3xl font-black text-slate-900">0</p>
+                                </div>
+                                <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm">
+                                    <p class="text-[10px] font-black uppercase tracking-widest text-orange-400 mb-1">Orphan TCs</p>
+                                    <p id="rtm-orphans" class="text-3xl font-black text-slate-900">0</p>
+                                </div>
+                            </div>
+
+                            <!-- RTM Table -->
+                            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                                <div class="flex items-center justify-between p-4 border-b border-slate-200">
+                                    <h3 class="text-sm font-bold text-slate-700">Traceability Matrix</h3>
+                                    <button onclick="rtmDownloadExcel()" class="flex items-center gap-2 px-4 py-2 rounded-lg bg-green-600 text-white text-xs font-bold hover:bg-green-700">
+                                        <span class="material-symbols-outlined text-sm">download</span>
+                                        Download Excel
+                                    </button>
+                                </div>
+                                <div class="overflow-x-auto">
+                                    <table class="w-full text-left border-collapse text-sm">
+                                        <thead id="rtm-thead"></thead>
+                                        <tbody id="rtm-tbody"></tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            <!-- Insights -->
+                            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                                <div class="bg-red-50 rounded-2xl p-6 border border-red-200">
+                                    <h3 class="text-sm font-bold text-red-900 mb-4 flex items-center gap-2">
+                                        <span class="material-symbols-outlined">warning</span>
+                                        Uncovered Requirements
+                                    </h3>
+                                    <ul id="rtm-uncovered-list" class="space-y-2 list-disc list-inside"></ul>
+                                </div>
+                                <div class="bg-orange-50 rounded-2xl p-6 border border-orange-200">
+                                    <h3 class="text-sm font-bold text-orange-900 mb-4 flex items-center gap-2">
+                                        <span class="material-symbols-outlined">error</span>
+                                        Orphan Test Cases
+                                    </h3>
+                                    <ul id="rtm-orphans-list" class="space-y-2 list-disc list-inside"></ul>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
                 </main>
             </div>
         </div>
@@ -648,13 +1187,17 @@
         <!-- Text injected from config.js -->
     </footer>
 
+    <script src="/runtime-config.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="config.js"></script>
-    <script src="supabase-client.js"></script>
-    <script src="test-config.js"></script>
-    <script src="prompts.js"></script>
-    <script src="auth.js"></script>
-    <script src="./app.js" defer></script>
+    <script src="config.js?v=2"></script>
+    <script src="supabase-client.js?v=2"></script>
+    <script src="test-config.js?v=2"></script>
+    <script src="prompts.js?v=2"></script>
+    <script src="auth.js?v=2"></script>
+    <script src="idle-timeout.js?v=2"></script>
+    <script src="./app.js?v=3"></script>
+    <script src="rtm-generator.js?v=3"></script>
+    <script src="fuzzy-search.js?v=1"></script>
     <script>
 
         // Initialize Footer
