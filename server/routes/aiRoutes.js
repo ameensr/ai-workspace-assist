@@ -57,7 +57,9 @@ aiRoutes.get('/check', async (req, res) => {
       mode: hasUserApiKey ? 'BYOK' : 'BUILT_IN',
       credits: creditCheck.current,
       requiredCredits: creditCheck.required,
-      hasApiKey: hasUserApiKey
+      hasApiKey: hasUserApiKey,
+      provider: req.userProvider,
+      availableProviders: Object.keys(req.userApiKeys || {}).filter(k => req.userApiKeys[k]?.trim())
     });
   } catch (error) {
     res.status(500).json({ error: error.message });

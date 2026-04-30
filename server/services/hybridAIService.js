@@ -124,7 +124,8 @@ export class HybridAIService {
       claude: process.env.SYSTEM_CLAUDE_API_KEY || '',
       deepseek: process.env.SYSTEM_DEEPSEEK_API_KEY || '',
       grok: process.env.SYSTEM_GROK_API_KEY || '',
-      perplexity: process.env.SYSTEM_PERPLEXITY_API_KEY || ''
+      perplexity: process.env.SYSTEM_PERPLEXITY_API_KEY || '',
+      nvidia: process.env.SYSTEM_NVIDIA_API_KEY || ''
     };
   }
 

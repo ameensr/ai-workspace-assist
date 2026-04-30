@@ -8,7 +8,7 @@
 // ============================================
 const TEST_CASES_TABLE = 'user_test_suites';
 const EXCEL_MIME_TYPE = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
-const GEMINI_TIMEOUT_MS = 25000;
+const GEMINI_TIMEOUT_MS = 60000; // 60 seconds - increased for complex AI requests
 const AI_GENERATE_ENDPOINT = '/api/ai/generate';
 const USER_THEME_KEY = 'qaly_theme';
 const USER_AI_PROVIDER_KEY = 'qaly_ai_provider';
@@ -905,10 +905,8 @@ async function callGemini(prompt, systemPrompt = "", featureType = "") {
 }
 
 async function generateAI(prompt, systemPrompt = "", featureType = "") {
-    // Show "Processing..." toast immediately
     showToast('Processing request...', 2000);
 
-    // Add artificial delay to manage UX expectations (1.5s - 2s)
     const delay = Math.floor(Math.random() * 500) + 1500;
     await new Promise(r => setTimeout(r, delay));
 
@@ -919,8 +917,6 @@ async function generateAI(prompt, systemPrompt = "", featureType = "") {
     if (isTestMode || isMockProvider) {
         console.log(`🧪 TEST MODE: Mocking [${featureType}]`);
         setMockSourceBadge('frontend_mock');
-
-        // Use MOCK_RESPONSES from test-config.js if available, else local fallback
         const mock = getMockResponse(featureType);
         return mock || "Mock response missing for this feature.";
     }
@@ -932,22 +928,22 @@ async function generateAI(prompt, systemPrompt = "", featureType = "") {
     }
 
     try {
-        const result = await callGemini(prompt, systemPrompt, featureType);
+        const provider = window.AIService.getUserSelectedProvider();
+        const content = await window.AIService.callAI({
+            provider,
+            prompt,
+            options: { systemPrompt, module: featureType }
+        });
         console.log('✅ AI generation successful');
-        return result;
+        return content;
     } catch (error) {
         console.error('❌ AI call failed:', error);
         
-        // CRITICAL: Do NOT fallback to mock if user has API key configured
-        const hasApiKey = hasUserApiKeyConfigured;
-        
-        if (hasApiKey) {
-            // User has API key - show real error, don't fallback
+        if (hasUserApiKeyConfigured) {
             console.error('❌ Real API failed with user key:', error.message);
             throw error;
         }
         
-        // No API key - check if fallback is allowed
         const canFallback = shouldFallbackToMock();
         const mock = getMockResponse(featureType);
         

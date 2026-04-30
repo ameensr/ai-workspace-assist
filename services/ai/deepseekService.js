@@ -16,14 +16,23 @@ export async function deepseekService({ apiKey, prompt, options = {} }) {
       },
       body: JSON.stringify({
         model,
-        messages: [{ role: 'user', content: prompt }]
+        messages: [{ role: 'user', content: prompt }],
+        stream: false
       }),
       signal: controller.signal
     });
 
     if (!response.ok) {
-      const body = await response.text().catch(() => '');
-      const error = new Error(normalizeProviderError('deepseek', response.status, body));
+      let errorMessage = '';
+      try {
+        const errorData = await response.json();
+        errorMessage = errorData?.error?.message || errorData?.message || '';
+        console.error('[DeepSeek] API Error:', response.status, errorData);
+      } catch {
+        errorMessage = await response.text().catch(() => '');
+        console.error('[DeepSeek] API Error:', response.status, errorMessage);
+      }
+      const error = new Error(normalizeProviderError('deepseek', response.status, errorMessage));
       error.statusCode = response.status;
       throw error;
     }
@@ -34,6 +43,7 @@ export async function deepseekService({ apiKey, prompt, options = {} }) {
     const tokens = Number(usage.total_tokens ?? (Number(usage.prompt_tokens || 0) + Number(usage.completion_tokens || 0)) ?? 0);
 
     if (!content) {
+      console.error('[DeepSeek] Empty response:', data);
       throw new Error('deepseek: Provider request failed.');
     }
 
@@ -44,6 +54,15 @@ export async function deepseekService({ apiKey, prompt, options = {} }) {
       provider: 'deepseek',
       latencyMs: Date.now() - startedAt
     };
+  } catch (error) {
+    if (error.name === 'AbortError') {
+      console.error('[DeepSeek] Request timeout after', timeoutMs, 'ms');
+      const timeoutError = new Error('deepseek: Request timeout.');
+      timeoutError.statusCode = 408;
+      throw timeoutError;
+    }
+    console.error('[DeepSeek] Service error:', error.message);
+    throw error;
   } finally {
     clearTimeout(timer);
   }

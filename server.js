@@ -1053,6 +1053,16 @@ app.post('/api/gemini', apiLimiter, async (req, res) => {
 
 app.use(express.static(process.cwd(), { extensions: ['html'] }));
 
-app.listen(port, () => {
+const server = app.listen(port, () => {
   console.log(`Qaly AI server running on http://localhost:${port}`);
 });
+
+// Increase server timeout for slow AI providers (especially NVIDIA)
+server.timeout = 300000; // 5 minutes
+server.keepAliveTimeout = 310000; // 5 minutes + 10 seconds
+server.headersTimeout = 320000; // 5 minutes + 20 seconds
+
+console.log('Server timeouts configured:');
+console.log('- Request timeout: 5 minutes');
+console.log('- Keep-alive timeout: 5 minutes 10 seconds');
+console.log('- Headers timeout: 5 minutes 20 seconds');

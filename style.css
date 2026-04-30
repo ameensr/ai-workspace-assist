@@ -1,4 +1,4 @@
-:root {
+:root { /* Test */
     /* Color Palette - Linear/Notion inspired */
     --bg-main: rgba(250, 250, 251, 1); /* Main application background */
     --bg-card: rgba(255, 255, 255, 0.45);
@@ -479,8 +479,8 @@ html.dark .header-api-status #api-status-text {
 
 /* Module Sections */
 .module-section {
-    max-width: 1000px;
-    margin: 0 auto;
+    max-width: 100%;
+    margin: 0;
     display: none;
     animation: fadeIn 0.3s ease;
 }
@@ -1276,75 +1276,96 @@ html.dark .app-footer {
    ============================================================ */
 .dashboard-card {
     position: relative;
-    background: linear-gradient(135deg, rgba(255,255,255,0.9), rgba(248,250,252,0.95));
-    border: 1px solid rgba(226,232,240,0.6);
-    border-radius: 16px;
-    padding: 24px;
+    background: rgba(255, 255, 255, 0.45);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 24px;
+    padding: 32px;
     cursor: pointer;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
     overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
 }
 
-.dashboard-card::before {
+.dashboard-card::after {
     content: '';
     position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: linear-gradient(135deg, rgba(37,99,235,0.05), rgba(147,51,234,0.05));
+    inset: 0;
+    background: radial-gradient(circle at top right, rgba(37, 99, 235, 0.05), transparent);
     opacity: 0;
-    transition: opacity 0.3s ease;
+    transition: opacity 0.5s ease;
 }
 
 .dashboard-card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 12px 24px -8px rgba(37,99,235,0.2);
-    border-color: rgba(37,99,235,0.3);
+    transform: translateY(-8px) scale(1.02);
+    background: rgba(255, 255, 255, 0.7);
+    border-color: rgba(37, 99, 235, 0.4);
+    box-shadow: 
+        0 20px 40px -15px rgba(0, 0, 0, 0.1),
+        0 0 20px rgba(37, 99, 235, 0.1);
 }
 
-.dashboard-card:hover::before {
+.dashboard-card:hover::after {
     opacity: 1;
 }
 
 .dashboard-card-icon {
     position: relative;
-    width: 48px;
-    height: 48px;
-    border-radius: 12px;
-    background: linear-gradient(135deg, #2563eb, #9333ea);
+    width: 56px;
+    height: 56px;
+    border-radius: 16px;
+    background: linear-gradient(135deg, #2563eb, #7c3aed);
     display: flex;
     align-items: center;
     justify-content: center;
-    margin-bottom: 16px;
-    box-shadow: 0 4px 12px rgba(37,99,235,0.25);
-    transition: transform 0.3s ease;
+    margin-bottom: 24px;
+    box-shadow: 0 8px 16px rgba(37, 99, 235, 0.2);
+    transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+    z-index: 2;
 }
 
 .dashboard-card:hover .dashboard-card-icon {
-    transform: scale(1.1) rotate(5deg);
+    transform: scale(1.1) rotate(8deg);
+    box-shadow: 0 12px 24px rgba(37, 99, 235, 0.35);
 }
 
 .dashboard-card-icon .material-symbols-outlined {
     color: white;
-    font-size: 24px;
+    font-size: 28px;
+    transition: transform 0.3s ease;
+}
+
+.dashboard-card:hover .dashboard-card-icon .material-symbols-outlined {
+    transform: scale(1.1);
 }
 
 .dashboard-card-title {
     position: relative;
-    font-size: 1.125rem;
-    font-weight: 700;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 1.25rem;
+    font-weight: 800;
     color: #0f172a;
-    margin-bottom: 8px;
-    letter-spacing: -0.01em;
+    margin-bottom: 12px;
+    letter-spacing: -0.02em;
+    z-index: 2;
+    transition: color 0.3s ease;
+}
+
+.dashboard-card:hover .dashboard-card-title {
+    color: #2563eb;
 }
 
 .dashboard-card-desc {
     position: relative;
-    font-size: 0.875rem;
+    font-size: 0.9rem;
     color: #64748b;
-    line-height: 1.5;
-    margin-bottom: 16px;
+    line-height: 1.6;
+    margin-bottom: 24px;
+    z-index: 2;
+    flex-grow: 1;
 }
 
 .dashboard-card-arrow {
@@ -1352,30 +1373,69 @@ html.dark .app-footer {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 32px;
-    height: 32px;
-    border-radius: 8px;
-    background: rgba(37,99,235,0.1);
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    background: rgba(37, 99, 235, 0.08);
     transition: all 0.3s ease;
+    z-index: 2;
 }
 
 .dashboard-card:hover .dashboard-card-arrow {
-    background: rgba(37,99,235,0.2);
-    transform: translateX(4px);
+    background: #2563eb;
+    transform: translateX(6px);
 }
 
 .dashboard-card-arrow .material-symbols-outlined {
     color: #2563eb;
     font-size: 20px;
+    transition: color 0.3s ease;
+}
+
+.dashboard-card:hover .dashboard-card-arrow .material-symbols-outlined {
+    color: white;
+}
+
+.dashboard-card::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 4px;
+    height: 40px;
+    background: var(--accent-color, var(--primary));
+    border-radius: 0 4px 4px 0;
+    opacity: 0.3;
+    transition: all 0.3s ease;
+}
+
+.dashboard-card:hover::before {
+    height: 60px;
+    opacity: 1;
+    box-shadow: 0 0 10px var(--accent-color, var(--primary));
+}
+
+.dashboard-card.accent-core { --accent-color: #2563eb; }
+.dashboard-card.accent-analysis { --accent-color: #9333ea; }
+.dashboard-card.accent-tools { --accent-color: #f59e0b; }
+.dashboard-card.accent-coming { --accent-color: #64748b; }
+
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+    gap: 32px;
+    width: 100%;
 }
 
 html.dark .dashboard-card {
-    background: linear-gradient(135deg, rgba(30,41,59,0.9), rgba(15,23,42,0.95));
-    border-color: rgba(51,65,85,0.6);
+    background: rgba(30, 41, 59, 0.45);
+    border-color: rgba(255, 255, 255, 0.1);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
 }
 
 html.dark .dashboard-card-title {
-    color: #e2e8f0;
+    color: #f1f5f9;
 }
 
 html.dark .dashboard-card-desc {
@@ -1383,8 +1443,8 @@ html.dark .dashboard-card-desc {
 }
 
 html.dark .dashboard-card:hover {
-    border-color: rgba(59,130,246,0.4);
-    box-shadow: 0 12px 24px -8px rgba(59,130,246,0.3);
+    border-color: rgba(99, 102, 241, 0.4);
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
 }
 
 

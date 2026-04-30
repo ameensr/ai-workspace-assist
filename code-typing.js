@@ -38,7 +38,7 @@ class CodeTypingEngine {
         this.lineDelay = 1200; // ms between lines
         this.maxLines = 15;
         this.lines = [];
-        
+
         this.initStyles();
         this.startTyping();
     }
@@ -58,7 +58,7 @@ class CodeTypingEngine {
         line.style.marginBottom = "4px";
         line.style.opacity = "0";
         line.style.transition = "opacity 0.3s ease";
-        
+
         let processedContent = content;
         if (content.includes("Test Passed ✅")) {
             line.style.color = "#4ade80"; // Bright green
@@ -71,7 +71,7 @@ class CodeTypingEngine {
         } else if (content.startsWith("//")) {
             line.style.color = "rgba(100, 116, 139, 0.8)"; // Muted comment
         }
-        
+
         return line;
     }
 
@@ -81,10 +81,10 @@ class CodeTypingEngine {
             const lineElement = this.createLineElement(snippet);
             this.container.appendChild(lineElement);
             this.lines.push(lineElement);
-            
+
             // Fade in line and type
             lineElement.style.opacity = "1";
-            
+
             for (let i = 0; i <= snippet.length; i++) {
                 lineElement.textContent = "> " + snippet.substring(0, i) + (i < snippet.length ? "_" : "");
                 await new Promise(r => setTimeout(r, this.typingSpeed + Math.random() * 20));

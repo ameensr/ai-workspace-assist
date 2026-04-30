@@ -16,11 +16,11 @@
         { name: "Bug Report Generator", path: "#bug-report-generator", keywords: "bug report issue defect" },
         { name: "Clarity AI - The Text Refinery", path: "#clarity-ai", keywords: "clarity text sentence correction grammar" },
         { name: "Meeting Notes Extractor", path: "#meeting-notes-extractor", keywords: "meeting notes extract action items" },
-        { name: "Test Case Prioritizer", path: "coming_soon.html?feature=Test Case Prioritizer", keywords: "prioritize priority test cases" },
-        { name: "Requirement Change Impact Analyzer", path: "coming_soon.html?feature=Requirement Change Impact Analyzer", keywords: "requirement change impact analyze" },
-        { name: "Test Estimation Calculator", path: "coming_soon.html?feature=Test Estimation Calculator", keywords: "test estimation calculator effort" },
-        { name: "QA Knowledge Base Builder", path: "coming_soon.html?feature=QA Knowledge Base Builder", keywords: "qa knowledge base builder wiki" },
-        { name: "Test Case → Automation Converter", path: "coming_soon.html?feature=Test Case → Automation Converter", keywords: "automation converter test case script" }
+        { name: "Test Case Prioritizer", path: "coming_soon_new.html?feature=Test Case Prioritizer", keywords: "prioritize priority test cases" },
+        { name: "Requirement Change Impact Analyzer", path: "coming_soon_new.html?feature=Requirement Change Impact Analyzer", keywords: "requirement change impact analyze" },
+        { name: "Test Estimation Calculator", path: "coming_soon_new.html?feature=Test Estimation Calculator", keywords: "test estimation calculator effort" },
+        { name: "QA Knowledge Base Builder", path: "coming_soon_new.html?feature=QA Knowledge Base Builder", keywords: "qa knowledge base builder wiki" },
+        { name: "Test Case → Automation Converter", path: "coming_soon_new.html?feature=Test Case → Automation Converter", keywords: "automation converter test case script" }
     ];
 
     let selectedIndex = -1;

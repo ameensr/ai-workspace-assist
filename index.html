@@ -9,6 +9,8 @@
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;800;900&family=Dancing+Script:wght@700&display=swap"
+        rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
         rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600&display=swap"
@@ -147,19 +149,19 @@
                 </button>
                 <button
                     class="nav-item-special w-full flex items-center px-4 py-2.5 rounded-lg text-sm font-medium transition-colors text-slate-500 hover:bg-slate-100 text-left"
-                    data-url="coming_soon.html?feature=Requirement Change Impact Analyzer">
+                    data-url="coming_soon_new.html?feature=Requirement Change Impact Analyzer">
                     <span class="material-symbols-outlined mr-3 text-lg">change_circle</span>
                     Requirement Change Impact Analyzer
                 </button>
                 <button
                     class="nav-item-special w-full flex items-center px-4 py-2.5 rounded-lg text-sm font-medium transition-colors text-slate-500 hover:bg-slate-100 text-left"
-                    data-url="coming_soon.html?feature=Test Case Prioritizer">
+                    data-url="coming_soon_new.html?feature=Test Case Prioritizer">
                     <span class="material-symbols-outlined mr-3 text-lg">priority_high</span>
                     Test Case Prioritizer
                 </button>
                 <button
                     class="nav-item-special w-full flex items-center px-4 py-2.5 rounded-lg text-sm font-medium transition-colors text-slate-500 hover:bg-slate-100 text-left"
-                    data-url="coming_soon.html?feature=Test Estimation Calculator">
+                    data-url="coming_soon_new.html?feature=Test Estimation Calculator">
                     <span class="material-symbols-outlined mr-3 text-lg">calculate</span>
                     Test Estimation Calculator
                 </button>
@@ -187,13 +189,13 @@
                 </button>
                 <button
                     class="nav-item-special w-full flex items-center px-4 py-2.5 rounded-lg text-sm font-medium transition-colors text-slate-500 hover:bg-slate-100 text-left"
-                    data-url="coming_soon.html?feature=QA Knowledge Base Builder">
+                    data-url="coming_soon_new.html?feature=QA Knowledge Base Builder">
                     <span class="material-symbols-outlined mr-3 text-lg">library_books</span>
                     QA Knowledge Base Builder
                 </button>
                 <button
                     class="nav-item-special w-full flex items-center px-4 py-2.5 rounded-lg text-sm font-medium transition-colors text-slate-500 hover:bg-slate-100 text-left"
-                    data-url="coming_soon.html?feature=Test Case to Automation Converter">
+                    data-url="coming_soon_new.html?feature=Test Case to Automation Converter">
                     <span class="material-symbols-outlined mr-3 text-lg">code</span>
                     Test Case → Automation Converter
                 </button>
@@ -204,7 +206,7 @@
             <div class="sidebar-bottom">
                 <button
                     class="nav-item-special w-full flex items-center px-4 py-2.5 rounded-lg text-sm font-medium transition-colors text-slate-500 hover:bg-slate-100 text-left"
-                    data-url="coming_soon.html?page=QNA">
+                    data-url="coming_soon_new.html?page=QNA">
                     <span class="material-symbols-outlined mr-3 text-lg">forum</span>
                     QNA
                 </button>
@@ -272,8 +274,7 @@
 
             <div class="content-wrapper">
                 <!-- Main Content -->
-                <main class="max-w-6xl mx-auto">
-
+                <main class="w-full">
                     <!-- Dashboard Module -->
                     <section id="dashboard" class="module-section">
                         <header class="mb-8">
@@ -281,9 +282,9 @@
                             <p class="text-slate-600">Your AI-powered QA workspace. Select a module to get started.</p>
                         </header>
 
-                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+                        <div class="dashboard-grid mb-8">
                             <!-- Requirement Intelligence Card -->
-                            <div class="dashboard-card group" data-module="requirement-correction">
+                            <div class="dashboard-card group accent-core" data-module="requirement-correction">
                                 <div class="dashboard-card-icon">
                                     <span class="material-symbols-outlined">psychology</span>
                                 </div>
@@ -295,7 +296,7 @@
                             </div>
 
                             <!-- Test Suite Architect Card -->
-                            <div class="dashboard-card group" data-module="test-case-architect">
+                            <div class="dashboard-card group accent-core" data-module="test-case-architect">
                                 <div class="dashboard-card-icon">
                                     <span class="material-symbols-outlined">architecture</span>
                                 </div>
@@ -307,7 +308,7 @@
                             </div>
 
                             <!-- Test Case Builder Card -->
-                            <div class="dashboard-card group" data-module="test-case-gen">
+                            <div class="dashboard-card group accent-core" data-module="test-case-gen">
                                 <div class="dashboard-card-icon">
                                     <span class="material-symbols-outlined">fact_check</span>
                                 </div>
@@ -319,7 +320,7 @@
                             </div>
 
                             <!-- RTM Generator Card -->
-                            <div class="dashboard-card group" data-module="rtm-generator">
+                            <div class="dashboard-card group accent-analysis" data-module="rtm-generator">
                                 <div class="dashboard-card-icon">
                                     <span class="material-symbols-outlined">grid_on</span>
                                 </div>
@@ -331,7 +332,7 @@
                             </div>
 
                             <!-- Bug Report Generator Card -->
-                            <div class="dashboard-card group" data-module="bug-report-gen">
+                            <div class="dashboard-card group accent-tools" data-module="bug-report-gen">
                                 <div class="dashboard-card-icon">
                                     <span class="material-symbols-outlined">bug_report</span>
                                 </div>
@@ -343,7 +344,7 @@
                             </div>
 
                             <!-- Clarity AI Card -->
-                            <div class="dashboard-card group" data-module="sentence-correction">
+                            <div class="dashboard-card group accent-tools" data-module="sentence-correction">
                                 <div class="dashboard-card-icon">
                                     <span class="material-symbols-outlined">spellcheck</span>
                                 </div>
@@ -355,7 +356,7 @@
                             </div>
 
                             <!-- Meeting Notes Extractor Card -->
-                            <div class="dashboard-card group" data-module="meeting-notes-extractor">
+                            <div class="dashboard-card group accent-tools" data-module="meeting-notes-extractor">
                                 <div class="dashboard-card-icon">
                                     <span class="material-symbols-outlined">description</span>
                                 </div>
@@ -367,7 +368,7 @@
                             </div>
 
                             <!-- Test Case Prioritizer Card -->
-                            <div class="dashboard-card group" onclick="window.location.href='coming_soon.html?feature=Test Case Prioritizer'">
+                            <div class="dashboard-card group accent-analysis" onclick="window.location.href='coming_soon_new.html?feature=Test Case Prioritizer'">
                                 <div class="dashboard-card-icon">
                                     <span class="material-symbols-outlined">priority_high</span>
                                 </div>
@@ -379,7 +380,7 @@
                             </div>
 
                             <!-- Requirement Change Impact Analyzer Card -->
-                            <div class="dashboard-card group" onclick="window.location.href='coming_soon.html?feature=Requirement Change Impact Analyzer'">
+                            <div class="dashboard-card group accent-analysis" onclick="window.location.href='coming_soon_new.html?feature=Requirement Change Impact Analyzer'">
                                 <div class="dashboard-card-icon">
                                     <span class="material-symbols-outlined">change_circle</span>
                                 </div>
@@ -391,7 +392,7 @@
                             </div>
 
                             <!-- Test Estimation Calculator Card -->
-                            <div class="dashboard-card group" onclick="window.location.href='coming_soon.html?feature=Test Estimation Calculator'">
+                            <div class="dashboard-card group accent-analysis" onclick="window.location.href='coming_soon_new.html?feature=Test Estimation Calculator'">
                                 <div class="dashboard-card-icon">
                                     <span class="material-symbols-outlined">calculate</span>
                                 </div>
@@ -403,7 +404,7 @@
                             </div>
 
                             <!-- QA Knowledge Base Builder Card -->
-                            <div class="dashboard-card group" onclick="window.location.href='coming_soon.html?feature=QA Knowledge Base Builder'">
+                            <div class="dashboard-card group accent-tools" onclick="window.location.href='coming_soon_new.html?feature=QA Knowledge Base Builder'">
                                 <div class="dashboard-card-icon">
                                     <span class="material-symbols-outlined">library_books</span>
                                 </div>
@@ -415,7 +416,7 @@
                             </div>
 
                             <!-- Test Case to Automation Converter Card -->
-                            <div class="dashboard-card group" onclick="window.location.href='coming_soon.html?feature=Test Case to Automation Converter'">
+                            <div class="dashboard-card group accent-tools" onclick="window.location.href='coming_soon_new.html?feature=Test Case to Automation Converter'">
                                 <div class="dashboard-card-icon">
                                     <span class="material-symbols-outlined">code</span>
                                 </div>
@@ -1195,6 +1196,7 @@ Verify password minimum length validation
     <script src="prompts.js?v=2"></script>
     <script src="auth.js?v=2"></script>
     <script src="idle-timeout.js?v=2"></script>
+    <script src="ai-service.js?v=1"></script>
     <script src="./app.js?v=3"></script>
     <script src="rtm-generator.js?v=3"></script>
     <script src="fuzzy-search.js?v=1"></script>

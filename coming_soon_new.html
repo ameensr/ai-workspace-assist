@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coming Soon | Under Construction</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;800&family=Dancing+Script:wght@600&display=swap" rel="stylesheet">
+    <script>
+        // Automatic theme synchronization
+        (function () {
+            try {
+                const theme = (localStorage.getItem('qaly_theme') || 'light').toLowerCase() === 'dark' ? 'dark' : 'light';
+                document.documentElement.setAttribute('data-theme', theme);
+            } catch (_) {}
+        })();
+    </script>
+    <style>
+        :root {
+            --bg: #ffffff;
+            --fg: #000000;
+            --accent-gradient: linear-gradient(90deg, #a78bfa, #f472b6);
+            --transition: 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+        }
+
+        [data-theme="dark"] {
+            --bg: #000000;
+            --fg: #ffffff;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            cursor: none;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--fg);
+            font-family: 'Montserrat', sans-serif;
+            transition: background-color var(--transition), color var(--transition);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 3rem;
+            overflow-x: hidden;
+        }
+
+        /* Header Section */
+        header {
+            display: flex;
+            justify-content: flex-start;
+            align-items: center;
+            z-index: 10;
+        }
+
+        .logo-box {
+            display: inline-flex;
+            items-center: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            border-radius: 2rem;
+            border: 1px solid rgba(128, 128, 128, 0.3);
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(5px);
+        }
+
+        .logo-q {
+            display: inline-flex;
+            width: 24px;
+            height: 24px;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            background: #2563eb;
+            color: #fff;
+            font-weight: 800;
+            font-size: 0.75rem;
+        }
+
+        .logo-text {
+            font-weight: 800;
+            font-size: 0.8rem;
+            letter-spacing: 0.05em;
+            color: var(--fg);
+        }
+
+        /* Hero Section */
+        main {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 4rem 0;
+        }
+
+        .title-group {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .main-title {
+            font-size: clamp(2rem, 6vw, 4rem);
+            font-weight: 800;
+            letter-spacing: -1px;
+        }
+
+        .plus-sign {
+            font-size: clamp(1.5rem, 4vw, 3rem);
+            font-weight: 400;
+            opacity: 0.6;
+        }
+
+        .script-title {
+            font-family: 'Dancing Script', cursive;
+            font-size: clamp(2rem, 6vw, 4rem);
+            background: var(--accent-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            padding-right: 0.1em;
+        }
+
+        .subtitle {
+            font-size: 0.9rem;
+            letter-spacing: 0.8em;
+            text-transform: uppercase;
+            font-weight: 700;
+            opacity: 0.9;
+            margin-top: 1rem;
+        }
+
+        .back-button {
+            background: var(--fg);
+            color: var(--bg);
+            border: none;
+            padding: 0.8rem 1.8rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            text-decoration: none;
+            transition: var(--transition);
+            z-index: 20;
+        }
+
+        .back-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+            opacity: 0.9;
+        }
+
+        /* Mini Game Section */
+        .game-container {
+            margin-top: 4rem;
+            width: 100%;
+            max-width: 600px;
+            opacity: 0.8;
+            transition: opacity 0.3s ease;
+        }
+
+        .game-container:hover {
+            opacity: 1;
+        }
+
+        .game-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+            font-size: 0.7rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            opacity: 0.6;
+        }
+
+        .canvas-wrapper {
+            position: relative;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid rgba(128, 128, 128, 0.2);
+        }
+
+        .game-canvas {
+            display: block;
+            width: 100%;
+            height: 120px;
+            background: rgba(128, 128, 128, 0.05);
+        }
+
+        .game-overlay {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(2px);
+            transition: opacity 0.3s ease;
+        }
+
+        .game-overlay span {
+            font-size: 0.6rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.2em;
+            padding: 0.5rem 1rem;
+            border: 1px solid rgba(128, 128, 128, 0.5);
+            border-radius: 20px;
+            background: var(--bg);
+        }
+
+        /* Footer Section */
+        footer {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2rem;
+            z-index: 10;
+        }
+
+        .social-links {
+            display: flex;
+            gap: 3rem;
+        }
+
+        .social-links a {
+            color: var(--fg);
+            text-decoration: none;
+            font-size: 0.8rem;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+            transition: opacity 0.3s ease;
+        }
+
+        .social-links a:hover {
+            opacity: 0.6;
+        }
+
+        .footer-line {
+            width: 100%;
+            height: 1px;
+            background: rgba(128, 128, 128, 0.2);
+        }
+
+        /* Custom Cursor */
+        #cursor {
+            position: fixed;
+            width: 20px;
+            height: 20px;
+            background: #fff;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 9999;
+            mix-blend-mode: difference;
+            transform: translate(-50%, -50%);
+            transition: width 0.3s, height 0.3s;
+        }
+
+        #cursor.hover {
+            width: 60px;
+            height: 60px;
+        }
+
+        /* Code Typing Background */
+        #code-bg {
+            position: fixed;
+            inset: 0;
+            z-index: -1;
+            opacity: 0.35; /* Increased visibility */
+            pointer-events: none;
+            overflow: hidden;
+            transition: opacity var(--transition);
+        }
+
+        [data-theme="dark"] #code-bg {
+            opacity: 0.45; /* Higher visibility in dark mode */
+        }
+
+        /* Animations */
+        @keyframes fadeInScale {
+            from { opacity: 0; transform: scale(0.98) translateY(10px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+
+        .animate-in {
+            animation: fadeInScale 1.2s var(--transition) forwards;
+        }
+
+        .stagger-1 { animation-delay: 0.2s; }
+        .stagger-2 { animation-delay: 0.4s; }
+
+        @media (max-width: 768px) {
+            body { padding: 2rem; }
+            .title-group { flex-direction: column; gap: 0; }
+            .social-links { gap: 1.5rem; }
+            .subtitle { letter-spacing: 0.4em; font-size: 0.7rem; }
+        }
+    </style>
+</head>
+<body data-theme="light">
+    <div id="code-bg"></div>
+    <div id="cursor"></div>
+
+    <header class="animate-in">
+        <!-- Logo removed as per user request -->
+    </header>
+
+    <main>
+        <div class="animate-in stagger-1">
+            <div class="title-group">
+                <span class="main-title" id="titlePart1">UNDER</span>
+                <span class="plus-sign">+</span>
+                <span class="script-title" id="titlePart2">Construction</span>
+            </div>
+            <div class="subtitle" id="dynamicSubtitle">COMING SOON</div>
+        </div>
+
+        <div class="game-container animate-in stagger-2">
+            <div class="game-header">
+                <span>Mini Game</span>
+                <span>Score: <span id="scoreDisplay">00</span> | Best: <span id="highScore">0</span></span>
+            </div>
+            <div class="canvas-wrapper">
+                <canvas id="gameCanvas" width="600" height="120" class="game-canvas"></canvas>
+                <div id="gameOverlay" class="game-overlay">
+                    <span>Press Space or Click to Jump</span>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="animate-in stagger-2">
+        <a href="index.html#home" class="back-button">Back to Dashboard</a>
+        <div class="footer-line"></div>
+    </footer>
+
+    <script src="code-typing.js"></script>
+    <script>
+        // Custom Cursor
+        const cursor = document.getElementById('cursor');
+        document.addEventListener('mousemove', (e) => {
+            cursor.style.left = e.clientX + 'px';
+            cursor.style.top = e.clientY + 'px';
+        });
+
+        const hoverElements = document.querySelectorAll('a, button, .title-group, #gameCanvas');
+        hoverElements.forEach(el => {
+            el.addEventListener('mouseenter', () => cursor.classList.add('hover'));
+            el.addEventListener('mouseleave', () => cursor.classList.remove('hover'));
+        });
+
+        // Mini Game Logic
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const overlay = document.getElementById('gameOverlay');
+        const scoreEl = document.getElementById('scoreDisplay');
+        const highScoreEl = document.getElementById('highScore');
+
+        let isRunning = false;
+        let score = 0;
+        let highScore = Number(localStorage.getItem('qaly_dash_score') || 0);
+        highScoreEl.textContent = highScore;
+
+        const player = {
+            x: 50,
+            y: 90,
+            size: 14,
+            dy: 0,
+            jump: -7.5,
+            gravity: 0.4
+        };
+
+        let obstacles = [];
+        let frame = 0;
+
+        function initGame() {
+            obstacles = [];
+            score = 0;
+            frame = 0;
+            player.y = 90;
+            player.dy = 0;
+            scoreEl.textContent = '00';
+            isRunning = true;
+            overlay.style.opacity = '0';
+            animate();
+        }
+
+        function jump() {
+            if (!isRunning) {
+                initGame();
+                return;
+            }
+            const floor = canvas.height - player.size - 10;
+            if (player.y >= floor - 0.1) {
+                player.dy = player.jump;
+            }
+        }
+
+        window.addEventListener('keydown', (e) => {
+            if (e.code === 'Space') {
+                e.preventDefault();
+                jump();
+            }
+        });
+        canvas.addEventListener('mousedown', (e) => {
+            e.preventDefault();
+            jump();
+        });
+
+        function animate() {
+            if (!isRunning) return;
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Draw Ground Line
+            ctx.strokeStyle = 'rgba(128, 128, 128, 0.3)';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(10, canvas.height - 10);
+            ctx.lineTo(canvas.width - 10, canvas.height - 10);
+            ctx.stroke();
+
+            // Player Logic
+            player.dy += player.gravity;
+            player.y += player.dy;
+            const floor = canvas.height - player.size - 10;
+            if (player.y > floor) {
+                player.y = floor;
+                player.dy = 0;
+            }
+
+            // Draw Player (Small Cube)
+            ctx.fillStyle = '#2563eb';
+            ctx.fillRect(player.x - player.size / 2, player.y, player.size, player.size);
+
+            // Obstacles
+            if (frame % 80 === 0) {
+                obstacles.push({
+                    x: canvas.width,
+                    w: 12 + Math.random() * 8,
+                    h: 15 + Math.random() * 20
+                });
+            }
+
+            for (let i = obstacles.length - 1; i >= 0; i--) {
+                const o = obstacles[i];
+                o.x -= 5;
+
+                ctx.fillStyle = 'rgba(128, 128, 128, 0.6)';
+                ctx.fillRect(o.x, canvas.height - 10 - o.h, o.w, o.h);
+
+                // Collision
+                if (
+                    player.x + player.size / 2 > o.x &&
+                    player.x - player.size / 2 < o.x + o.w &&
+                    player.y + player.size > canvas.height - 10 - o.h
+                ) {
+                    gameOver();
+                }
+
+                if (o.x < -30) {
+                    obstacles.splice(i, 1);
+                    score += 1;
+                    scoreEl.textContent = score.toString().padStart(2, '0');
+                }
+            }
+
+            frame += 1;
+            requestAnimationFrame(animate);
+        }
+
+        function gameOver() {
+            isRunning = false;
+            overlay.style.opacity = '1';
+            if (score > highScore) {
+                highScore = score;
+                localStorage.setItem('qaly_dash_score', String(highScore));
+                highScoreEl.textContent = String(highScore);
+            }
+        }
+
+        // Draw static initial state
+        ctx.strokeStyle = 'rgba(128, 128, 128, 0.3)';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(10, canvas.height - 10);
+        ctx.lineTo(canvas.width - 10, canvas.height - 10);
+        ctx.stroke();
+        ctx.fillStyle = '#2563eb';
+        ctx.fillRect(player.x - player.size / 2, player.y, player.size, player.size);
+
+        // URL Parameters for Dynamic Content
+        const params = new URLSearchParams(window.location.search);
+        const feature = params.get('feature') || params.get('page');
+        const t1 = params.get('t1');
+        const t2 = params.get('t2');
+        const sub = params.get('sub');
+
+        if (feature) {
+            const words = feature.split(' ');
+            if (words.length > 1) {
+                document.getElementById('titlePart1').textContent = words.slice(0, Math.ceil(words.length / 2)).join(' ');
+                document.getElementById('titlePart2').textContent = words.slice(Math.ceil(words.length / 2)).join(' ');
+            } else {
+                document.getElementById('titlePart1').textContent = feature;
+                document.getElementById('titlePart2').textContent = 'Coming Soon';
+            }
+        } else {
+            if (t1) document.getElementById('titlePart1').textContent = t1;
+            if (t2) document.getElementById('titlePart2').textContent = t2;
+        }
+
+        if (sub) {
+            document.getElementById('dynamicSubtitle').textContent = sub.toUpperCase().split('').join('   ');
+        }
+
+        // Parallax
+        document.addEventListener('mousemove', (e) => {
+            const x = (window.innerWidth / 2 - e.clientX) / 100;
+            const y = (window.innerHeight / 2 - e.clientY) / 100;
+            document.querySelector('main').style.transform = `translate(${x}px, ${y}px)`;
+        });
+    </script>
+</body>
+</html>

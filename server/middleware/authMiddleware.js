@@ -111,7 +111,8 @@ async function getUserSettings(ctx, userId) {
       gemini: providerApiKeys.gemini || '',
       claude: providerApiKeys.claude || '',
       grok: providerApiKeys.grok || '',
-      perplexity: providerApiKeys.perplexity || ''
+      perplexity: providerApiKeys.perplexity || '',
+      nvidia: providerApiKeys.nvidia || ''
     }
   };
 }
